@@ -97,6 +97,63 @@ const getAllUniversities = asyncHandler(async (req, res) => {
   res.status(200).json(universities);
 });
 
+const getUniversityById = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+
+  const university = await University.findById(id)
+    .select("-createdAt -updatedAt")
+    .lean();
+
+  if (!university) {
+    return res.status(404).json({
+      message: "University not found",
+    });
+  }
+
+  res.status(200).json(university);
+});
+
+const getUniversitiesPage = asyncHandler(async (req, res) => {
+  const { page = 1, limit = 40 } = req.query;
+
+  const universities = await University.find()
+    .select("-createdAt -updatedAt")
+    .skip((page - 1) * limit)
+    .limit(limit)
+    .lean();
+
+  if (!universities) {
+    return res.status(404).json({
+      message: "No universities found",
+    });
+  }
+
+  res.status(200).json(universities);
+});
+
+const getStudentsPageOfUniversity = asyncHandler(async (req, res) => {
+  const { universityId } = req.params;
+  const { page = 1, limit = 40 } = req.query;
+
+  const students = await Student.findById({ universityId })
+    .limit(limit)
+    .skip(page * limit)
+    .lean();
+  if (!students) {
+    return res.status(404).json({
+      message: "No students found",
+    });
+  }
+
+  res.status(200).json(students);
+});
+
 export default createUniversity;
 
-export { createUniversity, getAllUniversities };
+export {
+  createUniversity,
+  getAllUniversities,
+  getUniversityById,
+  getUniversitiesPage,
+  getStudentsPageOfUniversity,
+};

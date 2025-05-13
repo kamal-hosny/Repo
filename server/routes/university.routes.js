@@ -1,9 +1,21 @@
 import { Router } from "express";
 
-import { createUniversity, getAllUniversities } from "../controllers/university.controller.js";
+import {
+  createUniversity,
+  getAllUniversities,
+  getStudentsPageOfUniversity,
+  getUniversitiesPage,
+  getUniversityById,
+} from "../controllers/university.controller.js";
 
 const router = Router();
 
-router.route("/").get(getAllUniversities).post(createUniversity);
+router.route("/all").get(getAllUniversities);
+
+router.route("/").get(getUniversitiesPage).post(createUniversity);
+
+router.route("/:universityId").get(getUniversityById);
+
+router.route("/:universityId/students").get(getStudentsPageOfUniversity);
 
 export default router;

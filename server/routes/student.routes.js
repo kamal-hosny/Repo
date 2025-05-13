@@ -11,7 +11,8 @@ import {
 
 const router = Router();
 
-router.route("/").get(getStudentsPage).post(createStudent);
+router.route("/").get(getStudentsPage)
+router.route("/:universityId").post(createStudent);
 
 router.route("/all").get(getAllStudents);
 
@@ -20,6 +21,8 @@ router
   .get(getStudentById)
   .patch(updateStudent)
   .delete(deleteStudent);
+
+
 
 
   export default router;

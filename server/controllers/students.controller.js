@@ -1,4 +1,3 @@
-import mongoose from "mongoose";
 
 import Student from "../models/student.model.js";
 import Course from "../models/course.model.js";
@@ -14,6 +13,7 @@ const createStudent = asyncHandler(async (req, res) => {
     });
   }
   const { name, email, courses } = req.body;
+  const { universityId } = req.params;
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailRegex.test(email)) {
@@ -37,6 +37,7 @@ const createStudent = asyncHandler(async (req, res) => {
     name,
     email,
     courses,
+    universityId,
   });
 
   if (!student) {
@@ -84,9 +85,11 @@ const registerStudentToUniversity = asyncHandler(async (req, res) => {
 
 const getStudentsPageOfUniversity = asyncHandler(async (req, res) => {
   const { universityId } = req.params;
+  const { page = 1, limit = 40 } = req.query;
   const students = await Student.find({ universityId })
     .select("-createdAt -updatedAt")
-    .limit(40)
+    .limit(limit)
+    .skip((page - 1) * limit)
     .sort({ _id: -1 })
     .lean();
   res.status(200).json(students);
