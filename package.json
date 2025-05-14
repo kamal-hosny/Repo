@@ -10,12 +10,10 @@
     "dev": "concurrently \"npm run backend\" \"npm run frontend\"",
     "backend": "npm run dev --prefix server",
     "frontend": "npm run dev --prefix client",
+    "frontend": "npm run dev --prefix client",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
-    "cors": "^2.8.5"
-  },
-  "devDependencies": {
     "concurrently": "^9.1.2"
   }
 }
