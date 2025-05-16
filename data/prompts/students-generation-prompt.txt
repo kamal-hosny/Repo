@@ -1,0 +1,24 @@
+don't use structued output, just plain chatmode with gemini 2.5 flash with temp [0, .5]
+
+Generate 5 arabic students
+`email` must be similar to the name and conform to professional email template. Email name should have a little bit of random special character and numbers now and then but it should not be more than 3 characters and should not be always. Email domain may be a random domain from the following ['gmail.com', 'yahoo.com', 'live.com']
+`universityId` must be equal to the string '6823509b467cae38bbf7d69f'
+Names must be in english characters.
+
+You must check that you actually generated an output of 5 students
+
+here's the OpenAPI json schema:
+```{
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "email": {
+      "type": "string"
+    },
+    "universityId": {
+      "type": "string"
+    }
+  }
+}```
