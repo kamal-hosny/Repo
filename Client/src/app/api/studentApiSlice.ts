@@ -11,7 +11,7 @@ export const studentApiSlice = apiSlice.injectEndpoints({
                 method: "GET",
             }),
         }),
-        getStudentById: builder.query<Student, number>({
+        getStudentById: builder.query<Student, string>({
             query: (id) => ({
                 url: `${STUDENT_URL}/${id}`,
                 method: "GET",
