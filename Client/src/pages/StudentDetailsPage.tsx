@@ -41,21 +41,23 @@ const StudentDetailsPage = () => {
         <h1 className="text-3xl font-semibold">{student.name}</h1>
         <p className="text-muted-foreground text-sm">{student.email}</p>
         <Badge variant="outline" className="mt-2">
-          University ID: {student.universityId ?? "N/A"}
+          University ID: {student?.universityId?.name ?? "N/A"}
         </Badge>
       </div>
 
       <Card>
         <CardContent className="p-6 space-y-2">
           <p className="text-lg font-medium">Courses</p>
-          {student.courses?.length > 0 ? (
+          {student?.courses?.length > 0 ? (
             <ul className="list-disc pl-5 space-y-1 text-sm">
-              {student.courses.map((course: string, index: number) => (
+              {student?.courses.map((course: string, index: number) => (
                 <li key={index}>{course}</li>
               ))}
             </ul>
           ) : (
-            <p className="text-sm text-muted-foreground">No courses enrolled.</p>
+            <p className="text-sm text-muted-foreground">
+              No courses enrolled.
+            </p>
           )}
         </CardContent>
       </Card>

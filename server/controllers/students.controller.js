@@ -127,7 +127,12 @@ const getStudentsPage = asyncHandler(async (req, res) => {
 });
 
 const getStudentById = asyncHandler(async (req, res) => {
-  const student = await Student.findById(req.params.id).lean();
+  const student = await Student.findById(req.params.id)
+    .populate({
+      path: "universityId",
+      select: "name",
+    })
+    .lean();
   if (!student) {
     return res.status(404).json({
       message: "Student not found",
