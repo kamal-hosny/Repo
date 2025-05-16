@@ -1,0 +1,32 @@
+don't use structued output, just plain chatmode in gemini 2.5 flash with temp 0-1
+
+generate 5 courses for computer sciences college, lectures id must be equal to an array contain only 1 element ['68260c76e7be1b2ed546b2a7'], and teachers must be an array contains only 2 elements ['68260dffe7be1b2ed546b2ab', '68260f82e7be1b2ed546b2b1']
+Names must be in english characters, You must check that you actually generated an output of 5 courses.
+
+You must check that you actually generated an output of 5 courses
+
+here's the OpenAPI json schema
+```{
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "hours": {
+      "type": "number"
+    },
+    "teachers": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "lectures": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}```
+
