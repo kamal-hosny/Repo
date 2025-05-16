@@ -1,23 +1,12 @@
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import { Outlet } from "react-router-dom";
 import "./App.css";
-import Student from "./Components/Student/Student";
-import Layout from "./Components/Layout/Layout";
+import Navbar from "./Components/Navbar/Navbar";
 
 function App() {
-  const router = createBrowserRouter([
-    {
-      path: "",
-      element: <Layout />,
-      children: [
-        { path: "/student", element: <Student /> },
-      ],
-    },
-  ]);
-
   return (
     <>
-
-      <RouterProvider router={router} />
+      <Navbar />
+      <Outlet />
     </>
   );
 }

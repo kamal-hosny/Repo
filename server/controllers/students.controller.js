@@ -1,4 +1,3 @@
-
 import Student from "../models/student.model.js";
 import Course from "../models/course.model.js";
 
@@ -105,12 +104,26 @@ const getAllStudentsOfUniversity = asyncHandler(async (req, res) => {
 });
 
 const getStudentsPage = asyncHandler(async (req, res) => {
+  const { page = 1, limit = 40 } = req.query;
+  const totalStudents = await Student.countDocuments();
+  const totalPages = Math.ceil(totalStudents / limit);
+
   const students = await Student.find()
-    .select("-createdAt -updatedAt")
-    .limit(40)
+    .select("-createdAt -updatedAt -courses")
+    .populate({
+      path: "universityId",
+      select: "name",
+    })
+    .skip((page - 1) * limit)
+    .limit(limit)
     .sort({ _id: -1 })
     .lean();
-  res.status(200).json(students);
+
+  res.status(200).json({
+    students,
+    totalPages,
+    currentPage: page,
+  });
 });
 
 const getStudentById = asyncHandler(async (req, res) => {
