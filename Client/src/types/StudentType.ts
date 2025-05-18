@@ -11,4 +11,9 @@ interface Student {
     updatedAt: string;    
 }
 
-export type { Student };
+interface loginInput {
+    studentId: string;
+    password: string;
+}
+
+export type { Student, loginInput };

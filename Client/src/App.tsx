@@ -1,11 +1,22 @@
 import { Outlet } from "react-router-dom";
-import "./App.css";
-import Navbar from "./Components/Navbar/Navbar";
+// import Navbar from "./Components/Navbar/Navbar";
+import { Toaster } from "react-hot-toast";
 
 function App() {
   return (
     <>
-      <Navbar />
+      {/* <Navbar /> */}
+      <Toaster
+        reverseOrder={false}
+        toastOptions={{
+          className: "",
+          duration: 3000,
+          style: {
+            background: "#363636",
+            color: "#fff",
+          },
+        }}
+      />
       <Outlet />
     </>
   );
