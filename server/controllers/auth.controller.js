@@ -43,4 +43,11 @@ const loginStudent = asyncHandler(async (req, res) => {
   });
 });
 
-export { loginStudent };
+const logoutStudent = asyncHandler(async (req, res) => {
+  res.clearCookie("jwt");
+  res.status(200).json({
+    message: "Logout successful",
+  });
+});
+
+export { loginStudent, logoutStudent };
