@@ -7,7 +7,7 @@ import {
   getStudentById,
   updateStudent,
   deleteStudent,
-} from "../controllers/students.controller.js";
+} from "../controllers/student.controller.js";
 
 const router = Router();
 
