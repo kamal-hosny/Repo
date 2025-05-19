@@ -155,7 +155,7 @@ const getTeachersPageOfUniversity = asyncHandler(async (req, res) => {
   const { universityId } = req.params;
   const { page = 1, limit = 40 } = req.query;
 
-  const result = await University.findById(universityId)
+  const university = await University.findById(universityId)
     .populate({
       path: "teachers",
       options: {
@@ -166,7 +166,7 @@ const getTeachersPageOfUniversity = asyncHandler(async (req, res) => {
     .select("teachers")
     .lean();
 
-  if (!result || result.length === 0) {
+  if (!university || university.length === 0) {
     return res
       .status(404)
       .json({ message: "No teachers found", total: 0, teachers: [] });
