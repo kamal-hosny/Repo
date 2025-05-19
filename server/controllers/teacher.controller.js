@@ -32,4 +32,18 @@ const getPageOfTeachers = asyncHandler(async (req, res) => {
   res.status(200).json({ teachers, total: teachers.length });
 });
 
-export { getAllTeachers, getPageOfTeachers };
+const getTeacherById = asyncHandler(async (req, res) => {
+  const { teacherId } = req.params;
+
+  const teacher = await Teacher.findById(teacherId).populate("courses");
+
+  if (!teacher) {
+    return res.status(404).json({
+      message: "Teacher not found",
+    });
+  }
+
+  res.status(200).json(teacher);
+});
+
+export { getAllTeachers, getPageOfTeachers, getTeacherById };
