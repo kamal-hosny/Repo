@@ -3,6 +3,7 @@ import asyncHandler from "express-async-handler";
 import Student from "../models/student.model.js";
 import Course from "../models/course.model.js";
 import University from "../models/univirsity.model.js";
+import Teacher from "../models/teacher.model.js";
 
 const createUniversity = asyncHandler(async (req, res) => {
   const {
@@ -138,7 +139,7 @@ const getStudentsPageOfUniversity = asyncHandler(async (req, res) => {
 
   const students = await Student.find({ universityId })
     .limit(limit)
-    .skip((page - 1) * limit) 
+    .skip((page - 1) * limit)
     .lean();
 
   if (!students || students.length === 0) {
@@ -150,6 +151,31 @@ const getStudentsPageOfUniversity = asyncHandler(async (req, res) => {
   res.status(200).json(students);
 });
 
+const getTeachersPageOfUniversity = asyncHandler(async (req, res) => {
+  const { universityId } = req.params;
+  const { page = 1, limit = 40 } = req.query;
+
+  const result = await University.findById(universityId)
+    .populate({
+      path: "teachers",
+      options: {
+        skip: (page - 1) * limit,
+        limit: limit,
+      },
+    })
+    .select("teachers")
+    .lean();
+
+  if (!result || result.length === 0) {
+    return res
+      .status(404)
+      .json({ message: "No teachers found", total: 0, teachers: [] });
+  }
+
+  res
+    .status(200)
+    .json({ total: result.teachers.length, teachers: result.teachers });
+});
 
 export {
   createUniversity,
@@ -157,4 +183,5 @@ export {
   getUniversityById,
   getUniversitiesPage,
   getStudentsPageOfUniversity,
+  getTeachersPageOfUniversity,
 };
