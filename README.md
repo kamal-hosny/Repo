@@ -1,5 +1,5 @@
 ## Setup
-### Clone repo
+### Clone
 ```bash
   git clone https://github.com/AhmedIssawy/Repo.git
   cd model
