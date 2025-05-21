@@ -8,7 +8,7 @@ import connectDB from "./config/db.js";
 // Routes
 import studentRoutes from "./routes/student.routes.js";
 import universityRoutes from "./routes/university.routes.js";
-import authRoutes from "./routes/auth.routes.js"
+import authRoutes from "./routes/auth.routes.js";
 
 const app = express();
 const { PORT } = process.env;
