@@ -8,9 +8,8 @@ import connectDB from "./config/db.js";
 // Routes
 import studentRoutes from "./routes/student.routes.js";
 import universityRoutes from "./routes/university.routes.js";
-import authRoutes from "./routes/auth.routes.js"
+import authRoutes from "./routes/auth.routes.js";
 import teacherRoutes from "./routes/teacher.routes.js";
-
 const app = express();
 const { PORT } = process.env;
 
@@ -27,7 +26,7 @@ connectDB();
 
 app.use("/api/students", studentRoutes);
 app.use("/api/universities", universityRoutes);
-app.use("/api/teachers", teacherRoutes)
+app.use("/api/teachers", teacherRoutes);
 app.use("/api/auth", authRoutes);
 
 app.listen(PORT, () => {

@@ -134,17 +134,18 @@ const getUniversitiesPage = asyncHandler(async (req, res) => {
 
 const getStudentsPageOfUniversity = asyncHandler(async (req, res) => {
   const { universityId } = req.params;
-  const page = parseInt(req.query.page) || 1;
-  const limit = parseInt(req.query.limit) || 40;
+  const page = Math.max(parseInt(req.query.page) || 1, 1);
+  const limit = Math.max(parseInt(req.query.limit) || 40, 1);
 
   const students = await Student.find({ universityId })
     .limit(limit)
+    .skip((page - 1) * limit)
     .skip((page - 1) * limit)
     .lean();
 
   if (!students || students.length === 0) {
     return res.status(404).json({
-      message: "No students found",
+      message: "No students found ",
     });
   }
 

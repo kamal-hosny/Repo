@@ -57,5 +57,5 @@ export {
   validateStudentId,
   validateStudentLoginData,
   validateUniversityId,
-  validateStudentUpdateData
+  validateStudentUpdateData,
 };

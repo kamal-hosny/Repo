@@ -6,8 +6,9 @@ import {
   getStudentsPageOfUniversity,
   getUniversitiesPage,
   getUniversityById,
-  getTeachersPageOfUniversity
+  getTeachersPageOfUniversity,
 } from "../controllers/university.controller.js";
+import { validateUniversityId } from "../middlewares/validation.middleware.js";
 
 const router = Router();
 
@@ -17,7 +18,9 @@ router.route("/all").get(getAllUniversities);
 
 router.route("/:universityId").get(getUniversityById);
 
-router.route("/:universityId/students").get(getStudentsPageOfUniversity);
+router
+  .route("/:universityId/students")
+  .get(validateUniversityId, getStudentsPageOfUniversity);
 
 router.route("/:universityId/teachers").get(getTeachersPageOfUniversity);
 
