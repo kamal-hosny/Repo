@@ -9,19 +9,15 @@
 - **Data**: Python scripts and prompts for database generation
 
 ## Setup
-<<<<<<< HEAD
 
 ### Clone repo
 
-=======
-### Clone
->>>>>>> 0fcf01fc6495593bc42e68cf5be3e1cc52eb8acc
 ```bash
   git clone https://github.com/AhmedIssawy/Repo.git
   cd model
 ```
 
-### install dependencies
+### Install dependencies
 
 ```bash
   npm i
@@ -35,13 +31,22 @@
 
 ### Configure environment variables
 
-Create a .env file in the /server directory:
-.env:
+Create an `.env` file in the `/server` directory:
+
+```
 JWT_SECRET = your_jwt_secret
 NODE_ENV = development
 MONGO_URI = your_mongodb_URL
+JWT_EXPIRES_IN = your_expiration_days
 PORT = your_port
 CLIENT_URL = your_client_URL
+```
+
+Create an `.env` file in the `/client` directory: 
+
+```
+VITE_API_URL = your_api_URL
+```
 
 ## Features
 
