@@ -20,6 +20,16 @@ const validateStudentId = (req, res, next) => {
   next();
 };
 
+const validateUniversityId = (req, res, next) => {
+  const { universityId } = req.params;
+  if (!universityId || universityId.length < 5) {
+    return res.status(400).json({
+      message: "Invalid university ID format",
+    });
+  }
+  next();
+};
+
 const validateStudentLoginData = (req, res, next) => {
   const { studentId, password } = req.body;
   if (studentId || !password) {
@@ -30,4 +40,22 @@ const validateStudentLoginData = (req, res, next) => {
   next();
 };
 
-export { validateObjectId, validateStudentId, validateStudentLoginData };
+const validateStudentUpdateData = (req, res, next) => {
+  const { name, password, phone, role } = req.body;
+
+  if (!name && !password && !phone && !role) {
+    return res.status(400).json({
+      message: "At least one field is required for update",
+    });
+  }
+
+  next();
+};
+
+export {
+  validateObjectId,
+  validateStudentId,
+  validateStudentLoginData,
+  validateUniversityId,
+  validateStudentUpdateData
+};
