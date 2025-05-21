@@ -6,8 +6,9 @@ import {
   getStudentsPageOfUniversity,
   getUniversitiesPage,
   getUniversityById,
+  getTeachersPageOfUniversity,
 } from "../controllers/university.controller.js";
-import validateMongoId from "../middlewares/validateMongoId.middleware.js";
+import { validateUniversityId } from "../middlewares/validation.middleware.js";
 
 const router = Router();
 
@@ -19,6 +20,8 @@ router.route("/:universityId").get(getUniversityById);
 
 router
   .route("/:universityId/students")
-  .get(validateMongoId, getStudentsPageOfUniversity);
+  .get(validateUniversityId, getStudentsPageOfUniversity);
+
+router.route("/:universityId/teachers").get(getTeachersPageOfUniversity);
 
 export default router;

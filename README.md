@@ -9,9 +9,13 @@
 - **Data**: Python scripts and prompts for database generation
 
 ## Setup
+<<<<<<< HEAD
 
 ### Clone repo
 
+=======
+### Clone
+>>>>>>> 0fcf01fc6495593bc42e68cf5be3e1cc52eb8acc
 ```bash
   git clone https://github.com/AhmedIssawy/Repo.git
   cd model
