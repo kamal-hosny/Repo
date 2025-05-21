@@ -10,19 +10,24 @@ import {
 } from "../controllers/student.controller.js";
 
 // Validators
-import { validateObjectId } from "../middlewares/validation.middleware.js";
+import {
+  validateObjectId,
+  validateStudentId,
+  validateStudentUpdateData,
+  validateUniversityId,
+} from "../middlewares/validation.middleware.js";
 
 const router = Router();
 
 router.route("/").get(getStudentsPage);
-router.route("/:universityId").post(createStudent);
+router.route("/:universityId").post(validateUniversityId, createStudent);
 
 router.route("/all").get(getAllStudents);
 
 router
   .route("/:id")
   .get(validateObjectId, getStudentById)
-  .patch(updateStudent)
+  .patch(validateObjectId, validateStudentUpdateData, updateStudent)
   .delete(deleteStudent);
 
 export default router;
