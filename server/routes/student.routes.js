@@ -9,6 +9,9 @@ import {
   deleteStudent,
 } from "../controllers/student.controller.js";
 
+// Validators
+import { validateObjectId } from "../middlewares/validation.middleware.js";
+
 const router = Router();
 
 router.route("/").get(getStudentsPage);
@@ -18,7 +21,7 @@ router.route("/all").get(getAllStudents);
 
 router
   .route("/:id")
-  .get(getStudentById)
+  .get(validateObjectId, getStudentById)
   .patch(updateStudent)
   .delete(deleteStudent);
 
