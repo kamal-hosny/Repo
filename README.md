@@ -4,7 +4,7 @@
 
 ## Project Structure
 
-- **Client**: React/TypeScript frontend with Redux for state management and Tailwind CSS for styling
+- **Client**: React/TypeScript frontend with Redux for state management and Tailwind for styling
 - **Server**: Express.js backend with MongoDB database
 - **Data**: Python scripts and prompts for database generation
 
