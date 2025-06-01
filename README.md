@@ -1,4 +1,4 @@
-# Task Flow: Student Management System
+# Task Flow: Management System
 
 "Task Flow" is a SaaS platform designed to support students, schools, institutes, and universities in managing academic activities. The system allows institutions to manage courses, schedules, assignments, and student performance in one place. Students can access their materials, submit assignments, view grades, and communicate with instructors. Schools and universities can track academic progress, automate administrative tasks, and enhance collaboration between students and staff. The goal is to streamline educational management and improve the overall learning experience.
 
