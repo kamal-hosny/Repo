@@ -11,6 +11,7 @@ import universityRoutes from "./routes/university.routes.js";
 import authRoutes from "./routes/auth.routes.js";
 import teacherRoutes from "./routes/teacher.routes.js";
 const app = express();
+
 const { PORT } = process.env;
 
 app.use(express.json());
