@@ -16,4 +16,11 @@ interface loginInput {
     password: string;
 }
 
+export interface PaginatedStudentsResponse {
+  students: Student[];
+  currentPage: number;
+  totalPages: number;
+  // totalItems: number; // Let's add this if confirmed later
+}
+
 export type { Student, loginInput };
