@@ -2,8 +2,8 @@
 
 import { useGetStudentsPageQuery } from "@/app/api/studentApiSlice";
 import { useState } from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/Components/ui/card";
+import { Button } from "@/Components/ui/button";
 import { useRouter } from "next/router";
 import type { Student } from "@/types/StudentType";
 

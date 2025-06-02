@@ -1,6 +1,6 @@
 import "@/styles/globals.css";
 import type { AppProps } from "next/app";
-import { ReduxProvider } from "@/components/providers/ReduxProvider";
+import { ReduxProvider } from "@/Components/providers/ReduxProvider";
 import { Toaster } from "react-hot-toast";
 
 export default function App({ Component, pageProps }: AppProps) {

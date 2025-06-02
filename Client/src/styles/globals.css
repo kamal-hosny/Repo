@@ -61,9 +61,11 @@
 
 @layer base {
   * {
-    @apply border-border;
+    /* @apply border-border; */ /* Removed due to build error and likely incorrect usage */
   }
   body {
-    @apply bg-background text-foreground;
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    /* @apply bg-background text-foreground; */ /* Replaced with direct CSS variables */
   }
 }
