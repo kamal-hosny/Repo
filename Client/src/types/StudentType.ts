@@ -6,7 +6,7 @@ interface Student {
         _id: string;
         name: string;
     } | null;
-    courses: string[];
+    courses: Course[]; // Changed from string[]
     createdAt: string;
     updatedAt: string;    
 }
@@ -16,6 +16,13 @@ interface loginInput {
     password: string;
 }
 
+export interface Course {
+  _id: string;
+  name: string;
+  // description?: string; 
+  // hours?: number;       
+}
+
 export interface PaginatedStudentsResponse {
   students: Student[];
   currentPage: number;
@@ -23,4 +30,4 @@ export interface PaginatedStudentsResponse {
   // totalItems: number; // Let's add this if confirmed later
 }
 
-export type { Student, loginInput };
+export type { Student, loginInput, Course, PaginatedStudentsResponse };
