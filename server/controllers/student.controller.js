@@ -132,6 +132,10 @@ const getStudentById = asyncHandler(async (req, res) => {
       path: "universityId",
       select: "name",
     })
+    .populate({
+      path: "courses",
+      select: "_id name", // Populate courses and select name and _id
+    })
     .lean();
   if (!student) {
     return res.status(404).json({

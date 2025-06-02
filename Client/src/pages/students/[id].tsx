@@ -53,8 +53,8 @@ const StudentDetailsPage = () => {
           <p className="text-lg font-medium">Courses</p>
           {student?.courses?.length > 0 ? (
             <ul className="list-disc pl-5 space-y-1 text-sm">
-              {student?.courses.map((course: string, index: number) => (
-                <li key={index}>{course}</li>
+              {student?.courses.map((course) => ( // course is now an object
+                <li key={course._id}>{course.name}</li>
               ))}
             </ul>
           ) : (

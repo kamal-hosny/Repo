@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useLoginMutation } from "@/app/api/auth";
 import type { loginInput } from "@/types/StudentType";
 import { Input } from "@/Components/ui/input";
+import { Label } from "@/Components/ui/label";
 import { Button } from "@/Components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/Components/ui/card";
 import { Loader2 } from "lucide-react";
@@ -40,31 +41,39 @@ const LoginPage = () => {
           <CardTitle className="text-2xl text-center">Login</CardTitle>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleLogin} className="space-y-4">
-            <Input
-              type="text"
-              placeholder="Student ID"
-              value={studentDetails.studentId}
-              onChange={(e) =>
-                setStudentDetails({
-                  ...studentDetails,
-                  studentId: e.target.value,
-                })
-              }
-              required
-            />
-            <Input
-              type="password"
-              placeholder="Password"
-              value={studentDetails.password}
-              onChange={(e) =>
-                setStudentDetails({
-                  ...studentDetails,
-                  password: e.target.value,
-                })
-              }
-              required
-            />
+          <form onSubmit={handleLogin} className="space-y-6">
+            <div className="space-y-2">
+              <Label htmlFor="studentId">Student ID</Label>
+              <Input
+                id="studentId"
+                type="text"
+                placeholder="Enter your Student ID"
+                value={studentDetails.studentId}
+                onChange={(e) =>
+                  setStudentDetails({
+                    ...studentDetails,
+                    studentId: e.target.value,
+                  })
+                }
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
+              <Input
+                id="password"
+                type="password"
+                placeholder="Enter your password"
+                value={studentDetails.password}
+                onChange={(e) =>
+                  setStudentDetails({
+                    ...studentDetails,
+                    password: e.target.value,
+                  })
+                }
+                required
+              />
+            </div>
             <Button type="submit" className="w-full" disabled={isLoading}>
               {isLoading ? (
                 <div className="flex items-center justify-center gap-2">
