@@ -30,4 +30,4 @@ export interface PaginatedStudentsResponse {
   // totalItems: number; // Let's add this if confirmed later
 }
 
-export type { Student, loginInput };
+export type { Student, loginInput, Course, PaginatedStudentsResponse };
