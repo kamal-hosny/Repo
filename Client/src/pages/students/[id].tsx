@@ -1,5 +1,7 @@
+"use client";
+
 import { useGetStudentByIdQuery } from "@/app/api/studentApiSlice";
-import { useParams, useNavigate } from "react-router-dom";
+import { useRouter } from "next/router";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -7,11 +9,12 @@ import { Button } from "@/components/ui/button";
 import { useMemo } from "react";
 
 const StudentDetailsPage = () => {
-  const { id } = useParams();
-  const navigate = useNavigate();
+  const router = useRouter();
+  const { id } = router.query;
 
-  const { data, isLoading, isError } = useGetStudentByIdQuery(id!, {
+  const { data, isLoading, isError } = useGetStudentByIdQuery(id as string, {
     refetchOnMountOrArgChange: true,
+    skip: !id,
   });
 
   const student = useMemo(() => data ?? null, [data]);
@@ -62,7 +65,7 @@ const StudentDetailsPage = () => {
         </CardContent>
       </Card>
 
-      <Button variant="outline" onClick={() => navigate(-1)}>
+      <Button variant="outline" onClick={() => router.back()}>
         Go Back
       </Button>
     </div>

@@ -1,11 +1,11 @@
-import { Outlet } from "react-router-dom";
-// import Navbar from "./Components/Navbar/Navbar";
+import "@/styles/globals.css";
+import type { AppProps } from "next/app";
+import { ReduxProvider } from "@/components/providers/ReduxProvider";
 import { Toaster } from "react-hot-toast";
 
-function App() {
+export default function App({ Component, pageProps }: AppProps) {
   return (
-    <>
-      {/* <Navbar /> */}
+    <ReduxProvider>
       <Toaster
         reverseOrder={false}
         toastOptions={{
@@ -17,9 +17,7 @@ function App() {
           },
         }}
       />
-      <Outlet />
-    </>
+      <Component {...pageProps} />
+    </ReduxProvider>
   );
 }
-
-export default App;

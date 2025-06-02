@@ -1,3 +1,5 @@
+"use client";
+
 import { useState } from "react";
 import { useLoginMutation } from "@/app/api/auth";
 import type { loginInput } from "@/types/StudentType";
@@ -5,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useRouter } from "next/router";
 import { toast } from "react-hot-toast";
 
 const LoginPage = () => {
@@ -15,7 +17,7 @@ const LoginPage = () => {
     password: "",
   });
 
-  const navigate = useNavigate();
+  const router = useRouter();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,7 +26,7 @@ const LoginPage = () => {
       toast.success("Login successful");
       localStorage.setItem("jwt", res.token);
       localStorage.setItem("student", JSON.stringify(res.student));
-      navigate(`/students/${res.student._id}`);
+      router.push(`/students/${res.student._id}`);
     } catch (error) {
       toast.error("Login failed");
       console.error("Login failed", error);
