@@ -4,8 +4,8 @@ import { useGetStudentByIdQuery } from "@/app/api/studentApiSlice";
 import { useRouter } from "next/router";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/Components/ui/skeleton";
+import { Button } from "@/Components/ui/button";
 import { useMemo } from "react";
 
 const StudentDetailsPage = () => {

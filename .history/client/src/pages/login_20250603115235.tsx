@@ -38,7 +38,7 @@ const LoginPage = () => {
     <div className="min-h-screen flex items-center justify-center px-4">
       <Card className="w-full max-w-md shadow-lg border rounded-2xl">
         <CardHeader>
-          <CardTitle className="text-2xl text-center font-bold ">Login</CardTitle>
+          <CardTitle className="text-2xl text-center grey">Login</CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleLogin} className="space-y-6">

@@ -1,0 +1,194 @@
+# Product Requirements Document (PRD)
+## Student Management System - Frontend Client
+
+### Project Overview
+This is a Next.js-based frontend application for a Student Management System that allows students to login, view their details, browse other students, and navigate to university information. The application serves as the client-side interface for a comprehensive educational platform.
+
+### Technical Stack
+- **Framework**: Next.js 15.3.3 with Pages Router
+- **Language**: TypeScript 5.x
+- **Styling**: Tailwind CSS 4.x with custom design system
+- **State Management**: Redux Toolkit with RTK Query
+- **UI Components**: Custom components with Radix UI primitives
+- **Build Tool**: Turbopack (development mode)
+- **Authentication**: JWT-based authentication with localStorage
+- **API Communication**: RTK Query for API state management
+
+### Dependencies Analysis
+#### Core Dependencies
+- **React 19.0.0**: Latest React version for modern features
+- **Next.js 15.3.3**: Full-stack React framework with SSR/SSG
+- **TypeScript**: Type safety and better developer experience
+- **Redux Toolkit 2.8.2**: State management with RTK Query
+- **React Redux 9.2.0**: React bindings for Redux
+
+#### UI/UX Dependencies
+- **Tailwind CSS 4.x**: Utility-first CSS framework
+- **Radix UI**: Accessible component primitives (@radix-ui/react-label, @radix-ui/react-slot)
+- **Lucide React**: Modern icon library
+- **Class Variance Authority**: Styling variants management
+- **Tailwind Merge**: Intelligent Tailwind class merging
+- **React Hot Toast**: Toast notifications
+
+#### Form Handling
+- **React Hook Form 7.57.0**: Performant forms with easy validation
+- **Hookform Resolvers 5.0.1**: Schema validation resolvers
+- **Zod 3.25.48**: TypeScript-first schema validation
+
+### Project Structure
+```
+Client/
+├── public/                     # Static assets
+├── src/
+│   ├── app/                   # Application configuration
+│   │   ├── api/              # API slice definitions
+│   │   ├── constants.ts      # API endpoints
+│   │   └── store.ts          # Redux store configuration
+│   ├── components/           # Reusable UI components
+│   │   ├── providers/        # Context providers
+│   │   └── ui/              # Design system components
+│   ├── lib/                  # Utility functions
+│   ├── pages/               # Next.js pages (Pages Router)
+│   │   ├── api/             # API routes
+│   │   ├── students/        # Student-related pages
+│   │   ├── login.tsx        # Authentication page
+│   │   ├── index.tsx        # Home/redirect page
+│   │   ├── 404.tsx          # Error page
+│   │   ├── _app.tsx         # App wrapper
+│   │   └── _document.tsx    # Document wrapper
+│   ├── styles/              # Global styles
+│   └── types/               # TypeScript type definitions
+├── package.json             # Dependencies and scripts
+├── tsconfig.json           # TypeScript configuration
+├── tailwind.config.ts      # Tailwind CSS configuration
+├── next.config.ts          # Next.js configuration
+└── eslint.config.mjs       # ESLint configuration
+```
+
+### Core Features
+
+#### 1. Authentication System
+- **Login Page**: Student ID and password authentication
+- **JWT Management**: Token storage in localStorage
+- **Auto-redirect**: Unauthenticated users redirected to login
+- **Session Persistence**: Student data cached locally
+
+#### 2. Student Management
+- **Student Listing**: Paginated view of all students
+- **Student Details**: Individual student profile pages
+- **University Links**: Quick navigation to university pages
+- **Search/Filter**: Pagination controls with navigation
+
+#### 3. Data Management
+- **RTK Query Integration**: Efficient API state management
+- **Caching Strategy**: Automatic caching and invalidation
+- **Error Handling**: Comprehensive error states
+- **Loading States**: Skeleton loaders and loading indicators
+
+#### 4. UI/UX Design System
+- **Component Library**: Consistent, reusable components
+- **Dark Mode Ready**: CSS custom properties for theming
+- **Responsive Design**: Mobile-first responsive layouts
+- **Accessibility**: Screen reader support via Radix UI
+
+### API Integration
+The frontend integrates with a backend API through defined endpoints:
+
+#### Authentication Endpoints
+- `POST /api/auth/login` - Student authentication
+- `POST /api/auth/logout` - Session termination
+
+#### Student Endpoints
+- `GET /api/students?page={page}` - Paginated student listing
+- `GET /api/students/{id}` - Individual student details
+
+### Data Models
+
+#### Student Interface
+```typescript
+interface Student {
+    _id: string;
+    name: string;
+    email: string;
+    universityId: {
+        _id: string;
+        name: string;
+    } | null;
+    courses: Course[];
+    createdAt: string;
+    updatedAt: string;    
+}
+```
+
+#### Course Interface
+```typescript
+interface Course {
+    _id: string;
+    name: string;
+}
+```
+
+#### Login Interface
+```typescript
+interface loginInput {
+    studentId: string;
+    password: string;
+}
+```
+
+### Configuration Files
+
+#### Tailwind Configuration
+- Custom color scheme with CSS variables
+- Extended spacing and typography
+- Animation support for UI components
+- Design tokens for consistent theming
+
+#### TypeScript Configuration
+- Strict type checking enabled
+- Path aliases for clean imports (@/*)
+- Latest ES2017 target for modern features
+- Next.js plugin integration
+
+#### Next.js Configuration
+- React Strict Mode enabled
+- Development with Turbopack
+- Pages Router architecture
+- API routes support
+
+### Development Workflow
+1. **Development Server**: `npm run dev` with Turbopack
+2. **Build Process**: `npm run build` for production
+3. **Linting**: ESLint with Next.js configuration
+4. **Type Checking**: TypeScript with strict mode
+
+### User Experience Flow
+1. **Entry Point**: Home page redirects to login
+2. **Authentication**: Students log in with credentials
+3. **Dashboard**: Students page with pagination
+4. **Navigation**: Click through to individual student details
+5. **University Links**: Quick access to university information
+6. **Error Handling**: 404 page for invalid routes
+
+### Performance Considerations
+- **Code Splitting**: Automatic with Next.js
+- **Image Optimization**: Next.js built-in optimization
+- **Bundle Analysis**: Turbopack for fast development
+- **Caching Strategy**: RTK Query automatic caching
+- **Lazy Loading**: Components loaded on demand
+
+### Security Measures
+- **JWT Authentication**: Secure token-based auth
+- **Client-side Validation**: Zod schema validation
+- **XSS Protection**: React's built-in protections
+- **CSRF Protection**: SameSite cookie policies
+
+### Future Enhancement Opportunities
+1. **Search Functionality**: Global student/university search
+2. **Filtering Options**: Advanced filtering capabilities
+3. **Real-time Updates**: WebSocket integration
+4. **File Uploads**: Student profile pictures
+5. **Mobile App**: React Native version
+6. **PWA Features**: Offline capability
+7. **Internationalization**: Multi-language support
+8. **Advanced Analytics**: User behavior tracking
