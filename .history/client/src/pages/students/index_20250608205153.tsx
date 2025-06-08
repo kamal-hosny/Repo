@@ -43,7 +43,8 @@ const StudentCard = memo(({ student, onViewProfile, onViewUniversity }: {
             {student.name}
           </h3>
           <p className="text-sm text-gray-600 mb-2">{student.email}</p>
-            <div className="flex items-center gap-2 mb-3">
+          
+          <div className="flex items-center gap-2 mb-3">
             <Building className="h-4 w-4 text-gray-500" />
             <span className="text-sm text-gray-600">
               {student.universityId?.name ?? "University not specified"}
@@ -51,15 +52,12 @@ const StudentCard = memo(({ student, onViewProfile, onViewUniversity }: {
           </div>
         </div>
 
-        {/* Action Buttons */}
-        <div className="flex gap-2">
-          <Button
-            onClick={() => onViewProfile(student._id)}
-            className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
-          >
-            View Profile
-          </Button>
-        </div>
+        <Button
+          onClick={() => onViewProfile(student._id)}
+          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium"
+        >
+          View Profile
+        </Button>
       </div>
     </CardContent>
   </Card>
@@ -69,17 +67,19 @@ StudentCard.displayName = 'StudentCard';
 
 const StudentsPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
+
   const { data, isLoading, isError } = useGetStudentsPageQuery(
-    currentPage,
+    { page: currentPage, limit: 10 },
     {
       refetchOnMountOrArgChange: true,
     }
   );
 
   const router = useRouter();
+
   const students = data?.students ?? [];
   const totalPages = Math.ceil((data?.totalStudents ?? 0) / 10);
-
+  const totalStudents = data?.totalStudents ?? 0;
   // Memoized callbacks for better performance
   const handleViewProfile = useCallback((id: string) => {
     router.push(`/students/${id}`);
@@ -154,7 +154,14 @@ const StudentsPage = () => {
                 <p className="text-gray-600">Browse our vibrant student community</p>
               </div>
             </div>
-              
+              {!isLoading && !isError && (
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <p className="text-blue-800">
+                  <span className="font-semibold">Total Students:</span> {totalStudents} • 
+                  <span className="font-semibold ml-2">Page:</span> {currentPage} of {totalPages}
+                </p>
+              </div>
+            )}
           </div>
 
           {isLoading ? (
@@ -193,7 +200,9 @@ const StudentsPage = () => {
                     Previous
                   </Button>
 
-                  {renderPageNumbers()}                  <Button
+                  {renderPageNumbers()}
+
+                  <Button
                     variant="outline"
                     disabled={currentPage === totalPages}
                     onClick={() => handlePageChange(Math.min(currentPage + 1, totalPages))}
@@ -202,6 +211,10 @@ const StudentsPage = () => {
                     Next
                   </Button>
                 </div>
+                
+                <p className="text-center text-sm text-gray-500 mt-4">
+                  Showing page {currentPage} of {totalPages} ({totalStudents} total students)
+                </p>
               </div>
             </>
           )}

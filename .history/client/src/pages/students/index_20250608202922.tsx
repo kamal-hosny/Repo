@@ -8,7 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/router";
 import type { Student } from "@/types/StudentType";
-import { GraduationCap, Users, Building, ArrowLeft, ExternalLink } from "lucide-react";
+import { GraduationCap, Users, Building, ArrowLeft, ExternalLink, ChevronDown } from "lucide-react";
 
 // Memoized Student Card Component for better performance
 const StudentCard = memo(({ student, onViewProfile, onViewUniversity }: {
@@ -43,7 +43,8 @@ const StudentCard = memo(({ student, onViewProfile, onViewUniversity }: {
             {student.name}
           </h3>
           <p className="text-sm text-gray-600 mb-2">{student.email}</p>
-            <div className="flex items-center gap-2 mb-3">
+          
+          <div className="flex items-center gap-2 mb-3">
             <Building className="h-4 w-4 text-gray-500" />
             <span className="text-sm text-gray-600">
               {student.universityId?.name ?? "University not specified"}
@@ -51,15 +52,12 @@ const StudentCard = memo(({ student, onViewProfile, onViewUniversity }: {
           </div>
         </div>
 
-        {/* Action Buttons */}
-        <div className="flex gap-2">
-          <Button
-            onClick={() => onViewProfile(student._id)}
-            className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
-          >
-            View Profile
-          </Button>
-        </div>
+        <Button
+          onClick={() => onViewProfile(student._id)}
+          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium"
+        >
+          View Profile
+        </Button>
       </div>
     </CardContent>
   </Card>
@@ -69,16 +67,21 @@ StudentCard.displayName = 'StudentCard';
 
 const StudentsPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [showViewDropdown, setShowViewDropdown] = useState(false);
+
   const { data, isLoading, isError } = useGetStudentsPageQuery(
-    currentPage,
+    { page: currentPage, limit: pageSize },
     {
       refetchOnMountOrArgChange: true,
     }
   );
 
   const router = useRouter();
+
   const students = data?.students ?? [];
-  const totalPages = Math.ceil((data?.totalStudents ?? 0) / 10);
+  const totalPages = Math.ceil((data?.totalStudents ?? 0) / pageSize);
+  const totalStudents = data?.totalStudents ?? 0;
 
   // Memoized callbacks for better performance
   const handleViewProfile = useCallback((id: string) => {
@@ -89,9 +92,16 @@ const StudentsPage = () => {
     router.push(`/universities/${universityId}`);
   }, [router]);
 
+  const handlePageSizeChange = useCallback((newPageSize: number) => {
+    setPageSize(newPageSize);
+    setCurrentPage(1); // Reset to first page
+    setShowViewDropdown(false);
+  }, []);
+
   const handlePageChange = useCallback((newPage: number) => {
     setCurrentPage(newPage);
   }, []);
+
   const renderPageNumbers = () => {
     const pages = [];
 
@@ -103,7 +113,7 @@ const StudentsPage = () => {
         <Button
           key={i}
           variant={i === currentPage ? "default" : "ghost"}
-          onClick={() => handlePageChange(i)}
+          onClick={() => setPage(i)}
           className={i === currentPage ? "bg-blue-600 hover:bg-blue-700" : ""}
         >
           {i}
@@ -143,7 +153,8 @@ const StudentsPage = () => {
         </div>
 
         {/* Main Content */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">          {/* Page Header */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          {/* Page Header */}
           <div className="mb-8">
             <div className="flex items-center gap-3 mb-4">
               <div className="bg-blue-100 p-3 rounded-lg">
@@ -154,7 +165,15 @@ const StudentsPage = () => {
                 <p className="text-gray-600">Browse our vibrant student community</p>
               </div>
             </div>
-              
+            
+            {!isLoading && !isError && (
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <p className="text-blue-800">
+                  <span className="font-semibold">Total Students:</span> {data?.totalStudents ?? 0} • 
+                  <span className="font-semibold ml-2">Page:</span> {currentPage} of {totalPages}
+                </p>
+              </div>
+            )}
           </div>
 
           {isLoading ? (
@@ -169,15 +188,57 @@ const StudentsPage = () => {
                 <p className="text-red-600 text-sm">Please try refreshing the page or contact support if the problem persists.</p>
               </div>
             </div>
-          ) : (            <>
+          ) : (
+            <>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {students.map((student: Student) => (
-                  <StudentCard
-                    key={student._id}
-                    student={student}
-                    onViewProfile={handleViewProfile}
-                    onViewUniversity={handleViewUniversity}
-                  />
+                  <Card key={student._id} className="group hover:shadow-lg transition-all duration-300 border-0 shadow-md overflow-hidden">
+                    <CardContent className="p-0">
+                      {/* Card Header with University Badge */}
+                      <div className="bg-gradient-to-r from-blue-600 to-blue-700 p-4 relative">
+                        <div className="flex justify-between items-start">
+                          <div className="bg-white/20 p-2 rounded-lg">
+                            <GraduationCap className="h-6 w-6 text-white" />
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() =>
+                              router.push(`/universities/${student.universityId?._id ?? "*"}`)
+                            }
+                            className="text-white hover:bg-white/20 p-2 h-auto"
+                            title="View University"
+                          >
+                            <ExternalLink className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+
+                      {/* Card Content */}
+                      <div className="p-6">
+                        <div className="mb-4">
+                          <h3 className="text-lg font-serif font-semibold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
+                            {student.name}
+                          </h3>
+                          <p className="text-sm text-gray-600 mb-2">{student.email}</p>
+                          
+                          <div className="flex items-center gap-2 mb-3">
+                            <Building className="h-4 w-4 text-gray-500" />
+                            <span className="text-sm text-gray-600">
+                              {student.universityId?.name ?? "University not specified"}
+                            </span>
+                          </div>
+                        </div>
+
+                        <Button
+                          onClick={() => router.push(`/students/${student._id}`)}
+                          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium"
+                        >
+                          View Profile
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
                 ))}
               </div>
 
@@ -187,21 +248,27 @@ const StudentsPage = () => {
                   <Button
                     variant="outline"
                     disabled={currentPage === 1}
-                    onClick={() => handlePageChange(Math.max(currentPage - 1, 1))}
+                    onClick={() => setPage((p) => Math.max(p - 1, 1))}
                     className="border-blue-200 text-blue-600 hover:bg-blue-50"
                   >
                     Previous
                   </Button>
 
-                  {renderPageNumbers()}                  <Button
+                  {renderPageNumbers()}
+
+                  <Button
                     variant="outline"
                     disabled={currentPage === totalPages}
-                    onClick={() => handlePageChange(Math.min(currentPage + 1, totalPages))}
+                    onClick={() => setPage((p) => Math.min(p + 1, totalPages))}
                     className="border-blue-200 text-blue-600 hover:bg-blue-50"
                   >
                     Next
                   </Button>
                 </div>
+                
+                <p className="text-center text-sm text-gray-500 mt-4">
+                  Showing page {currentPage} of {totalPages}
+                </p>
               </div>
             </>
           )}

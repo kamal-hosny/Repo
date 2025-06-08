@@ -77,9 +77,8 @@ export const Navbar = memo(({ showAuthButton = true }: NavbarProps) => {
                             )}
                         </div>
                     </div>
-                )}            </div>
+                )}
+            </div>
         </nav>
     );
-});
-
-Navbar.displayName = 'Navbar';
+};

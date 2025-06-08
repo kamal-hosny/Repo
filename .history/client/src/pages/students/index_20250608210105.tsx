@@ -79,6 +79,7 @@ const StudentsPage = () => {
   const router = useRouter();
   const students = data?.students ?? [];
   const totalPages = Math.ceil((data?.totalStudents ?? 0) / 10);
+  const totalStudents = data?.totalStudents ?? 0;
 
   // Memoized callbacks for better performance
   const handleViewProfile = useCallback((id: string) => {
@@ -153,8 +154,14 @@ const StudentsPage = () => {
                 <h1 className="text-3xl font-serif font-bold text-gray-900">Student Directory</h1>
                 <p className="text-gray-600">Browse our vibrant student community</p>
               </div>
-            </div>
-              
+            </div>            {!isLoading && !isError && (
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div className="text-blue-800">
+                  <span className="font-semibold">Total Students:</span> {totalStudents} • 
+                  <span className="font-semibold ml-2">Page:</span> {currentPage} of {totalPages}
+                </div>
+              </div>
+            )}
           </div>
 
           {isLoading ? (
@@ -193,14 +200,19 @@ const StudentsPage = () => {
                     Previous
                   </Button>
 
-                  {renderPageNumbers()}                  <Button
+                  {renderPageNumbers()}
+
+                  <Button
                     variant="outline"
                     disabled={currentPage === totalPages}
                     onClick={() => handlePageChange(Math.min(currentPage + 1, totalPages))}
                     className="border-blue-200 text-blue-600 hover:bg-blue-50"
                   >
-                    Next
-                  </Button>
+                    Next                  </Button>
+                </div>
+                
+                <div className="text-center text-sm text-gray-500 mt-4">
+                  Showing page {currentPage} of {totalPages} ({totalStudents} total students)
                 </div>
               </div>
             </>

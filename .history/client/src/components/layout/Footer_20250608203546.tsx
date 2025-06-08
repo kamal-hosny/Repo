@@ -56,12 +56,12 @@ export const Footer = memo(() => {
                             <li><Link href="#wellness" className="hover:text-blue-400 transition-colors">Student Wellness</Link></li>
                         </ul>
                     </div>
-                </div>                <div className="border-t border-gray-700 mt-8 pt-8 text-center text-sm text-gray-400">
+                </div>
+
+                <div className="border-t border-gray-700 mt-8 pt-8 text-center text-sm text-gray-400">
                     <p>&copy; 2025 Enterprise University. All rights reserved.</p>
                 </div>
             </div>
         </footer>
     );
-});
-
-Footer.displayName = 'Footer';
+};

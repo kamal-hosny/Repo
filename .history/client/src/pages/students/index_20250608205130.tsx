@@ -43,7 +43,8 @@ const StudentCard = memo(({ student, onViewProfile, onViewUniversity }: {
             {student.name}
           </h3>
           <p className="text-sm text-gray-600 mb-2">{student.email}</p>
-            <div className="flex items-center gap-2 mb-3">
+          
+          <div className="flex items-center gap-2 mb-3">
             <Building className="h-4 w-4 text-gray-500" />
             <span className="text-sm text-gray-600">
               {student.universityId?.name ?? "University not specified"}
@@ -51,15 +52,12 @@ const StudentCard = memo(({ student, onViewProfile, onViewUniversity }: {
           </div>
         </div>
 
-        {/* Action Buttons */}
-        <div className="flex gap-2">
-          <Button
-            onClick={() => onViewProfile(student._id)}
-            className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
-          >
-            View Profile
-          </Button>
-        </div>
+        <Button
+          onClick={() => onViewProfile(student._id)}
+          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium"
+        >
+          View Profile
+        </Button>
       </div>
     </CardContent>
   </Card>
@@ -69,16 +67,19 @@ StudentCard.displayName = 'StudentCard';
 
 const StudentsPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
+
   const { data, isLoading, isError } = useGetStudentsPageQuery(
-    currentPage,
+    { page: currentPage, limit: 10 },
     {
       refetchOnMountOrArgChange: true,
     }
   );
 
   const router = useRouter();
+
   const students = data?.students ?? [];
   const totalPages = Math.ceil((data?.totalStudents ?? 0) / 10);
+  const totalStudents = data?.totalStudents ?? 0;
 
   // Memoized callbacks for better performance
   const handleViewProfile = useCallback((id: string) => {
@@ -88,6 +89,12 @@ const StudentsPage = () => {
   const handleViewUniversity = useCallback((universityId: string) => {
     router.push(`/universities/${universityId}`);
   }, [router]);
+
+  const handlePageSizeChange = useCallback((newPageSize: number) => {
+    setPageSize(newPageSize);
+    setCurrentPage(1); // Reset to first page
+    setShowViewDropdown(false);
+  }, []);
 
   const handlePageChange = useCallback((newPage: number) => {
     setCurrentPage(newPage);
@@ -154,7 +161,43 @@ const StudentsPage = () => {
                 <p className="text-gray-600">Browse our vibrant student community</p>
               </div>
             </div>
-              
+            
+            {!isLoading && !isError && (
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <p className="text-blue-800">
+                  <span className="font-semibold">Total Students:</span> {totalStudents} • 
+                  <span className="font-semibold ml-2">Page:</span> {currentPage} of {totalPages}
+                </p>
+                
+                {/* View Control Dropdown */}
+                <div className="relative">
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowViewDropdown(!showViewDropdown)}
+                    className="flex items-center gap-2 bg-white border-blue-200 text-blue-600 hover:bg-blue-50"
+                  >
+                    View: {pageSize} per page
+                    <ChevronDown className="h-4 w-4" />
+                  </Button>
+                  
+                  {showViewDropdown && (
+                    <div className="absolute right-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg z-10 min-w-[160px]">
+                      {[10, 20, 50].map((size) => (
+                        <button
+                          key={size}
+                          onClick={() => handlePageSizeChange(size)}
+                          className={`w-full text-left px-4 py-2 hover:bg-gray-50 first:rounded-t-lg last:rounded-b-lg ${
+                            pageSize === size ? 'bg-blue-50 text-blue-600 font-medium' : 'text-gray-700'
+                          }`}
+                        >
+                          {size} per page
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
 
           {isLoading ? (
@@ -193,7 +236,9 @@ const StudentsPage = () => {
                     Previous
                   </Button>
 
-                  {renderPageNumbers()}                  <Button
+                  {renderPageNumbers()}
+
+                  <Button
                     variant="outline"
                     disabled={currentPage === totalPages}
                     onClick={() => handlePageChange(Math.min(currentPage + 1, totalPages))}
@@ -202,6 +247,10 @@ const StudentsPage = () => {
                     Next
                   </Button>
                 </div>
+                
+                <p className="text-center text-sm text-gray-500 mt-4">
+                  Showing page {currentPage} of {totalPages} ({totalStudents} total students)
+                </p>
               </div>
             </>
           )}

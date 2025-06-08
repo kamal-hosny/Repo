@@ -7,7 +7,7 @@ Building upon the previous set of instructions, the following principles must be
 - **Code Quality:** Maintain best practices for writing clean, readable, and maintainable TypeScript and React code.
 - **Consistency:** Ensure the styling and component behavior are consistent across all new and existing pages, adhering to the established "Enterprise University" theme.
 - **Performance & SEO:** The application must remain performant. While the SEO score is excellent, performance optimizations are a key priority.
-
+- ****
 
 ---
 

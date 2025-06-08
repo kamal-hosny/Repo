@@ -79,6 +79,7 @@ const StudentsPage = () => {
   const router = useRouter();
   const students = data?.students ?? [];
   const totalPages = Math.ceil((data?.totalStudents ?? 0) / 10);
+  const totalStudents = data?.totalStudents ?? 0;
 
   // Memoized callbacks for better performance
   const handleViewProfile = useCallback((id: string) => {
@@ -153,8 +154,8 @@ const StudentsPage = () => {
                 <h1 className="text-3xl font-serif font-bold text-gray-900">Student Directory</h1>
                 <p className="text-gray-600">Browse our vibrant student community</p>
               </div>
-            </div>
-              
+            
+            )}
           </div>
 
           {isLoading ? (
