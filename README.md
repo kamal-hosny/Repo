@@ -36,7 +36,7 @@ Create an `.env` file in the `/server` directory:
 ```
 JWT_SECRET = your_jwt_secret
 NODE_ENV = development
-MONGO_URI = your_mongodb_URL
+MONGO_URI = your_mongodb_URI
 JWT_EXPIRES_IN = your_expiration_days
 PORT = your_port
 CLIENT_URL = your_client_URL
