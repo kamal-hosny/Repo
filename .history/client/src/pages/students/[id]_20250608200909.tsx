@@ -93,7 +93,7 @@ const StudentDetailsPage = () => {
               <div className="bg-red-50 border border-red-200 rounded-lg p-8 max-w-md mx-auto">
                 <User className="h-12 w-12 text-red-400 mx-auto mb-4" />
                 <h1 className="text-2xl font-serif font-bold text-red-800 mb-2">Student Not Found</h1>
-                <p className="text-red-600">The student profile you are looking for could not be found or may have been removed.</p>
+                <p className="text-red-600">The student profile youare looking for could not be found or may have been removed.</p>
               </div>
             </div>
           </div>

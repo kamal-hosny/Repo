@@ -89,7 +89,7 @@ const StudentsPage = () => {
             {!isLoading && !isError && (
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                 <p className="text-blue-800">
-                  <span className="font-semibold">Total Students:</span> {data?.totalStudents ?? 0} • 
+                  <span className="font-semibold">Total Students:</span> {data?.totalCount ?? 0} • 
                   <span className="font-semibold ml-2">Page:</span> {currentPage} of {totalPages}
                 </p>
               </div>
