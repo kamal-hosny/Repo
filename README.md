@@ -78,4 +78,4 @@ VITE_API_URL = your_api_URL
 
 ### Tools
 
-- Concurrently for running multiple services
+- Concurrently
