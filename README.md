@@ -75,7 +75,7 @@ VITE_API_URL = your_api_URL
 - Express
 - MongoDB
 - JWT Authentication
-
-### Tools
-
 - Concurrently
+
+
+
