@@ -2,6 +2,7 @@ import asyncHandler from "express-async-handler";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import "dotenv/config";
+// Models
 import Student from "../models/student.model.js";
 
 const loginStudent = asyncHandler(async (req, res) => {
