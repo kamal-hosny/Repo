@@ -5,6 +5,7 @@ import { validateStudentLoginData } from "../middlewares/validation.middleware.j
 const router = Router();
 
 router.route("/login").post(validateStudentLoginData, loginStudent);
+
 router.route("/logout").post(logoutStudent);
 
 export default router;

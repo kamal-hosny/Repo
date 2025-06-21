@@ -48,10 +48,10 @@ const createStudent = asyncHandler(async (req, res) => {
   res.status(201).json(student);
 });
 
-const getAllStudents = asyncHandler(async (req, res) => {
-  const students = await Student.find().lean();
-  res.status(200).json(students);
-});
+// const getAllStudents = asyncHandler(async (req, res) => {
+//   const students = await Student.find().lean();
+//   res.status(200).json(students);
+// });
 
 const registerStudentToUniversity = asyncHandler(async (req, res) => {
   const { studentId, universityId } = req.body;
@@ -173,7 +173,7 @@ const deleteStudent = asyncHandler(async (req, res) => {
 
 export {
   createStudent,
-  getAllStudents,
+  // getAllStudents,
   getStudentsPage,
   getStudentById,
   deleteStudent,

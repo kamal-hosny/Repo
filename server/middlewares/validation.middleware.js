@@ -32,7 +32,7 @@ const validateUniversityId = (req, res, next) => {
 
 const validateStudentLoginData = (req, res, next) => {
   const { studentId, password } = req.body;
-  if (studentId || !password) {
+  if (!studentId || !password) {
     return res.status(400).json({
       message: "studentId and password are required",
     });
