@@ -7,6 +7,7 @@ import Student from "../models/student.model.js";
 
 const loginStudent = asyncHandler(async (req, res) => {
   const { studentId, password } = req.body;
+
   if (!studentId || !password) {
     return res.status(400).json({
       message: "Please provide studentId and password",
@@ -37,17 +38,27 @@ const loginStudent = asyncHandler(async (req, res) => {
     maxAge: 24 * 60 * 60 * 1000,
   });
 
+  // Create a copy of student without sensitive information
+  const {
+    password: _,
+    createdAt,
+    updatedAt,
+    role,
+    studentData,
+    ...studentToSend
+  } = student;
+
   res.status(200).json({
-    message: "Login successful",
+    message: "Login successfully",
     token,
-    student,
+    student: studentToSend,
   });
 });
 
 const logoutStudent = asyncHandler(async (req, res) => {
   res.clearCookie("jwt");
   res.status(200).json({
-    message: "Logout successful",
+    message: "Logout successfully",
   });
 });
 

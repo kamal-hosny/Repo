@@ -84,19 +84,19 @@ const createUniversity = asyncHandler(async (req, res) => {
   res.status(201).json(university);
 });
 
-const getAllUniversities = asyncHandler(async (req, res) => {
-  const universities = await University.find()
-    .select("-createdAt -updatedAt")
-    .lean();
+// // const getAllUniversities = asyncHandler(async (req, res) => {
+// //   const universities = await University.find()
+// //     .select("-createdAt -updatedAt")
+// //     .lean();
 
-  if (!universities) {
-    return res.status(404).json({
-      message: "No universities found",
-    });
-  }
+// //   if (!universities) {
+// //     return res.status(404).json({
+// //       message: "No universities found",
+// //     });
+// //   }
 
-  res.status(200).json(universities);
-});
+// //   res.status(200).json(universities);
+// });
 
 const getUniversityById = asyncHandler(async (req, res) => {
   const { id } = req.params;
@@ -180,7 +180,7 @@ const getTeachersPageOfUniversity = asyncHandler(async (req, res) => {
 
 export {
   createUniversity,
-  getAllUniversities,
+  // getAllUniversities,
   getUniversityById,
   getUniversitiesPage,
   getStudentsPageOfUniversity,
