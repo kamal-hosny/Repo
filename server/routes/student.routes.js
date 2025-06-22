@@ -25,7 +25,9 @@ const router = Router();
 
 router.route("/").get(getStudentsPage);
 
-router.route("/:universityId").post(validateUniversityId, createStudent);
+router
+  .route("/:universityId")
+  .post(validateUniversityId, authorize(["admin"]), createStudent);
 
 // router.route("/all").get(getAllStudents);
 
@@ -38,6 +40,6 @@ router
     validateStudentUpdateData,
     updateStudent
   )
-  .delete(authinticate, authorize(["Admin"]), deleteStudent);
+  .delete(authinticate, authorize(["admin"]), deleteStudent);
 
 export default router;

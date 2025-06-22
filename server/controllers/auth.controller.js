@@ -37,6 +37,7 @@ const loginStudent = asyncHandler(async (req, res) => {
     secure: process.env.NODE_ENV === "production",
     maxAge: 24 * 60 * 60 * 1000,
   });
+  // console.log("Role", student.role);
 
   // Create a copy of student without sensitive information
   const {
@@ -50,7 +51,7 @@ const loginStudent = asyncHandler(async (req, res) => {
 
   res.status(200).json({
     message: "Login successfully",
-    token,
+    role,
     student: studentToSend,
   });
 });
