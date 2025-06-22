@@ -1,7 +1,7 @@
 "use client";
 
 import { useGetStudentsPageQuery } from "@/app/api/studentApiSlice";
-import { useState, useCallback, memo } from "react";
+import { useCallback, memo, useEffect, useState } from "react";
 import Head from "next/head";
 import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { useRouter } from "next/router";
 import type { Student } from "@/types/StudentType";
 import { GraduationCap, Users, Building, ArrowLeft, ExternalLink } from "lucide-react";
+import toast, { Toaster } from "react-hot-toast";
 
 // Memoized Student Card Component for better performance
 const StudentCard = memo(({ student, onViewProfile, onViewUniversity }: {
@@ -43,7 +44,7 @@ const StudentCard = memo(({ student, onViewProfile, onViewUniversity }: {
             {student.name}
           </h3>
           <p className="text-sm text-gray-600 mb-2">{student.email}</p>
-            <div className="flex items-center gap-2 mb-3">
+          <div className="flex items-center gap-2 mb-3">
             <Building className="h-4 w-4 text-gray-500" />
             <span className="text-sm text-gray-600">
               {student.universityId?.name ?? "University not specified"}
@@ -68,17 +69,49 @@ const StudentCard = memo(({ student, onViewProfile, onViewUniversity }: {
 StudentCard.displayName = 'StudentCard';
 
 const StudentsPage = () => {
-  const [currentPage, setCurrentPage] = useState(1);
+  const router = useRouter();
+
+  // Get page and limit from URL query parameters, with defaults
+  const currentPage = parseInt(router.query.page as string) || 1;
+  const currentLimit = parseInt(router.query.limit as string) || 20;
+
+  // State to track if URL correction is complete
+  const [urlCorrected, setUrlCorrected] = useState(false);
+
+  // Enhanced redirect logic to automatically correct URLs
+  useEffect(() => {
+    if (router.isReady) {
+      const { page, limit } = router.query;
+      const hasPageParam = page !== undefined;
+      const hasLimitParam = limit !== undefined;
+
+      // If no query parameters at all, or missing either page or limit, redirect with both
+      if (!hasPageParam || !hasLimitParam) {
+        router.replace({
+          pathname: '/students',
+          query: {
+            page: hasPageParam ? page : 1,
+            limit: hasLimitParam ? limit : 20
+          }
+        }, undefined, { shallow: true }).then(() => {
+          setUrlCorrected(true);
+        });
+      } else {
+        // URL is already correct
+        setUrlCorrected(true);
+      }
+    }
+  }, [router]);
+
   const { data, isLoading, isError } = useGetStudentsPageQuery(
-    currentPage,
+    { page: currentPage, limit: currentLimit },
     {
       refetchOnMountOrArgChange: true,
+      skip: !router.isReady || !urlCorrected, // Wait for both router ready AND URL correction
     }
   );
-
-  const router = useRouter();
   const students = data?.students ?? [];
-  const totalPages = Math.ceil((data?.totalStudents ?? 0) / 10);
+  const totalPages = data?.totalPages ?? 0;
 
   // Memoized callbacks for better performance
   const handleViewProfile = useCallback((id: string) => {
@@ -87,11 +120,18 @@ const StudentsPage = () => {
 
   const handleViewUniversity = useCallback((universityId: string) => {
     router.push(`/universities/${universityId}`);
-  }, [router]);
+  }, [router]); const handlePageChange = useCallback((newPage: number) => {
+    toast(`page ${newPage}`);
 
-  const handlePageChange = useCallback((newPage: number) => {
-    setCurrentPage(newPage);
-  }, []);
+    router.push({
+      pathname: '/students',
+      query: {
+        page: newPage,
+        limit: currentLimit
+      }
+    });
+  }, [router, currentLimit]);
+
   const renderPageNumbers = () => {
     const pages = [];
 
@@ -113,13 +153,25 @@ const StudentsPage = () => {
 
     return pages;
   };
-
   return (
     <>
       <Head>
         <title>Student Directory - Enterprise University</title>
         <meta name="description" content="Browse the student directory at Enterprise University" />
       </Head>
+
+      {/* Custom Toaster for this page only - positioned at bottom right */}
+      <Toaster
+        position="bottom-right"
+        reverseOrder={false}
+        toastOptions={{
+          duration: 2000,
+          style: {
+            background: "#363636",
+            color: "#fff",
+          },
+        }}
+      />
 
       <div className="min-h-screen bg-gray-50">
         {/* Header */}
@@ -151,10 +203,12 @@ const StudentsPage = () => {
               </div>
               <div>
                 <h1 className="text-3xl font-serif font-bold text-gray-900">Student Directory</h1>
-                <p className="text-gray-600">Browse our vibrant student community</p>
+                <p className="text-gray-600">
+                  Browse our vibrant student community
+                  {data && ` - Page ${currentPage} of ${totalPages}`}
+                </p>
               </div>
             </div>
-              
           </div>
 
           {isLoading ? (
@@ -169,44 +223,48 @@ const StudentsPage = () => {
                 <p className="text-red-600 text-sm">Please try refreshing the page or contact support if the problem persists.</p>
               </div>
             </div>
-          ) : (            <>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {students.map((student: Student) => (
-                  <StudentCard
-                    key={student._id}
-                    student={student}
-                    onViewProfile={handleViewProfile}
-                    onViewUniversity={handleViewUniversity}
-                  />
-                ))}
+          ) : (<>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {students.map((student: Student) => (
+                <StudentCard
+                  key={student._id}
+                  student={student}
+                  onViewProfile={handleViewProfile}
+                  onViewUniversity={handleViewUniversity}
+                />
+              ))}
+            </div>              {/* Pagination */}
+            <div className="mt-8 bg-white rounded-lg shadow-sm border p-6">
+              <div className="flex flex-wrap justify-center items-center gap-2">                <Button
+                variant="outline"
+                disabled={currentPage === 1}
+                onClick={() => handlePageChange(Math.max(currentPage - 1, 1))}
+                className="border-blue-200 text-blue-600 hover:bg-blue-50"
+              >
+                Previous
+              </Button>
+
+                {renderPageNumbers()}
+
+                <Button
+                  variant="outline"
+                  disabled={currentPage === totalPages || totalPages === 0}
+                  onClick={() => handlePageChange(Math.min(currentPage + 1, totalPages))}
+                  className="border-blue-200 text-blue-600 hover:bg-blue-50"
+                >
+                  Next
+                </Button>
               </div>
 
-              {/* Pagination */}
-              <div className="mt-8 bg-white rounded-lg shadow-sm border p-6">
-                <div className="flex flex-wrap justify-center items-center gap-2">
-                  <Button
-                    variant="outline"
-                    disabled={currentPage === 1}
-                    onClick={() => handlePageChange(Math.max(currentPage - 1, 1))}
-                    className="border-blue-200 text-blue-600 hover:bg-blue-50"
-                  >
-                    Previous
-                  </Button>
-
-                  {renderPageNumbers()}                  <Button
-                    variant="outline"
-                    disabled={currentPage === totalPages}
-                    onClick={() => handlePageChange(Math.min(currentPage + 1, totalPages))}
-                    className="border-blue-200 text-blue-600 hover:bg-blue-50"
-                  >
-                    Next
-                  </Button>
-                </div>
+              {/* Page info */}
+              <div className="text-center mt-4 text-sm text-gray-600">
+                Page {currentPage} of {totalPages} (Showing {students.length} students per page)
               </div>
-            </>
+            </div>
+          </>
           )}
         </div>
       </div>
     </>
   );
-};export default StudentsPage;
+}; export default StudentsPage;
