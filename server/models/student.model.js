@@ -18,14 +18,10 @@ const studentSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    universityId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "University",
-      required: true,
-    },
     role: {
       type: String,
       required: true,
+      enum: ["student", "super-student"],
       default: "student",
     },
     email: {
@@ -36,7 +32,11 @@ const studentSchema = new mongoose.Schema(
     phone: {
       type: String,
     },
-
+    universityId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "University",
+      required: true,
+    },
     courses: [
       {
         type: mongoose.Schema.Types.ObjectId,

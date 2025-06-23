@@ -25,6 +25,25 @@ const teacherSchema = new mongoose.Schema(
         ref: "Course",
       },
     ],
+    teacherId: {
+      type: String,
+      required: true,
+      unique: true,
+    },
+    password: {
+      type: String,
+      required: true,
+    },
+    universityId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "University",
+      required: true,
+    },
+    role: {
+      type: String,
+      enum: ["doctor", "assistant", "teacher"],
+      default: "teacher",
+    },
   },
   {
     timestamps: true,

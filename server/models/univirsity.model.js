@@ -61,6 +61,7 @@ const univirsitySchema = new mongoose.Schema(
     logo: {
       type: String,
       required: true,
+      default: "LOGO",
     },
   },
   {

@@ -1,7 +1,7 @@
 import { Router } from "express";
 
 import {
-  createStudent,
+  // createStudent,
   // getAllStudents,
   getStudentsPage,
   getStudentById,
@@ -27,7 +27,7 @@ router.route("/").get(getStudentsPage);
 
 router
   .route("/:universityId")
-  .post(validateUniversityId, authorize(["admin"]), createStudent);
+  // .post(validateUniversityId, authorize(["admin"]), createStudent);
 
 // router.route("/all").get(getAllStudents);
 
