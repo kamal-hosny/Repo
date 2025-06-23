@@ -1,108 +1,70 @@
-import { Card, CardContent } from '@/components/ui/card';
-import { Users, Award, Globe, BookOpen } from 'lucide-react';
+import Image from 'next/image';
+import { GraduationCap, Users, Globe, Award } from 'lucide-react';
+import { Button } from '@/Components/ui/button';
 
 export const AboutSection = () => {
+    const pillars = [
+        {
+            icon: <GraduationCap className="h-7 w-7 text-blue-600" />,
+            title: 'Academic Excellence',
+            desc: 'Over 130 years of shaping leaders and innovators.'
+        },
+        {
+            icon: <Users className="h-7 w-7 text-green-600" />,
+            title: 'Diverse Community',
+            desc: 'Students and faculty from 85+ countries.'
+        },
+        {
+            icon: <Globe className="h-7 w-7 text-purple-600" />,
+            title: 'Global Perspective',
+            desc: 'A curriculum designed for a connected world.'
+        },
+        {
+            icon: <Award className="h-7 w-7 text-orange-600" />,
+            title: 'Recognized Impact',
+            desc: 'Award-winning programs and research.'
+        },
+    ];
+
     return (
-        <section id="about" className="py-20 bg-white">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="text-center mb-16">
-                    <h2 className="text-4xl md:text-5xl font-serif font-bold text-gray-900 mb-6">
-                        About Enterprise University
-                    </h2>
-                    <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-                        Founded in 1892, Enterprise University has been a beacon of academic excellence
-                        for over 130 years, shaping leaders who drive positive change across industries and communities.
-                    </p>
+        <section id="about" className="py-24 bg-background">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col lg:flex-row items-center gap-16">
+                {/* Left: Illustration */}
+                <div className="flex-1 flex justify-center">
+                    <Image
+                        src="/about.jpg"
+                        alt="About Enterprise University"
+                        width={500}
+                        height={500}
+                        className="rounded-3xl shadow-2xl object-contain bg-white/40 backdrop-blur-md"
+                        priority
+                    />
                 </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
-                    <Card className="text-center p-6 border-0 shadow-lg hover:shadow-xl transition-shadow">
-                        <CardContent className="p-0">
-                            <div className="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                                <Users className="h-8 w-8 text-blue-600" />
-                            </div>
-                            <h3 className="text-2xl font-bold text-gray-900 mb-2">25,000+</h3>
-                            <p className="text-gray-600">Active Students</p>
-                        </CardContent>
-                    </Card>
-
-                    <Card className="text-center p-6 border-0 shadow-lg hover:shadow-xl transition-shadow">
-                        <CardContent className="p-0">
-                            <div className="bg-green-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                                <Award className="h-8 w-8 text-green-600" />
-                            </div>
-                            <h3 className="text-2xl font-bold text-gray-900 mb-2">150+</h3>
-                            <p className="text-gray-600">Academic Programs</p>
-                        </CardContent>
-                    </Card>
-
-                    <Card className="text-center p-6 border-0 shadow-lg hover:shadow-xl transition-shadow">
-                        <CardContent className="p-0">
-                            <div className="bg-purple-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                                <Globe className="h-8 w-8 text-purple-600" />
-                            </div>
-                            <h3 className="text-2xl font-bold text-gray-900 mb-2">85+</h3>
-                            <p className="text-gray-600">Countries Represented</p>
-                        </CardContent>
-                    </Card>
-
-                    <Card className="text-center p-6 border-0 shadow-lg hover:shadow-xl transition-shadow">
-                        <CardContent className="p-0">
-                            <div className="bg-orange-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                                <BookOpen className="h-8 w-8 text-orange-600" />
-                            </div>
-                            <h3 className="text-2xl font-bold text-gray-900 mb-2">12:1</h3>
-                            <p className="text-gray-600">Student-Faculty Ratio</p>
-                        </CardContent>
-                    </Card>
-                </div>
-
-                <div className="bg-gradient-to-r from-blue-50 to-blue-100 rounded-2xl p-8 md:p-12">
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+                {/* Right: Content Card */}
+                <div className="flex-1 w-full max-w-xl">
+                    <div className="bg-white/80 backdrop-blur-lg rounded-3xl shadow-2xl p-10 flex flex-col gap-8">
                         <div>
-                            <h3 className="text-3xl font-serif font-bold text-gray-900 mb-4">
-                                Our Mission
-                            </h3>
-                            <p className="text-lg text-gray-700 mb-6">
-                                To provide transformative educational experiences that prepare students to excel
-                                in their chosen fields while contributing meaningfully to society through innovation,
-                                critical thinking, and ethical leadership.
+                            <h2 className="text-5xl font-black mb-4 text-gray-900">Who We Are</h2>
+                            <p className="text-xl text-gray-700 mb-2">
+                                Task Flow is a global leader in higher education, dedicated to empowering students to create positive change in the world.
                             </p>
-                            <div className="space-y-3">
-                                <div className="flex items-start gap-3">
-                                    <div className="w-2 h-2 bg-blue-600 rounded-full mt-2"></div>
-                                    <p className="text-gray-700">Academic excellence through rigorous curriculum and research</p>
-                                </div>
-                                <div className="flex items-start gap-3">
-                                    <div className="w-2 h-2 bg-blue-600 rounded-full mt-2"></div>
-                                    <p className="text-gray-700">Character development and ethical leadership training</p>
-                                </div>
-                                <div className="flex items-start gap-3">
-                                    <div className="w-2 h-2 bg-blue-600 rounded-full mt-2"></div>
-                                    <p className="text-gray-700">Global perspective and cultural understanding</p>
-                                </div>
-                            </div>
+                            <p className="text-lg text-gray-500">
+                                Our mission is to inspire innovation, foster diversity, and cultivate excellence in every learner.
+                            </p>
                         </div>
-                        <div className="bg-white rounded-xl p-6 shadow-lg">
-                            <h4 className="text-xl font-serif font-semibold text-gray-900 mb-4">Our Values</h4>
-                            <div className="space-y-4">
-                                <div className="border-l-4 border-blue-600 pl-4">
-                                    <h5 className="font-semibold text-gray-900">Excellence</h5>
-                                    <p className="text-gray-600 text-sm">Pursuing the highest standards in everything we do</p>
+                        <div className="flex flex-col sm:flex-row gap-6">
+                            {pillars.map((pillar, i) => (
+                                <div key={i} className="flex flex-col items-center text-center flex-1 gap-2">
+                                    <div className="mb-1">{pillar.icon}</div>
+                                    <div className="font-bold text-lg text-gray-900">{pillar.title}</div>
+                                    <div className="text-gray-600 text-sm">{pillar.desc}</div>
                                 </div>
-                                <div className="border-l-4 border-green-600 pl-4">
-                                    <h5 className="font-semibold text-gray-900">Innovation</h5>
-                                    <p className="text-gray-600 text-sm">Embracing new ideas and creative solutions</p>
-                                </div>
-                                <div className="border-l-4 border-purple-600 pl-4">
-                                    <h5 className="font-semibold text-gray-900">Integrity</h5>
-                                    <p className="text-gray-600 text-sm">Acting with honesty and ethical principles</p>
-                                </div>
-                                <div className="border-l-4 border-orange-600 pl-4">
-                                    <h5 className="font-semibold text-gray-900">Community</h5>
-                                    <p className="text-gray-600 text-sm">Building inclusive and supportive relationships</p>
-                                </div>
-                            </div>
+                            ))}
+                        </div>
+                        <div className="flex justify-center pt-2">
+                            <Button className="bg-main hover:bg-main-hover px-8 py-3 text-lg font-bold rounded-full shadow-md">
+                                Discover More
+                            </Button>
                         </div>
                     </div>
                 </div>

@@ -1,5 +1,14 @@
 @import "tailwindcss";
 
+@theme{
+  --color-background: #F7FAFC;
+  --color-main: #369EFF;
+  --color-main-hover: #0082FB;
+  --color-light: #E5EDF5;
+  --color-light-hover: #CCDBEB;
+  --color-main-black: #0D141C;
+}
+
 @layer base {
   :root {
     --background: 0 0% 100%;

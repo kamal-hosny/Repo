@@ -9,7 +9,8 @@ const config: Config = {
     "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   theme: {
-    extend: {      fontFamily: {
+    extend: {      
+        fontFamily: {
         serif: ['var(--font-playfair-display)', 'Georgia', 'Times New Roman', 'serif'],
         sans: ['var(--font-inter)', 'system-ui', 'sans-serif'],
       },
