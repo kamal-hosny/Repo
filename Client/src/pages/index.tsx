@@ -2,6 +2,8 @@ import Head from 'next/head';
 import dynamic from 'next/dynamic';
 import { PageWrapper } from '@/components/layout/PageWrapper';
 import { HeroSection } from '@/components/landing/HeroSection';
+import KeyFeatures from '@/Components/landing/KeyFeatures';
+import Benefits from '@/Components/landing/Benefits';
 
 // Dynamic imports for components below the fold to improve initial page load
 const AboutSection = dynamic(() => import('@/components/landing/AboutSection').then(mod => ({ default: mod.AboutSection })), {
@@ -38,6 +40,8 @@ export default function Home() {
 
       <PageWrapper>
         <HeroSection />
+        <KeyFeatures />
+        <Benefits />
         <AboutSection />
         <ProgramsSection />
         <NewsSection />

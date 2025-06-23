@@ -1,4 +1,5 @@
-import { Card, CardContent } from '@/components/ui/card';
+import React from "react";
+import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Calendar, ArrowRight, Users, Award } from 'lucide-react';
 
@@ -60,69 +61,62 @@ export const NewsSection = () => {
     ];
 
     return (
-        <section id="news" className="py-20 bg-white">
+        <section id="news" className="py-20 bg-background">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="text-center mb-16">
-                    <h2 className="text-4xl md:text-5xl font-serif font-bold text-gray-900 mb-6">
-                        News & Events
-                    </h2>
-                    <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-                        Stay updated with the latest developments, achievements, and upcoming events
-                        from our vibrant university community.
+                    <h2 className="text-5xl font-black mb-6">News & Events</h2>
+                    <p className="text-2xl font-normal text-gray-600 max-w-3xl mx-auto">
+                        Stay updated with the latest developments, achievements, and upcoming events from our vibrant university community.
                     </p>
                 </div>
-
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
                     {/* News Section */}
                     <div className="lg:col-span-2">
                         <div className="flex items-center justify-between mb-8">
-                            <h3 className="text-2xl font-serif font-bold text-gray-900">Latest News</h3>
-                            <Button variant="outline">View All News</Button>
+                            <h3 className="text-2xl font-bold">Latest News</h3>
+                            <Button className="bg-main hover:bg-main-hover rounded font-semibold">View All News</Button>
                         </div>
-
-                        <div className="space-y-6">
+                        <div className="space-y-8">
                             {newsItems.map((item, index) => (
-                                <Card key={index} className="group hover:shadow-lg transition-shadow border-0 shadow-md">
-                                    <CardContent className="p-6">
-                                        <div className="flex items-start gap-4">
-                                            <div className="text-3xl">{item.image}</div>
-                                            <div className="flex-1">
-                                                <div className="flex items-center gap-2 mb-2">
-                                                    <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded">
-                                                        {item.category}
-                                                    </span>
-                                                    <span className="text-gray-500 text-sm">{item.date}</span>
-                                                    <span className="text-gray-500 text-sm">• {item.readTime}</span>
-                                                </div>
-                                                <h4 className="text-lg font-serif font-semibold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
-                                                    {item.title}
-                                                </h4>
-                                                <p className="text-gray-600 text-sm mb-3">{item.excerpt}</p>
-                                                <Button
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    className="p-0 h-auto text-blue-600 hover:text-blue-700"
-                                                >
-                                                    Read More
-                                                    <ArrowRight className="h-4 w-4 ml-1" />
-                                                </Button>
+                                <Card key={index} className="w-full shadow-lg hover:shadow-xl transition-all duration-300 border-0">
+                                    <CardHeader className="flex flex-row items-start gap-6 py-8">
+                                        <div className="text-4xl flex items-center justify-center min-w-[56px]">{item.image}</div>
+                                        <div className="flex-1">
+                                            <div className="flex items-center gap-2 mb-2">
+                                                <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded">
+                                                    {item.category}
+                                                </span>
+                                                <span className="text-gray-500 text-sm">{item.date}</span>
+                                                <span className="text-gray-500 text-sm">• {item.readTime}</span>
                                             </div>
+                                            <CardTitle className="text-lg font-bold mb-2 group-hover:text-blue-600 transition-colors">
+                                                {item.title}
+                                            </CardTitle>
+                                            <CardDescription className="text-gray-600 text-base mb-3">
+                                                {item.excerpt}
+                                            </CardDescription>
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                className="p-0 h-auto text-main hover:text-main-hover font-semibold"
+                                            >
+                                                Read More
+                                                <ArrowRight className="h-4 w-4 ml-1" />
+                                            </Button>
                                         </div>
-                                    </CardContent>
+                                    </CardHeader>
                                 </Card>
                             ))}
                         </div>
                     </div>
-
                     {/* Events Sidebar */}
-                    <div>
-                        <div className="flex items-center gap-2 mb-8">
-                            <Calendar className="h-6 w-6 text-blue-600" />
-                            <h3 className="text-2xl font-serif font-bold text-gray-900">Upcoming Events</h3>
+                    <div className="flex flex-col gap-8">
+                        <div className="flex items-center gap-2 mb-2">
+                            <Calendar className="h-6 w-6 text-main" />
+                            <h3 className="text-2xl font-bold">Upcoming Events</h3>
                         </div>
-
                         <Card className="border-0 shadow-lg">
-                            <CardContent className="p-6">
+                            <CardHeader className="p-6">
                                 <div className="space-y-6">
                                     {upcomingEvents.map((event, index) => (
                                         <div key={index} className="flex gap-4 pb-6 border-b border-gray-100 last:border-0 last:pb-0">
@@ -139,16 +133,15 @@ export const NewsSection = () => {
                                         </div>
                                     ))}
                                 </div>
-                                <Button className="w-full mt-6 bg-blue-600 hover:bg-blue-700">
+                                <Button className="w-full mt-6 bg-main hover:bg-main-hover rounded font-semibold">
                                     View All Events
                                 </Button>
-                            </CardContent>
+                            </CardHeader>
                         </Card>
-
                         {/* Quick Stats */}
-                        <Card className="border-0 shadow-lg mt-6">
-                            <CardContent className="p-6">
-                                <h4 className="font-serif font-semibold text-gray-900 mb-4">This Month</h4>
+                        <Card className="border-0 shadow-lg">
+                            <CardHeader className="p-6">
+                                <h4 className="font-bold mb-4">This Month</h4>
                                 <div className="space-y-4">
                                     <div className="flex items-center gap-3">
                                         <div className="bg-green-100 p-2 rounded">
@@ -178,7 +171,7 @@ export const NewsSection = () => {
                                         </div>
                                     </div>
                                 </div>
-                            </CardContent>
+                            </CardHeader>
                         </Card>
                     </div>
                 </div>
