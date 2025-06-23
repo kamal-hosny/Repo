@@ -3,51 +3,6 @@ import Course from "../models/course.model.js";
 
 import asyncHandler from "express-async-handler";
 
-// Create a new student
-
-const createStudent = asyncHandler(async (req, res) => {
-  if (!req?.body?.name || !req?.body?.email) {
-    res.status(400).json({
-      message: "Please provide a name and email address",
-    });
-  }
-  const { name, email, courses } = req.body;
-  const { universityId } = req.params;
-
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailRegex.test(email)) {
-    return res.status(400).json({
-      message: "Please provide a valid email address",
-    });
-  }
-
-  if (name.length < 2 || name.length > 50) {
-    return res.status(400).json({
-      message: "Name must be between 2 and 50 characters",
-    });
-  }
-  const existingStudent = await Student.findOne({ email });
-  if (existingStudent) {
-    return res.status(400).json({
-      message: "Student already exists, please use a different email",
-    });
-  }
-  const student = await Student.create({
-    name,
-    email,
-    courses,
-    universityId,
-  });
-
-  if (!student) {
-    return res.status(400).json({
-      message: "Invalid student data",
-    });
-  }
-
-  res.status(201).json(student);
-});
-
 // const getAllStudents = asyncHandler(async (req, res) => {
 //   const students = await Student.find().lean();
 //   res.status(200).json(students);
@@ -172,7 +127,7 @@ const deleteStudent = asyncHandler(async (req, res) => {
 });
 
 export {
-  createStudent,
+  // createStudent,
   // getAllStudents,
   getStudentsPage,
   getStudentById,

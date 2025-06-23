@@ -11,6 +11,8 @@ import studentRoutes from "./routes/student.routes.js";
 import universityRoutes from "./routes/university.routes.js";
 import authRoutes from "./routes/auth.routes.js";
 import teacherRoutes from "./routes/teacher.routes.js";
+import adminRoutes from "./routes/admin.routes.js";
+
 const app = express();
 
 const { PORT } = process.env;
@@ -27,6 +29,7 @@ app.use(
 
 connectDB();
 
+app.use("/api/admin", adminRoutes);
 app.use("/api/students", studentRoutes);
 app.use("/api/universities", universityRoutes);
 app.use("/api/teachers", teacherRoutes);

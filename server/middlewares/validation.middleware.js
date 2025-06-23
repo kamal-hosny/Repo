@@ -30,11 +30,11 @@ const validateUniversityId = (req, res, next) => {
   next();
 };
 
-const validateStudentLoginData = (req, res, next) => {
-  const { studentId, password } = req.body;
-  if (!studentId || !password) {
+const validateLoginData = (req, res, next) => {
+  const { id, password } = req.body;
+  if (!id || !password) {
     return res.status(400).json({
-      message: "studentId and password are required",
+      message: "id and password are required",
     });
   }
   next();
@@ -55,7 +55,7 @@ const validateStudentUpdateData = (req, res, next) => {
 export {
   validateObjectId,
   validateStudentId,
-  validateStudentLoginData,
+  validateLoginData,
   validateUniversityId,
   validateStudentUpdateData,
 };
