@@ -16,10 +16,22 @@ export const studentApiSlice = apiSlice.injectEndpoints({
                 url: `${STUDENT_URL}/${id}`,
                 method: "GET",
             }),
-
         }),
-    })
+        editStudent: builder.mutation<Student, { id: string; data: {name: string; email: string; password: string | undefined} }>({
+            query: ({ id, data  }) => ({
+                url: `${STUDENT_URL}/${id}`,
+                method: "PATCH",
+                body: data,
+            }),
+        }),
+        deleteStudent: builder.mutation<{ id: string; message: string }, string>({
+            query: (id) => ({
+                url: `${STUDENT_URL}/${id}`,
+                method: "DELETE",
+            })
+        })
+    }),
 
 
 });
-export const {useGetStudentByIdQuery, useGetStudentsPageQuery} = studentApiSlice;
+export const { useGetStudentByIdQuery, useGetStudentsPageQuery, useEditStudentMutation, useDeleteStudentMutation } = studentApiSlice;

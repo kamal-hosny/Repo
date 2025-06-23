@@ -1,6 +1,6 @@
 "use client";
 
-import { useGetStudentByIdQuery } from "@/app/api/studentApiSlice";
+import { useDeleteStudentMutation, useGetStudentByIdQuery } from "@/app/api/studentApiSlice";
 import { useRouter } from "next/router";
 import Head from "next/head";
 import Link from "next/link";
@@ -8,21 +8,34 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { useMemo } from "react";
-import { 
-  GraduationCap, 
-  ArrowLeft, 
-  Mail, 
-  Building, 
-  BookOpen, 
-  User, 
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+} from "@/components/ui/dialog";
+import { useMemo, useState } from "react";
+import {
+  GraduationCap,
+  ArrowLeft,
+  Mail,
+  Building,
+  BookOpen,
+  User,
   Calendar,
-  Users 
+  Users,
+  Trash2,
+  Pencil,
 } from "lucide-react";
+import toast from "react-hot-toast";
+import { DialogDescription, DialogTitle } from "@radix-ui/react-dialog";
 
 const StudentDetailsPage = () => {
   const router = useRouter();
   const { id } = router.query;
+
+  // delete and close delete dialog
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
 
   const { data, isLoading, isError } = useGetStudentByIdQuery(id as string, {
     refetchOnMountOrArgChange: true,
@@ -31,13 +44,14 @@ const StudentDetailsPage = () => {
 
   const student = useMemo(() => data ?? null, [data]);
 
+
   if (isLoading) {
     return (
       <>
         <Head>
           <title>Loading Student Profile - Enterprise University</title>
         </Head>
-        
+
         <div className="min-h-screen bg-gray-50">
           {/* Header Skeleton */}
           <div className="bg-white shadow-sm border-b">
@@ -68,7 +82,7 @@ const StudentDetailsPage = () => {
         <Head>
           <title>Student Not Found - Enterprise University</title>
         </Head>
-        
+
         <div className="min-h-screen bg-gray-50">
           {/* Header */}
           <div className="bg-white shadow-sm border-b">
@@ -92,8 +106,13 @@ const StudentDetailsPage = () => {
             <div className="text-center">
               <div className="bg-red-50 border border-red-200 rounded-lg p-8 max-w-md mx-auto">
                 <User className="h-12 w-12 text-red-400 mx-auto mb-4" />
-                <h1 className="text-2xl font-serif font-bold text-red-800 mb-2">Student Not Found</h1>
-                <p className="text-red-600">The student profile you are looking for could not be found or may have been removed.</p>
+                <h1 className="text-2xl font-serif font-bold text-red-800 mb-2">
+                  Student Not Found
+                </h1>
+                <p className="text-red-600">
+                  The student profile you are looking for could not be found or
+                  may have been removed.
+                </p>
               </div>
             </div>
           </div>
@@ -106,7 +125,10 @@ const StudentDetailsPage = () => {
     <>
       <Head>
         <title>{student.name} - Student Profile - Enterprise University</title>
-        <meta name="description" content={`View the academic profile of ${student.name} at Enterprise University`} />
+        <meta
+          name="description"
+          content={`View the academic profile of ${student.name} at Enterprise University`}
+        />
       </Head>
 
       <div className="min-h-screen bg-gray-50">
@@ -146,7 +168,9 @@ const StudentDetailsPage = () => {
                   <User className="h-12 w-12 text-white" />
                 </div>
                 <div>
-                  <h1 className="text-4xl font-serif font-bold mb-2">{student.name}</h1>
+                  <h1 className="text-4xl font-serif font-bold mb-2">
+                    {student.name}
+                  </h1>
                   <div className="flex items-center gap-4 text-blue-100">
                     <div className="flex items-center gap-2">
                       <Mail className="h-4 w-4" />
@@ -155,9 +179,38 @@ const StudentDetailsPage = () => {
                   </div>
                 </div>
               </div>
-              <Badge variant="secondary" className="bg-white/20 text-white border-white/30">
-                Student Profile
-              </Badge>
+
+              <div className="flex flex-col items-end">
+                <Badge
+                  variant="secondary"
+                  className="bg-white/20 text-white border-white/30"
+                >
+                  Student Profile
+                </Badge>
+
+                <div className="flex items-center space-x-3 mt-4">
+  <Button
+    asChild
+    className="
+      bg-white text-blue-600 hover:bg-blue-50  rounded p-2 h-9 w-9 cursor-pointer
+    "
+  >
+    <Link href={`/students/edit/${student._id}`}>
+      <Pencil className="h-4 w-4" />
+    </Link>
+  </Button>
+  
+  <Button
+    className="
+      bg-red-500 text-white hover:bg-red-600 rounded p-2 h-9 w-9 cursor-pointer
+
+    "
+    onClick={() => setIsDeleteOpen(true)}
+  >
+    <Trash2 className="h-4 w-4" />
+  </Button>
+</div>
+              </div>
             </div>
           </div>
 
@@ -170,8 +223,12 @@ const StudentDetailsPage = () => {
                     <Building className="h-6 w-6 text-blue-600" />
                   </div>
                   <div>
-                    <h2 className="text-xl font-serif font-bold text-gray-900">University Information</h2>
-                    <p className="text-gray-600">Academic institution details</p>
+                    <h2 className="text-xl font-serif font-bold text-gray-900">
+                      University Information
+                    </h2>
+                    <p className="text-gray-600">
+                      Academic institution details
+                    </p>
                   </div>
                 </div>
 
@@ -180,9 +237,12 @@ const StudentDetailsPage = () => {
                     <div className="flex items-center justify-between">
                       <div>
                         <h3 className="font-semibold text-gray-900 mb-1">
-                          {student?.universityId?.name ?? "University Not Specified"}
+                          {student?.universityId?.name ??
+                            "University Not Specified"}
                         </h3>
-                        <p className="text-sm text-gray-600">Primary Institution</p>
+                        <p className="text-sm text-gray-600">
+                          Primary Institution
+                        </p>
                       </div>
                       <div className="bg-blue-100 p-2 rounded">
                         <Building className="h-5 w-5 text-blue-600" />
@@ -193,10 +253,16 @@ const StudentDetailsPage = () => {
                   <div className="bg-gray-50 rounded-lg p-4">
                     <div className="flex items-center justify-between">
                       <div>
-                        <h3 className="font-semibold text-gray-900 mb-1">Student Status</h3>
-                        <p className="text-sm text-gray-600">Active Enrollment</p>
+                        <h3 className="font-semibold text-gray-900 mb-1">
+                          Student Status
+                        </h3>
+                        <p className="text-sm text-gray-600">
+                          Active Enrollment
+                        </p>
                       </div>
-                      <Badge className="bg-green-100 text-green-800">Active</Badge>
+                      <Badge className="bg-green-100 text-green-800">
+                        Active
+                      </Badge>
                     </div>
                   </div>
                 </div>
@@ -211,8 +277,12 @@ const StudentDetailsPage = () => {
                     <BookOpen className="h-6 w-6 text-green-600" />
                   </div>
                   <div>
-                    <h2 className="text-xl font-serif font-bold text-gray-900">Academic Program</h2>
-                    <p className="text-gray-600">Enrolled courses and curriculum</p>
+                    <h2 className="text-xl font-serif font-bold text-gray-900">
+                      Academic Program
+                    </h2>
+                    <p className="text-gray-600">
+                      Enrolled courses and curriculum
+                    </p>
                   </div>
                 </div>
 
@@ -226,11 +296,18 @@ const StudentDetailsPage = () => {
                       </div>
                       <div className="space-y-3">
                         {student.courses.map((course) => (
-                          <div key={course._id} className="bg-gray-50 rounded-lg p-4">
+                          <div
+                            key={course._id}
+                            className="bg-gray-50 rounded-lg p-4"
+                          >
                             <div className="flex items-center justify-between">
                               <div>
-                                <h4 className="font-medium text-gray-900">{course.name}</h4>
-                                <p className="text-sm text-gray-600">Course ID: {course._id}</p>
+                                <h4 className="font-medium text-gray-900">
+                                  {course.name}
+                                </h4>
+                                <p className="text-sm text-gray-600">
+                                  Course ID: {course._id}
+                                </p>
                               </div>
                               <div className="bg-blue-100 p-2 rounded">
                                 <BookOpen className="h-4 w-4 text-blue-600" />
@@ -243,8 +320,12 @@ const StudentDetailsPage = () => {
                   ) : (
                     <div className="text-center py-8">
                       <BookOpen className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                      <h3 className="text-lg font-medium text-gray-900 mb-2">No Courses Enrolled</h3>
-                      <p className="text-gray-500">This student is not currently enrolled in any courses.</p>
+                      <h3 className="text-lg font-medium text-gray-900 mb-2">
+                        No Courses Enrolled
+                      </h3>
+                      <p className="text-gray-500">
+                        This student is not currently enrolled in any courses.
+                      </p>
                     </div>
                   )}
                 </div>
@@ -260,8 +341,12 @@ const StudentDetailsPage = () => {
                   <Calendar className="h-6 w-6 text-purple-600" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-serif font-bold text-gray-900">Academic Summary</h2>
-                  <p className="text-gray-600">Quick overview of academic standing</p>
+                  <h2 className="text-xl font-serif font-bold text-gray-900">
+                    Academic Summary
+                  </h2>
+                  <p className="text-gray-600">
+                    Quick overview of academic standing
+                  </p>
                 </div>
               </div>
 
@@ -273,11 +358,15 @@ const StudentDetailsPage = () => {
                   <div className="text-sm text-gray-600">Enrolled Courses</div>
                 </div>
                 <div className="text-center p-4 bg-green-50 rounded-lg">
-                  <div className="text-2xl font-bold text-green-600 mb-1">Active</div>
+                  <div className="text-2xl font-bold text-green-600 mb-1">
+                    Active
+                  </div>
                   <div className="text-sm text-gray-600">Enrollment Status</div>
                 </div>
                 <div className="text-center p-4 bg-purple-50 rounded-lg">
-                  <div className="text-2xl font-bold text-purple-600 mb-1">2025</div>
+                  <div className="text-2xl font-bold text-purple-600 mb-1">
+                    2025
+                  </div>
                   <div className="text-sm text-gray-600">Academic Year</div>
                 </div>
               </div>
@@ -286,14 +375,15 @@ const StudentDetailsPage = () => {
 
           {/* Action Buttons */}
           <div className="flex flex-wrap gap-4 justify-center mt-8">
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={() => router.back()}
               className="border-blue-200 text-blue-600 hover:bg-blue-50"
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
               Go Back
             </Button>
+
             <Button asChild className="bg-blue-600 hover:bg-blue-700">
               <Link href="/students">
                 <Users className="h-4 w-4 mr-2" />
@@ -303,8 +393,76 @@ const StudentDetailsPage = () => {
           </div>
         </div>
       </div>
+
+      <DeleteStudentDialog
+        open={isDeleteOpen}
+        onOpenChange={setIsDeleteOpen}
+        studentName={student.name}
+        studentId={student._id}
+      />
     </>
   );
 };
 
 export default StudentDetailsPage;
+
+// DeleteStudentDialog component
+
+interface Props {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  studentName: string;
+  studentId: string;
+}
+
+const DeleteStudentDialog = ({
+  open,
+  onOpenChange,
+  studentName,
+  studentId,
+}: Props) => {
+
+  const router = useRouter();
+
+  const [deleteStudent, { isLoading }] = useDeleteStudentMutation();
+
+  const handleDeleteStudent = async () => {
+    try {
+      console.log("Deleting student:", studentId);
+      const res = await deleteStudent(studentId).unwrap();
+      onOpenChange(false);
+      router.push("/students");
+      toast.success(res.message || "Student deleted successfully!");
+      
+      
+    } catch (error) {
+      toast.error(`Failed to delete student. ${error}`);
+      console.log(`Failed to delete student. ${error}`);
+
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle className="text-lg font-semibold">Confirm Deletion</DialogTitle>
+          <DialogDescription className="text-sm text-gray-600">
+            Are you sure you want to delete <strong>{studentName}</strong>'s
+            profile? This action cannot be undone.
+          </DialogDescription>
+        </DialogHeader>
+
+        <DialogFooter>
+          <Button variant="outline" className="cursor-pointer" onClick={() => onOpenChange(false)} disabled={isLoading}>
+            Cancel
+          </Button>
+
+          <Button variant="destructive" className="text-white cursor-pointer" onClick={handleDeleteStudent}>
+          {isLoading ? "Deleting..." : "Delete"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+};
