@@ -1,672 +1,956 @@
-# Testing Guide - Student Management System Frontend
+# Testing Guide - Task-Flow LMS Frontend
 
 ## Testing Strategy Overview
 
 ### Testing Pyramid
 ```
-E2E Tests (10%)
-    ↑
-Integration Tests (20%)
-    ↑
-Unit Tests (70%)
+                    E2E Tests (10%)
+                 ┌─────────────────┐
+                │  Integration     │
+               │    Tests (20%)    │
+              └─────────────────────┘
+            ┌─────────────────────────┐
+           │    Unit Tests (70%)      │
+          └─────────────────────────────┘
 ```
 
-### Testing Principles
-- **Write tests that provide confidence**
-- **Test behavior, not implementation**
-- **Keep tests simple and focused**
-- **Use real user interactions**
-- **Mock at the network boundary**
+### Testing Objectives
+- **Unit Tests**: Test individual components and functions in isolation
+- **Integration Tests**: Test component interactions and API integrations
+- **End-to-End Tests**: Test complete user workflows across all roles
+- **Visual Regression Tests**: Ensure UI consistency across theme and language changes
+- **Performance Tests**: Validate loading times and responsiveness
 
-## Testing Stack
+## Unit Testing
 
-### Core Testing Libraries
-- **Jest**: JavaScript testing framework
-- **React Testing Library**: React component testing utilities
-- **MSW (Mock Service Worker)**: API mocking
-- **Playwright**: End-to-end testing
-- **@testing-library/jest-dom**: Custom Jest matchers
-
-### Setup Configuration
+### Component Testing Setup
 ```typescript
 // jest.config.js
-const nextJest = require('next/jest')
+const nextJest = require('next/jest');
 
 const createJestConfig = nextJest({
   dir: './',
-})
+});
 
 const customJestConfig = {
   setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
   moduleNameMapping: {
-    '^@/(.*)$': '<rootDir>/src/$1',
+    '^@/components/(.*)$': '<rootDir>/src/components/$1',
+    '^@/lib/(.*)$': '<rootDir>/src/lib/$1',
+    '^@/hooks/(.*)$': '<rootDir>/src/hooks/$1',
+    '^@/contexts/(.*)$': '<rootDir>/src/contexts/$1',
   },
   testEnvironment: 'jest-environment-jsdom',
-}
-
-module.exports = createJestConfig(customJestConfig)
-```
-
-```typescript
-// jest.setup.js
-import '@testing-library/jest-dom'
-import 'whatwg-fetch'
-
-// Mock next/router
-jest.mock('next/router', () => ({
-  useRouter() {
-    return {
-      route: '/',
-      pathname: '/',
-      query: {},
-      asPath: '/',
-      push: jest.fn(),
-      pop: jest.fn(),
-      reload: jest.fn(),
-      back: jest.fn(),
-      prefetch: jest.fn().mockResolvedValue(undefined),
-      beforePopState: jest.fn(),
-      events: {
-        on: jest.fn(),
-        off: jest.fn(),
-        emit: jest.fn(),
-      },
-    }
-  },
-}))
-```
-
-## Unit Testing
-
-### Component Testing Patterns
-
-#### Basic Component Test
-```typescript
-// StudentCard.test.tsx
-import { render, screen } from '@testing-library/react'
-import { StudentCard } from '../StudentCard'
-
-const mockStudent = {
-  _id: '1',
-  name: 'John Doe',
-  email: 'john@example.com',
-  universityId: {
-    _id: 'uni1',
-    name: 'Test University'
-  },
-  courses: [],
-  createdAt: '2025-01-01',
-  updatedAt: '2025-01-01'
-}
-
-describe('StudentCard', () => {
-  it('renders student information correctly', () => {
-    render(<StudentCard student={mockStudent} />)
-    
-    expect(screen.getByText('John Doe')).toBeInTheDocument()
-    expect(screen.getByText('john@example.com')).toBeInTheDocument()
-    expect(screen.getByText('Test University')).toBeInTheDocument()
-  })
-
-  it('handles missing university gracefully', () => {
-    const studentWithoutUniversity = {
-      ...mockStudent,
-      universityId: null
-    }
-    
-    render(<StudentCard student={studentWithoutUniversity} />)
-    
-    expect(screen.getByText('No University')).toBeInTheDocument()
-  })
-})
-```
-
-#### Interactive Component Test
-```typescript
-// Button.test.tsx
-import { render, screen, fireEvent } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
-import { Button } from '../Button'
-
-describe('Button', () => {
-  it('calls onClick handler when clicked', async () => {
-    const user = userEvent.setup()
-    const handleClick = jest.fn()
-    
-    render(<Button onClick={handleClick}>Click me</Button>)
-    
-    await user.click(screen.getByRole('button', { name: /click me/i }))
-    
-    expect(handleClick).toHaveBeenCalledTimes(1)
-  })
-
-  it('is disabled when loading', () => {
-    render(<Button disabled>Loading...</Button>)
-    
-    const button = screen.getByRole('button')
-    expect(button).toBeDisabled()
-  })
-
-  it('applies correct variant classes', () => {
-    render(<Button variant="destructive">Delete</Button>)
-    
-    const button = screen.getByRole('button')
-    expect(button).toHaveClass('bg-destructive')
-  })
-})
-```
-
-#### Form Testing
-```typescript
-// LoginForm.test.tsx
-import { render, screen, waitFor } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
-import { Provider } from 'react-redux'
-import { configureStore } from '@reduxjs/toolkit'
-import { LoginForm } from '../LoginForm'
-import { apiSlice } from '@/app/api/apiSlice'
-
-// Create test store
-const createTestStore = () => {
-  return configureStore({
-    reducer: {
-      [apiSlice.reducerPath]: apiSlice.reducer,
+  collectCoverageFrom: [
+    'src/**/*.{js,jsx,ts,tsx}',
+    '!src/**/*.d.ts',
+    '!src/**/index.ts',
+  ],
+  coverageThreshold: {
+    global: {
+      branches: 80,
+      functions: 80,
+      lines: 80,
+      statements: 80,
     },
-    middleware: (getDefaultMiddleware) =>
-      getDefaultMiddleware().concat(apiSlice.middleware),
-  })
-}
+  },
+};
 
-const renderWithProvider = (component: React.ReactElement) => {
-  const store = createTestStore()
+module.exports = createJestConfig(customJestConfig);
+
+// jest.setup.js
+import '@testing-library/jest-dom';
+import { server } from './src/mocks/server';
+
+beforeAll(() => server.listen());
+afterEach(() => server.resetHandlers());
+afterAll(() => server.close());
+
+// Mock Next.js router
+jest.mock('next/router', () => ({
+  useRouter: () => ({
+    push: jest.fn(),
+    pathname: '/',
+    query: {},
+    asPath: '/',
+  }),
+}));
+
+// Mock socket.io
+jest.mock('socket.io-client', () => ({
+  io: jest.fn(() => ({
+    on: jest.fn(),
+    off: jest.fn(),
+    emit: jest.fn(),
+    connect: jest.fn(),
+    disconnect: jest.fn(),
+  })),
+}));
+```
+
+### Component Test Examples
+```typescript
+// __tests__/components/LoginForm.test.tsx
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { LoginForm } from '@/components/features/auth/LoginForm';
+import { AuthProvider } from '@/contexts/AuthContext';
+
+const mockOnSuccess = jest.fn();
+const mockOnError = jest.fn();
+
+const renderLoginForm = () => {
   return render(
-    <Provider store={store}>{component}</Provider>
-  )
-}
+    <AuthProvider>
+      <LoginForm onSuccess={mockOnSuccess} onError={mockOnError} />
+    </AuthProvider>
+  );
+};
 
 describe('LoginForm', () => {
-  it('validates required fields', async () => {
-    const user = userEvent.setup()
-    renderWithProvider(<LoginForm />)
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  test('renders all form fields', () => {
+    renderLoginForm();
     
-    const submitButton = screen.getByRole('button', { name: /login/i })
-    await user.click(submitButton)
+    expect(screen.getByLabelText(/email or university id/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/password/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /login/i })).toBeInTheDocument();
+  });
+
+  test('validates required fields', async () => {
+    const user = userEvent.setup();
+    renderLoginForm();
+    
+    const loginButton = screen.getByRole('button', { name: /login/i });
+    await user.click(loginButton);
+    
+    expect(screen.getByText(/email is required/i)).toBeInTheDocument();
+    expect(screen.getByText(/password is required/i)).toBeInTheDocument();
+  });
+
+  test('submits form with valid credentials', async () => {
+    const user = userEvent.setup();
+    renderLoginForm();
+    
+    const emailInput = screen.getByLabelText(/email or university id/i);
+    const passwordInput = screen.getByLabelText(/password/i);
+    const loginButton = screen.getByRole('button', { name: /login/i });
+    
+    await user.type(emailInput, 'student@university.edu');
+    await user.type(passwordInput, 'password123');
+    await user.click(loginButton);
     
     await waitFor(() => {
-      expect(screen.getByText('Student ID is required')).toBeInTheDocument()
-      expect(screen.getByText('Password must be at least 6 characters')).toBeInTheDocument()
-    })
-  })
+      expect(mockOnSuccess).toHaveBeenCalledWith(
+        expect.objectContaining({
+          email: 'student@university.edu',
+          role: 'STUDENT'
+        })
+      );
+    });
+  });
 
-  it('submits form with valid data', async () => {
-    const user = userEvent.setup()
-    renderWithProvider(<LoginForm />)
+  test('handles login error', async () => {
+    const user = userEvent.setup();
     
-    await user.type(screen.getByLabelText(/student id/i), 'student123')
-    await user.type(screen.getByLabelText(/password/i), 'password123')
-    await user.click(screen.getByRole('button', { name: /login/i }))
+    // Mock failed login
+    global.fetch = jest.fn(() =>
+      Promise.resolve({
+        ok: false,
+        json: () => Promise.resolve({ message: 'Invalid credentials' })
+      })
+    );
     
-    // Assert form submission behavior
-    // This would typically involve mocking the API call
-  })
-})
-```
+    renderLoginForm();
+    
+    const emailInput = screen.getByLabelText(/email or university id/i);
+    const passwordInput = screen.getByLabelText(/password/i);
+    const loginButton = screen.getByRole('button', { name: /login/i });
+    
+    await user.type(emailInput, 'wrong@email.com');
+    await user.type(passwordInput, 'wrongpassword');
+    await user.click(loginButton);
+    
+    await waitFor(() => {
+      expect(mockOnError).toHaveBeenCalledWith('Invalid credentials');
+    });
+  });
 
-### Hook Testing
-```typescript
-// useLocalStorage.test.ts
-import { renderHook, act } from '@testing-library/react'
-import { useLocalStorage } from '../useLocalStorage'
-
-describe('useLocalStorage', () => {
-  beforeEach(() => {
-    localStorage.clear()
-  })
-
-  it('returns initial value when no stored value exists', () => {
-    const { result } = renderHook(() => useLocalStorage('test-key', 'initial'))
+  test('disables submit button during loading', async () => {
+    const user = userEvent.setup();
+    renderLoginForm();
     
-    expect(result.current[0]).toBe('initial')
-  })
+    const emailInput = screen.getByLabelText(/email or university id/i);
+    const passwordInput = screen.getByLabelText(/password/i);
+    const loginButton = screen.getByRole('button', { name: /login/i });
+    
+    await user.type(emailInput, 'student@university.edu');
+    await user.type(passwordInput, 'password123');
+    await user.click(loginButton);
+    
+    expect(loginButton).toBeDisabled();
+    expect(screen.getByText(/logging in.../i)).toBeInTheDocument();
+  });
+});
 
-  it('stores and retrieves values', () => {
-    const { result } = renderHook(() => useLocalStorage('test-key', 'initial'))
+// __tests__/components/AssignmentForm.test.tsx
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { AssignmentCreationForm } from '@/components/features/tasks/AssignmentCreationForm';
+import { AuthProvider } from '@/contexts/AuthContext';
+
+const mockProps = {
+  courseId: 'course-123',
+  onSuccess: jest.fn(),
+  onCancel: jest.fn()
+};
+
+const renderAssignmentForm = () => {
+  return render(
+    <AuthProvider>
+      <AssignmentCreationForm {...mockProps} />
+    </AuthProvider>
+  );
+};
+
+describe('AssignmentCreationForm', () => {
+  test('creates assignment with valid data', async () => {
+    const user = userEvent.setup();
     
-    act(() => {
-      result.current[1]('new value')
-    })
+    // Mock successful API call
+    global.fetch = jest.fn(() =>
+      Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({
+          id: 'assignment-123',
+          title: 'Test Assignment',
+          description: 'Test description'
+        })
+      })
+    );
     
-    expect(result.current[0]).toBe('new value')
-    expect(localStorage.getItem('test-key')).toBe('"new value"')
-  })
-})
+    renderAssignmentForm();
+    
+    // Fill form fields
+    await user.type(screen.getByLabelText(/title/i), 'Test Assignment');
+    await user.type(screen.getByLabelText(/description/i), 'Test description');
+    await user.type(screen.getByLabelText(/due date/i), '2025-12-31T23:59');
+    await user.clear(screen.getByLabelText(/maximum grade/i));
+    await user.type(screen.getByLabelText(/maximum grade/i), '100');
+    
+    // Submit form
+    await user.click(screen.getByRole('button', { name: /create assignment/i }));
+    
+    await waitFor(() => {
+      expect(mockProps.onSuccess).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: 'assignment-123',
+          title: 'Test Assignment'
+        })
+      );
+    });
+  });
+
+  test('handles file attachments', async () => {
+    const user = userEvent.setup();
+    renderAssignmentForm();
+    
+    const file = new File(['test content'], 'test.pdf', { type: 'application/pdf' });
+    const fileInput = screen.getByLabelText(/attachments/i);
+    
+    await user.upload(fileInput, file);
+    
+    expect(screen.getByText('test.pdf')).toBeInTheDocument();
+  });
+
+  test('validates maximum grade limits', async () => {
+    const user = userEvent.setup();
+    renderAssignmentForm();
+    
+    const gradeInput = screen.getByLabelText(/maximum grade/i);
+    
+    await user.clear(gradeInput);
+    await user.type(gradeInput, '0');
+    
+    expect(screen.getByText(/grade must be at least 1/i)).toBeInTheDocument();
+    
+    await user.clear(gradeInput);
+    await user.type(gradeInput, '1001');
+    
+    expect(screen.getByText(/grade cannot exceed 1000/i)).toBeInTheDocument();
+  });
+});
+
+// __tests__/hooks/useAuth.test.tsx
+import { renderHook, act } from '@testing-library/react';
+import { useAuth } from '@/hooks/useAuth';
+import { AuthProvider } from '@/contexts/AuthContext';
+
+const wrapper = ({ children }: { children: React.ReactNode }) => (
+  <AuthProvider>{children}</AuthProvider>
+);
+
+describe('useAuth', () => {
+  test('initial state is unauthenticated', () => {
+    const { result } = renderHook(() => useAuth(), { wrapper });
+    
+    expect(result.current.user).toBeNull();
+    expect(result.current.isAuthenticated).toBe(false);
+    expect(result.current.loading).toBe(false);
+  });
+
+  test('login updates authentication state', async () => {
+    const { result } = renderHook(() => useAuth(), { wrapper });
+    
+    const mockUser = {
+      id: '1',
+      email: 'test@university.edu',
+      role: 'STUDENT' as const,
+      name: 'Test Student'
+    };
+    
+    // Mock successful login
+    global.fetch = jest.fn(() =>
+      Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({
+          token: 'mock-token',
+          user: mockUser
+        })
+      })
+    );
+    
+    await act(async () => {
+      await result.current.login('test@university.edu', 'password');
+    });
+    
+    expect(result.current.user).toEqual(mockUser);
+    expect(result.current.isAuthenticated).toBe(true);
+  });
+
+  test('logout clears authentication state', async () => {
+    const { result } = renderHook(() => useAuth(), { wrapper });
+    
+    // First login
+    const mockUser = {
+      id: '1',
+      email: 'test@university.edu',
+      role: 'STUDENT' as const,
+      name: 'Test Student'
+    };
+    
+    global.fetch = jest.fn(() =>
+      Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({
+          token: 'mock-token',
+          user: mockUser
+        })
+      })
+    );
+    
+    await act(async () => {
+      await result.current.login('test@university.edu', 'password');
+    });
+    
+    // Then logout
+    global.fetch = jest.fn(() =>
+      Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({})
+      })
+    );
+    
+    await act(async () => {
+      await result.current.logout();
+    });
+    
+    expect(result.current.user).toBeNull();
+    expect(result.current.isAuthenticated).toBe(false);
+  });
+});
 ```
 
 ## Integration Testing
 
-### API Integration Testing with MSW
+### API Integration Tests
 ```typescript
-// studentApi.test.tsx
-import { rest } from 'msw'
-import { setupServer } from 'msw/node'
-import { render, screen, waitFor } from '@testing-library/react'
-import { Provider } from 'react-redux'
-import { store } from '@/app/store'
-import { StudentsPage } from '../pages/students'
-
-const mockStudentsResponse = {
-  students: [
-    {
-      _id: '1',
-      name: 'John Doe',
-      email: 'john@example.com',
-      universityId: { _id: 'uni1', name: 'Test University' },
-      courses: [],
-      createdAt: '2025-01-01',
-      updatedAt: '2025-01-01'
-    }
-  ],
-  currentPage: 1,
-  totalPages: 1
-}
+// __tests__/integration/api.test.ts
+import { rest } from 'msw';
+import { setupServer } from 'msw/node';
+import { studentAPI } from '@/lib/api';
 
 const server = setupServer(
-  rest.get('/api/students', (req, res, ctx) => {
-    return res(ctx.json(mockStudentsResponse))
-  })
-)
-
-beforeAll(() => server.listen())
-afterEach(() => server.resetHandlers())
-afterAll(() => server.close())
-
-const renderWithProvider = (component: React.ReactElement) => {
-  return render(
-    <Provider store={store}>{component}</Provider>
-  )
-}
-
-describe('Students API Integration', () => {
-  it('fetches and displays students', async () => {
-    renderWithProvider(<StudentsPage />)
-    
-    expect(screen.getByText('Loading...')).toBeInTheDocument()
-    
-    await waitFor(() => {
-      expect(screen.getByText('John Doe')).toBeInTheDocument()
-      expect(screen.getByText('john@example.com')).toBeInTheDocument()
-    })
-  })
-
-  it('handles API errors gracefully', async () => {
-    server.use(
-      rest.get('/api/students', (req, res, ctx) => {
-        return res(ctx.status(500), ctx.json({ message: 'Server error' }))
+  rest.get('/api/students/:id/profile', (req, res, ctx) => {
+    return res(
+      ctx.json({
+        id: req.params.id,
+        name: 'Test Student',
+        email: 'student@university.edu',
+        studentId: 'STU001',
+        college: 'Engineering',
+        department: 'Computer Science'
       })
-    )
+    );
+  }),
+  
+  rest.get('/api/students/:id/assignments', (req, res, ctx) => {
+    const status = req.url.searchParams.get('status');
     
-    renderWithProvider(<StudentsPage />)
+    const assignments = [
+      {
+        id: 'assignment-1',
+        title: 'Assignment 1',
+        status: 'PENDING',
+        dueDate: '2025-12-31T23:59:59Z'
+      },
+      {
+        id: 'assignment-2',
+        title: 'Assignment 2',
+        status: 'SUBMITTED',
+        dueDate: '2025-11-30T23:59:59Z'
+      }
+    ];
     
-    await waitFor(() => {
-      expect(screen.getByText(/failed to load students/i)).toBeInTheDocument()
-    })
+    const filtered = status 
+      ? assignments.filter(a => a.status === status)
+      : assignments;
+    
+    return res(ctx.json(filtered));
   })
-})
+);
+
+beforeAll(() => server.listen());
+afterEach(() => server.resetHandlers());
+afterAll(() => server.close());
+
+describe('Student API Integration', () => {
+  test('fetches student profile', async () => {
+    const profile = await studentAPI.getProfile('student-123');
+    
+    expect(profile).toEqual({
+      id: 'student-123',
+      name: 'Test Student',
+      email: 'student@university.edu',
+      studentId: 'STU001',
+      college: 'Engineering',
+      department: 'Computer Science'
+    });
+  });
+
+  test('fetches assignments with status filter', async () => {
+    const pendingAssignments = await studentAPI.getAssignments('student-123', {
+      status: 'PENDING'
+    });
+    
+    expect(pendingAssignments).toHaveLength(1);
+    expect(pendingAssignments[0].status).toBe('PENDING');
+  });
+
+  test('handles API errors', async () => {
+    server.use(
+      rest.get('/api/students/:id/profile', (req, res, ctx) => {
+        return res(
+          ctx.status(404),
+          ctx.json({ message: 'Student not found' })
+        );
+      })
+    );
+    
+    await expect(studentAPI.getProfile('nonexistent')).rejects.toThrow();
+  });
+});
 ```
 
-### Page Integration Testing
+### Component Integration Tests
 ```typescript
-// studentsPage.test.tsx
-import { render, screen, waitFor } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
-import { Provider } from 'react-redux'
-import { StudentsPage } from '../pages/students'
-import { createTestStore, createMockServer } from '@/test-utils'
+// __tests__/integration/dashboard.test.tsx
+import { render, screen, waitFor } from '@testing-library/react';
+import { rest } from 'msw';
+import { setupServer } from 'msw/node';
+import { StudentDashboard } from '@/components/dashboards/StudentDashboard';
+import { AuthProvider } from '@/contexts/AuthContext';
+import { ThemeProvider } from '@/contexts/ThemeContext';
 
-describe('Students Page Integration', () => {
-  it('handles pagination correctly', async () => {
-    const user = userEvent.setup()
-    const store = createTestStore()
-    
-    render(
-      <Provider store={store}>
-        <StudentsPage />
-      </Provider>
-    )
-    
-    // Wait for initial load
-    await waitFor(() => {
-      expect(screen.getByText('Students')).toBeInTheDocument()
-    })
-    
-    // Test pagination
-    const nextPageButton = screen.getByRole('button', { name: '2' })
-    await user.click(nextPageButton)
-    
-    await waitFor(() => {
-      // Assert page 2 content is loaded
-      expect(screen.getByText('Page 2 Student')).toBeInTheDocument()
-    })
-  })
-
-  it('navigates to student detail page', async () => {
-    const user = userEvent.setup()
-    const mockPush = jest.fn()
-    
-    jest.mock('next/router', () => ({
-      useRouter: () => ({
-        push: mockPush,
-        query: {},
-        pathname: '/students'
+const server = setupServer(
+  rest.get('/api/students/:id/profile', (req, res, ctx) => {
+    return res(
+      ctx.json({
+        id: req.params.id,
+        name: 'John Doe',
+        email: 'john@university.edu',
+        studentId: 'STU001'
       })
-    }))
+    );
+  }),
+  
+  rest.get('/api/students/:id/assignments', (req, res, ctx) => {
+    return res(
+      ctx.json([
+        {
+          id: 'assignment-1',
+          title: 'Math Assignment',
+          status: 'PENDING',
+          dueDate: '2025-12-31T23:59:59Z',
+          courseName: 'Calculus I'
+        }
+      ])
+    );
+  })
+);
+
+beforeAll(() => server.listen());
+afterEach(() => server.resetHandlers());
+afterAll(() => server.close());
+
+const renderDashboard = () => {
+  return render(
+    <AuthProvider>
+      <ThemeProvider>
+        <StudentDashboard studentId="student-123" />
+      </ThemeProvider>
+    </AuthProvider>
+  );
+};
+
+describe('Student Dashboard Integration', () => {
+  test('loads and displays student data', async () => {
+    renderDashboard();
     
-    render(<StudentsPage />)
+    // Should show loading initially
+    expect(screen.getByText(/loading/i)).toBeInTheDocument();
+    
+    // Wait for data to load
+    await waitFor(() => {
+      expect(screen.getByText('John Doe')).toBeInTheDocument();
+    });
+    
+    expect(screen.getByText('STU001')).toBeInTheDocument();
+    expect(screen.getByText('Math Assignment')).toBeInTheDocument();
+    expect(screen.getByText('Calculus I')).toBeInTheDocument();
+  });
+
+  test('handles API errors gracefully', async () => {
+    server.use(
+      rest.get('/api/students/:id/profile', (req, res, ctx) => {
+        return res(ctx.status(500));
+      })
+    );
+    
+    renderDashboard();
     
     await waitFor(() => {
-      const studentCard = screen.getByTestId('student-card-1')
-      return user.click(studentCard)
-    })
-    
-    expect(mockPush).toHaveBeenCalledWith('/students/1')
-  })
-})
+      expect(screen.getByText(/failed to load/i)).toBeInTheDocument();
+    });
+  });
+});
 ```
 
 ## End-to-End Testing
 
-### Playwright Configuration
+### Cypress E2E Tests
 ```typescript
-// playwright.config.ts
-import { defineConfig, devices } from '@playwright/test'
+// cypress/e2e/auth-flow.cy.ts
+describe('Authentication Flow', () => {
+  beforeEach(() => {
+    cy.visit('/');
+  });
 
-export default defineConfig({
-  testDir: './tests/e2e',
-  fullyParallel: true,
-  forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 1 : undefined,
-  reporter: 'html',
-  use: {
-    baseURL: 'http://localhost:3000',
-    trace: 'on-first-retry',
-  },
-  projects: [
-    {
-      name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
-    },
-    {
-      name: 'firefox',
-      use: { ...devices['Desktop Firefox'] },
-    },
-    {
-      name: 'webkit',
-      use: { ...devices['Desktop Safari'] },
-    },
-  ],
-  webServer: {
-    command: 'npm run dev',
-    url: 'http://localhost:3000',
-    reuseExistingServer: !process.env.CI,
-  },
-})
-```
+  it('should redirect to login page from protected route', () => {
+    cy.visit('/student/123');
+    cy.url().should('include', '/login');
+  });
 
-### E2E Test Examples
-```typescript
-// login.spec.ts
-import { test, expect } from '@playwright/test'
-
-test.describe('Authentication Flow', () => {
-  test('successful login flow', async ({ page }) => {
-    await page.goto('/login')
+  it('should login as student and redirect to dashboard', () => {
+    cy.visit('/login');
     
-    // Fill login form
-    await page.fill('[data-testid="student-id-input"]', 'student123')
-    await page.fill('[data-testid="password-input"]', 'password123')
+    cy.get('[data-testid="email-input"]').type('student@university.edu');
+    cy.get('[data-testid="password-input"]').type('password123');
+    cy.get('[data-testid="login-button"]').click();
     
-    // Submit form
-    await page.click('[data-testid="login-button"]')
+    cy.url().should('include', '/student/');
+    cy.get('[data-testid="welcome-message"]').should('contain', 'Welcome');
+  });
+
+  it('should login as teacher and redirect to teacher dashboard', () => {
+    cy.visit('/login');
     
-    // Verify successful login
-    await expect(page).toHaveURL('/students')
-    await expect(page.locator('h1')).toContainText('Students')
-  })
-
-  test('handles invalid credentials', async ({ page }) => {
-    await page.goto('/login')
+    cy.get('[data-testid="email-input"]').type('teacher@university.edu');
+    cy.get('[data-testid="password-input"]').type('password123');
+    cy.get('[data-testid="login-button"]').click();
     
-    await page.fill('[data-testid="student-id-input"]', 'invalid')
-    await page.fill('[data-testid="password-input"]', 'wrong')
-    await page.click('[data-testid="login-button"]')
+    cy.url().should('include', '/teacher/');
+    cy.get('[data-testid="teacher-dashboard"]').should('be.visible');
+  });
+
+  it('should show error for invalid credentials', () => {
+    cy.visit('/login');
     
-    // Verify error message
-    await expect(page.locator('[role="alert"]')).toContainText('Invalid credentials')
-  })
-})
-
-// students.spec.ts
-test.describe('Student Management', () => {
-  test.beforeEach(async ({ page }) => {
-    // Mock authentication
-    await page.goto('/login')
-    await page.fill('[data-testid="student-id-input"]', 'student123')
-    await page.fill('[data-testid="password-input"]', 'password123')
-    await page.click('[data-testid="login-button"]')
-    await page.waitForURL('/students')
-  })
-
-  test('displays student list with pagination', async ({ page }) => {
-    // Verify students are displayed
-    await expect(page.locator('[data-testid="student-card"]')).toHaveCount(10)
+    cy.get('[data-testid="email-input"]').type('invalid@email.com');
+    cy.get('[data-testid="password-input"]').type('wrongpassword');
+    cy.get('[data-testid="login-button"]').click();
     
-    // Test pagination
-    await page.click('[data-testid="next-page-button"]')
-    await expect(page.locator('[data-testid="current-page"]')).toContainText('2')
-  })
+    cy.get('[data-testid="error-message"]').should('contain', 'Invalid credentials');
+  });
 
-  test('navigates to student detail page', async ({ page }) => {
-    await page.click('[data-testid="student-card"]:first-child')
+  it('should logout successfully', () => {
+    // Login first
+    cy.login('student@university.edu', 'password123');
     
-    await expect(page).toHaveURL(/\/students\/\w+/)
-    await expect(page.locator('[data-testid="student-name"]')).toBeVisible()
-  })
-
-  test('handles search functionality', async ({ page }) => {
-    await page.fill('[data-testid="search-input"]', 'John Doe')
-    await page.press('[data-testid="search-input"]', 'Enter')
+    cy.get('[data-testid="user-menu"]').click();
+    cy.get('[data-testid="logout-button"]').click();
     
-    await expect(page.locator('[data-testid="student-card"]')).toHaveCount(1)
-    await expect(page.locator('[data-testid="student-card"]')).toContainText('John Doe')
-  })
-})
-```
+    cy.url().should('include', '/login');
+  });
+});
 
-### Visual Regression Testing
-```typescript
-// visual.spec.ts
-import { test, expect } from '@playwright/test'
+// cypress/e2e/assignment-workflow.cy.ts
+describe('Assignment Workflow', () => {
+  beforeEach(() => {
+    cy.login('teacher@university.edu', 'password123');
+  });
 
-test.describe('Visual Regression Tests', () => {
-  test('student list page appearance', async ({ page }) => {
-    await page.goto('/students')
-    await page.waitForLoadState('networkidle')
+  it('should create, submit, and grade assignment', () => {
+    // Teacher creates assignment
+    cy.visit('/teacher/123');
+    cy.get('[data-testid="create-assignment-button"]').click();
     
-    await expect(page).toHaveScreenshot('students-page.png')
-  })
-
-  test('student card component appearance', async ({ page }) => {
-    await page.goto('/students')
+    cy.get('[data-testid="assignment-title"]').type('Test Assignment');
+    cy.get('[data-testid="assignment-description"]').type('This is a test assignment');
+    cy.get('[data-testid="due-date"]').type('2025-12-31T23:59');
+    cy.get('[data-testid="max-grade"]').clear().type('100');
     
-    const studentCard = page.locator('[data-testid="student-card"]').first()
-    await expect(studentCard).toHaveScreenshot('student-card.png')
-  })
-
-  test('responsive design on mobile', async ({ page }) => {
-    await page.setViewportSize({ width: 375, height: 667 })
-    await page.goto('/students')
+    cy.get('[data-testid="create-button"]').click();
+    cy.get('[data-testid="success-message"]').should('contain', 'Assignment created');
     
-    await expect(page).toHaveScreenshot('students-mobile.png')
-  })
-})
-```
+    // Student submits assignment
+    cy.logout();
+    cy.login('student@university.edu', 'password123');
+    
+    cy.visit('/student/456');
+    cy.get('[data-testid="assignment-item"]').first().click();
+    cy.get('[data-testid="submit-assignment-button"]').click();
+    
+    // Upload file
+    cy.get('[data-testid="file-upload"]').selectFile('cypress/fixtures/assignment.pdf');
+    cy.get('[data-testid="submission-notes"]').type('My submission notes');
+    cy.get('[data-testid="submit-button"]').click();
+    
+    cy.get('[data-testid="success-message"]').should('contain', 'Assignment submitted');
+    
+    // Teacher grades submission
+    cy.logout();
+    cy.login('teacher@university.edu', 'password123');
+    
+    cy.visit('/teacher/123');
+    cy.get('[data-testid="assignment-item"]').first().click();
+    cy.get('[data-testid="submission-item"]').first().click();
+    
+    cy.get('[data-testid="grade-input"]').type('85');
+    cy.get('[data-testid="feedback-input"]').type('Good work!');
+    cy.get('[data-testid="submit-grade-button"]').click();
+    
+    cy.get('[data-testid="success-message"]').should('contain', 'Grade submitted');
+  });
+});
 
-## Testing Utilities
+// cypress/e2e/theme-language.cy.ts
+describe('Theme and Language Switching', () => {
+  beforeEach(() => {
+    cy.login('student@university.edu', 'password123');
+    cy.visit('/student/123');
+  });
 
-### Test Setup Utilities
-```typescript
-// test-utils.tsx
-import React from 'react'
-import { render, RenderOptions } from '@testing-library/react'
-import { Provider } from 'react-redux'
-import { configureStore } from '@reduxjs/toolkit'
-import { apiSlice } from '@/app/api/apiSlice'
+  it('should switch between light and dark themes', () => {
+    // Default should be light theme
+    cy.get('body').should('not.have.class', 'dark');
+    
+    // Switch to dark theme
+    cy.get('[data-testid="theme-toggle"]').click();
+    cy.get('body').should('have.class', 'dark');
+    
+    // Switch back to light theme
+    cy.get('[data-testid="theme-toggle"]').click();
+    cy.get('body').should('not.have.class', 'dark');
+  });
 
-// Create a test store with initial state
-export const createTestStore = (preloadedState = {}) => {
-  return configureStore({
-    reducer: {
-      [apiSlice.reducerPath]: apiSlice.reducer,
-    },
-    middleware: (getDefaultMiddleware) =>
-      getDefaultMiddleware().concat(apiSlice.middleware),
-    preloadedState,
-  })
-}
+  it('should persist theme preference', () => {
+    // Switch to dark theme
+    cy.get('[data-testid="theme-toggle"]').click();
+    cy.get('body').should('have.class', 'dark');
+    
+    // Reload page
+    cy.reload();
+    
+    // Should still be dark theme
+    cy.get('body').should('have.class', 'dark');
+  });
 
-// Custom render function with providers
-interface ExtendedRenderOptions extends Omit<RenderOptions, 'wrapper'> {
-  preloadedState?: any
-  store?: ReturnType<typeof createTestStore>
-}
+  it('should switch between English and Arabic', () => {
+    // Default should be English (LTR)
+    cy.get('html').should('have.attr', 'dir', 'ltr');
+    
+    // Switch to Arabic
+    cy.get('[data-testid="language-switcher"]').click();
+    cy.get('[data-testid="language-option-ar"]').click();
+    
+    cy.get('html').should('have.attr', 'dir', 'rtl');
+    cy.get('[data-testid="welcome-message"]').should('contain', 'مرحبا');
+    
+    // Switch back to English
+    cy.get('[data-testid="language-switcher"]').click();
+    cy.get('[data-testid="language-option-en"]').click();
+    
+    cy.get('html').should('have.attr', 'dir', 'ltr');
+    cy.get('[data-testid="welcome-message"]').should('contain', 'Welcome');
+  });
+});
 
-export const renderWithProviders = (
-  ui: React.ReactElement,
-  {
-    preloadedState = {},
-    store = createTestStore(preloadedState),
-    ...renderOptions
-  }: ExtendedRenderOptions = {}
-) => {
-  function Wrapper({ children }: { children?: React.ReactNode }) {
-    return <Provider store={store}>{children}</Provider>
+// cypress/support/commands.ts
+declare global {
+  namespace Cypress {
+    interface Chainable {
+      login(email: string, password: string): Chainable<void>;
+      logout(): Chainable<void>;
+    }
   }
-
-  return { store, ...render(ui, { wrapper: Wrapper, ...renderOptions }) }
 }
 
-// Mock data factories
-export const createMockStudent = (overrides = {}) => ({
-  _id: '1',
-  name: 'John Doe',
-  email: 'john@example.com',
-  universityId: {
-    _id: 'uni1',
-    name: 'Test University'
+Cypress.Commands.add('login', (email: string, password: string) => {
+  cy.session([email, password], () => {
+    cy.visit('/login');
+    cy.get('[data-testid="email-input"]').type(email);
+    cy.get('[data-testid="password-input"]').type(password);
+    cy.get('[data-testid="login-button"]').click();
+    cy.url().should('not.include', '/login');
+  });
+});
+
+Cypress.Commands.add('logout', () => {
+  cy.get('[data-testid="user-menu"]').click();
+  cy.get('[data-testid="logout-button"]').click();
+});
+```
+
+## Performance Testing
+
+### Lighthouse CI Configuration
+```javascript
+// lighthouserc.js
+module.exports = {
+  ci: {
+    collect: {
+      url: [
+        'http://localhost:3000/',
+        'http://localhost:3000/login',
+        'http://localhost:3000/student/123',
+        'http://localhost:3000/teacher/456',
+      ],
+      numberOfRuns: 3,
+    },
+    assert: {
+      assertions: {
+        'categories:performance': ['warn', { minScore: 0.8 }],
+        'categories:accessibility': ['error', { minScore: 0.95 }],
+        'categories:best-practices': ['warn', { minScore: 0.9 }],
+        'categories:seo': ['warn', { minScore: 0.8 }],
+      },
+    },
+    upload: {
+      target: 'temporary-public-storage',
+    },
   },
-  courses: [],
-  createdAt: '2025-01-01',
-  updatedAt: '2025-01-01',
+};
+```
+
+### Load Testing
+```typescript
+// __tests__/performance/load.test.ts
+import { test, expect } from '@playwright/test';
+
+test.describe('Performance Tests', () => {
+  test('dashboard loads within 3 seconds', async ({ page }) => {
+    const startTime = Date.now();
+    
+    await page.goto('/student/123');
+    await page.waitForSelector('[data-testid="dashboard-content"]');
+    
+    const loadTime = Date.now() - startTime;
+    expect(loadTime).toBeLessThan(3000);
+  });
+
+  test('file upload shows progress', async ({ page }) => {
+    await page.goto('/student/123/assignment/456');
+    
+    const fileInput = page.locator('[data-testid="file-upload"]');
+    await fileInput.setInputFiles('tests/fixtures/large-file.pdf');
+    
+    // Should show progress indicator
+    await expect(page.locator('[data-testid="upload-progress"]')).toBeVisible();
+  });
+
+  test('infinite scroll performs well', async ({ page }) => {
+    await page.goto('/admin/123/students');
+    
+    // Scroll multiple times and measure performance
+    for (let i = 0; i < 10; i++) {
+      await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+      await page.waitForTimeout(100);
+    }
+    
+    // Should not cause memory leaks or performance degradation
+    const performanceMetrics = await page.evaluate(() => performance.getEntriesByType('measure'));
+    expect(performanceMetrics.length).toBeLessThan(100);
+  });
+});
+```
+
+## Visual Regression Testing
+
+### Chromatic Configuration
+```javascript
+// .storybook/main.js
+module.exports = {
+  stories: ['../src/**/*.stories.@(js|jsx|ts|tsx)'],
+  addons: [
+    '@storybook/addon-essentials',
+    '@storybook/addon-a11y',
+    '@storybook/addon-viewport',
+  ],
+  framework: '@storybook/nextjs',
+};
+
+// chromatic.yml
+version: 1
+builds:
+  - projectToken: 'project-token'
+    workingDir: './'
+    buildScriptName: 'build-storybook'
+    onlyChanged: true
+    externals:
+      - 'public/**'
+```
+
+### Story Examples
+```typescript
+// src/components/LoginForm.stories.tsx
+import type { Meta, StoryObj } from '@storybook/react';
+import { LoginForm } from './LoginForm';
+
+const meta: Meta<typeof LoginForm> = {
+  title: 'Auth/LoginForm',
+  component: LoginForm,
+  parameters: {
+    layout: 'centered',
+  },
+  argTypes: {
+    onSuccess: { action: 'success' },
+    onError: { action: 'error' },
+  },
+};
+
+export default meta;
+type Story = StoryObj<typeof meta>;
+
+export const Default: Story = {};
+
+export const Loading: Story = {
+  parameters: {
+    mockData: {
+      loading: true,
+    },
+  },
+};
+
+export const WithError: Story = {
+  parameters: {
+    mockData: {
+      error: 'Invalid credentials',
+    },
+  },
+};
+
+export const DarkTheme: Story = {
+  parameters: {
+    themes: {
+      default: 'dark',
+    },
+  },
+};
+
+export const ArabicLanguage: Story = {
+  parameters: {
+    locale: 'ar',
+    direction: 'rtl',
+  },
+};
+```
+
+## Test Data Management
+
+### Test Data Factory
+```typescript
+// src/tests/factories/userFactory.ts
+import { faker } from '@faker-js/faker';
+import { User, Student, Teacher, Admin } from '@/types';
+
+export const createUser = (overrides?: Partial<User>): User => ({
+  id: faker.string.uuid(),
+  name: faker.person.fullName(),
+  email: faker.internet.email(),
+  createdAt: faker.date.past(),
   ...overrides,
-})
+});
 
-export const createMockStudentsResponse = (count = 10) => ({
-  students: Array.from({ length: count }, (_, i) => 
-    createMockStudent({ _id: `${i + 1}`, name: `Student ${i + 1}` })
-  ),
-  currentPage: 1,
-  totalPages: Math.ceil(count / 10),
-})
+export const createStudent = (overrides?: Partial<Student>): Student => ({
+  ...createUser(),
+  role: 'STUDENT',
+  studentId: faker.string.alphanumeric(8).toUpperCase(),
+  college: faker.company.name(),
+  department: faker.lorem.words(2),
+  enrollmentDate: faker.date.past(),
+  ...overrides,
+});
+
+export const createTeacher = (overrides?: Partial<Teacher>): Teacher => ({
+  ...createUser(),
+  role: 'TEACHER',
+  title: faker.helpers.arrayElement(['Doctor', 'Assistant', 'Teacher']),
+  department: faker.lorem.words(2),
+  officeHours: 'Mon-Wed 2-4 PM',
+  ...overrides,
+});
+
+export const createAssignment = (overrides?: Partial<Assignment>): Assignment => ({
+  id: faker.string.uuid(),
+  title: faker.lorem.sentence(),
+  description: faker.lorem.paragraph(),
+  dueDate: faker.date.future(),
+  maxGrade: faker.number.int({ min: 50, max: 100 }),
+  courseId: faker.string.uuid(),
+  courseName: faker.lorem.words(3),
+  teacherId: faker.string.uuid(),
+  teacherName: faker.person.fullName(),
+  status: faker.helpers.arrayElement(['PENDING', 'SUBMITTED', 'GRADED']),
+  attachments: [],
+  allowedFileTypes: ['pdf', 'doc', 'docx'],
+  maxFileSize: 10 * 1024 * 1024,
+  allowLateSubmission: faker.datatype.boolean(),
+  createdAt: faker.date.past(),
+  updatedAt: faker.date.recent(),
+  ...overrides,
+});
 ```
 
-### Custom Testing Hooks
-```typescript
-// testing-hooks.ts
-import { renderHook } from '@testing-library/react'
-import { Provider } from 'react-redux'
-import { createTestStore } from './test-utils'
+## Continuous Integration
 
-export const renderHookWithProvider = (hook: () => any, initialState = {}) => {
-  const store = createTestStore(initialState)
-  
-  const wrapper = ({ children }: { children: React.ReactNode }) => (
-    <Provider store={store}>{children}</Provider>
-  )
-  
-  return renderHook(hook, { wrapper })
-}
-```
-
-## Testing Best Practices
-
-### Component Testing Best Practices
-1. **Test User Interactions**: Focus on what users actually do
-2. **Use Accessible Queries**: Prefer queries that work with assistive technologies
-3. **Test Error States**: Ensure components handle errors gracefully
-4. **Mock at Network Boundary**: Use MSW for API mocking
-5. **Avoid Testing Implementation Details**: Test behavior, not internal state
-
-### Good vs Bad Testing Examples
-```typescript
-// ❌ Bad: Testing implementation details
-test('component has correct state', () => {
-  const component = render(<StudentCard student={mockStudent} />)
-  expect(component.state.isExpanded).toBe(false)
-})
-
-// ✅ Good: Testing user behavior
-test('expands when clicked', async () => {
-  const user = userEvent.setup()
-  render(<StudentCard student={mockStudent} />)
-  
-  await user.click(screen.getByRole('button', { name: /expand/i }))
-  
-  expect(screen.getByText('Additional Details')).toBeVisible()
-})
-
-// ❌ Bad: Testing with implementation-specific selectors
-test('renders student name', () => {
-  render(<StudentCard student={mockStudent} />)
-  expect(document.querySelector('.student-name')).toHaveTextContent('John Doe')
-})
-
-// ✅ Good: Testing with accessible queries
-test('renders student name', () => {
-  render(<StudentCard student={mockStudent} />)
-  expect(screen.getByRole('heading', { name: 'John Doe' })).toBeInTheDocument()
-})
-```
-
-### Performance Testing
-```typescript
-// performance.test.tsx
-import { render } from '@testing-library/react'
-import { performance } from 'perf_hooks'
-import { StudentList } from '../StudentList'
-
-describe('Performance Tests', () => {
-  it('renders large student list efficiently', () => {
-    const manyStudents = Array.from({ length: 1000 }, (_, i) => 
-      createMockStudent({ _id: `${i}`, name: `Student ${i}` })
-    )
-    
-    const start = performance.now()
-    render(<StudentList students={manyStudents} />)
-    const end = performance.now()
-    
-    // Ensure rendering takes less than 100ms
-    expect(end - start).toBeLessThan(100)
-  })
-})
-```
-
-## Continuous Integration Testing
-
-### GitHub Actions Configuration
+### GitHub Actions Workflow
 ```yaml
 # .github/workflows/test.yml
-name: Test
+name: Test Suite
 
 on:
   push:
@@ -678,32 +962,128 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x]
+
     steps:
       - uses: actions/checkout@v3
       
-      - name: Setup Node.js
+      - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v3
         with:
-          node-version: '20'
+          node-version: ${{ matrix.node-version }}
           cache: 'npm'
-          
+      
       - name: Install dependencies
         run: npm ci
-        
+      
       - name: Run linting
         run: npm run lint
-        
+      
       - name: Run type checking
-        run: npx tsc --noEmit
-        
+        run: npm run type-check
+      
       - name: Run unit tests
-        run: npm test -- --coverage --watchAll=false
-        
-      - name: Run E2E tests
-        run: npx playwright test
-        
+        run: npm run test:unit -- --coverage
+      
+      - name: Run integration tests
+        run: npm run test:integration
+      
       - name: Upload coverage reports
         uses: codecov/codecov-action@v3
+        with:
+          file: ./coverage/lcov.info
+
+  e2e:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Use Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18.x
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Build application
+        run: npm run build
+      
+      - name: Run Cypress tests
+        uses: cypress-io/github-action@v5
+        with:
+          start: npm run start
+          wait-on: 'http://localhost:3000'
+
+  lighthouse:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Use Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18.x
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Build application
+        run: npm run build
+      
+      - name: Run Lighthouse CI
+        run: |
+          npm install -g @lhci/cli@0.12.x
+          lhci autorun
 ```
 
-This comprehensive testing guide provides all the necessary information for implementing a robust testing strategy for the Student Management System frontend, ensuring high code quality and reliability.
+## Test Coverage Goals
+
+### Coverage Targets
+- **Unit Tests**: 80% line coverage minimum
+- **Integration Tests**: 70% API endpoint coverage
+- **E2E Tests**: 100% critical user journey coverage
+- **Visual Regression**: 100% component story coverage
+
+### Coverage Reporting
+```typescript
+// jest.config.js - Coverage configuration
+module.exports = {
+  collectCoverageFrom: [
+    'src/**/*.{js,jsx,ts,tsx}',
+    '!src/**/*.d.ts',
+    '!src/**/*.stories.{js,jsx,ts,tsx}',
+    '!src/**/__tests__/**',
+    '!src/**/index.{js,ts}',
+  ],
+  coverageReporters: ['text', 'lcov', 'html'],
+  coverageThreshold: {
+    global: {
+      branches: 80,
+      functions: 80,
+      lines: 80,
+      statements: 80,
+    },
+    './src/components/': {
+      branches: 85,
+      functions: 85,
+      lines: 85,
+      statements: 85,
+    },
+    './src/hooks/': {
+      branches: 90,
+      functions: 90,
+      lines: 90,
+      statements: 90,
+    },
+  },
+};
+```
+
+This comprehensive testing guide ensures quality assurance across all aspects of the Task-Flow LMS frontend application, from individual component testing to complete user workflow validation.

@@ -1,13 +1,17 @@
 import { Router } from "express";
 
 import {
-  createStudent,
-  getAllStudents,
+  // createStudent,
+  // getAllStudents,
   getStudentsPage,
   getStudentById,
   updateStudent,
   deleteStudent,
 } from "../controllers/student.controller.js";
+
+// Middlewares
+import authinticate from "../middlewares/authintication.middleware.js";
+import authorize from "../middlewares/authorization.middleware.js";
 
 // Validators
 import {
@@ -20,14 +24,22 @@ import {
 const router = Router();
 
 router.route("/").get(getStudentsPage);
-router.route("/:universityId").post(validateUniversityId, createStudent);
 
-router.route("/all").get(getAllStudents);
+router
+  .route("/:universityId")
+  // .post(validateUniversityId, authorize(["admin"]), createStudent);
+
+// router.route("/all").get(getAllStudents);
 
 router
   .route("/:id")
-  .get(validateObjectId, getStudentById)
-  .patch(validateObjectId, validateStudentUpdateData, updateStudent)
-  .delete(deleteStudent);
+  .get(validateObjectId, authinticate, getStudentById)
+  .patch(
+    authorize(["Admin"]),
+    validateObjectId,
+    validateStudentUpdateData,
+    updateStudent
+  )
+  .delete(authinticate, authorize(["admin"]), deleteStudent);
 
 export default router;

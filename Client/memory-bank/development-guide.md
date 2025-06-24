@@ -1,498 +1,702 @@
-# Development Guide - Student Management System Frontend
+# Development Guide - Task-Flow LMS Frontend
 
-## Quick Start Guide
+## Getting Started
 
 ### Prerequisites
-- **Node.js**: Version 20.x or higher
-- **npm**: Latest version (comes with Node.js)
-- **Git**: For version control
-- **VS Code**: Recommended editor with extensions
-- **Modern Browser**: Chrome, Firefox, Safari, or Edge
+```bash
+# Required software versions
+Node.js: 18.x or higher
+npm: 9.x or higher (or yarn 3.x)
+Git: Latest stable version
 
-### Initial Setup
-```powershell
+# Recommended development tools
+VS Code with extensions:
+- TypeScript and JavaScript Language Features
+- ES7+ React/Redux/React-Native snippets
+- Tailwind CSS IntelliSense
+- Auto Rename Tag
+- Bracket Pair Colorizer
+```
+
+### Project Setup
+```bash
 # Clone the repository
-git clone [repository-url]
-cd courses-platforms/Repo-next/Client
+git clone <repository-url>
+cd task-flow-frontend
 
 # Install dependencies
 npm install
 
-# Set up environment variables
+# Setup environment variables
 cp .env.example .env.local
-# Edit .env.local with your API URL
 
 # Start development server
 npm run dev
+
+# Open browser to http://localhost:3000
 ```
 
-### Development Server
-- **URL**: http://localhost:3000
-- **Hot Reload**: Enabled with Turbopack
-- **TypeScript**: Real-time type checking
-- **ESLint**: Automatic code quality checks
+### Environment Configuration
+```bash
+# .env.local
+NEXT_PUBLIC_API_URL=http://localhost:5000/api
+NEXT_PUBLIC_SOCKET_URL=http://localhost:5000
+```
 
-## Project Structure Deep Dive
+## Project Structure
 
-### Core Directories
+### Directory Organization
 ```
 src/
-├── app/                    # Application State
-│   ├── api/               # RTK Query API slices
-│   ├── constants.ts       # Application constants
-│   └── store.ts           # Redux store configuration
-├── components/            # Reusable Components
-│   ├── providers/         # React context providers
-│   └── ui/               # Design system components
-├── lib/                   # Utility functions
-├── pages/                # Next.js pages (file-based routing)
-├── styles/               # Global styles and CSS
-└── types/                # TypeScript type definitions
+├── components/           # Reusable UI components
+│   ├── layout/          # Layout components (headers, sidebars, etc.)
+│   ├── dashboards/      # Role-specific dashboard components
+│   ├── features/        # Feature-specific components
+│   │   ├── auth/        # Authentication components
+│   │   ├── tasks/       # Assignment/task management
+│   │   ├── users/       # User management components
+│   │   ├── notifications/ # Notification system
+│   │   └── files/       # File upload/management
+│   ├── shared/          # Cross-cutting components
+│   │   ├── ThemeToggle.tsx
+│   │   ├── LanguageSwitcher.tsx
+│   │   └── LoadingStates.tsx
+│   └── ui/              # Basic UI primitives
+│       ├── Button.tsx
+│       ├── Input.tsx
+│       ├── Card.tsx
+│       └── Modal.tsx
+├── contexts/            # React context providers
+│   ├── AuthContext.tsx
+│   ├── ThemeContext.tsx
+│   ├── LanguageContext.tsx
+│   └── SocketContext.tsx
+├── hooks/               # Custom React hooks
+│   ├── useAuth.ts
+│   ├── useSocket.ts
+│   ├── useNotifications.ts
+│   └── useFileUpload.ts
+├── lib/                 # Utility libraries and configurations
+│   ├── api.ts           # API client configuration
+│   ├── socket.ts        # Socket.io configuration
+│   ├── utils.ts         # General utilities
+│   └── validations.ts   # Form validation schemas
+├── pages/               # Next.js pages (if using Pages Router)
+│   ├── index.tsx        # Landing page
+│   ├── login.tsx        # Authentication page
+│   ├── student/         # Student pages
+│   ├── teacher/         # Teacher pages
+│   ├── admin/           # Admin pages
+│   └── superadmin/      # Super admin pages
+├── styles/              # Global styles and themes
+│   ├── globals.css      # Global CSS
+│   ├── themes.css       # Theme variables
+│   └── components.css   # Component-specific styles
+├── types/               # TypeScript type definitions
+│   ├── auth.ts          # Authentication types
+│   ├── user.ts          # User-related types
+│   ├── task.ts          # Assignment/task types
+│   └── api.ts           # API response types
+└── utils/               # Helper functions
+    ├── constants.ts     # Application constants
+    ├── formatters.ts    # Data formatting utilities
+    └── validators.ts    # Input validation functions
 ```
-
-### File Naming Conventions
-- **Components**: PascalCase (`StudentCard.tsx`)
-- **Pages**: kebab-case (`student-details.tsx`)
-- **Utilities**: camelCase (`formatDate.ts`)
-- **Types**: PascalCase with suffix (`StudentType.ts`)
-- **Constants**: UPPER_SNAKE_CASE (`API_ENDPOINTS.ts`)
 
 ## Development Workflow
 
-### 1. Feature Development Process
-```mermaid
-graph LR
-    A[Create Branch] --> B[Develop Feature]
-    B --> C[Write Tests]
-    C --> D[Run Linting]
-    D --> E[Manual Testing]
-    E --> F[Create PR]
-    F --> G[Code Review]
-    G --> H[Merge to Main]
+### Feature Development Process
+```bash
+# 1. Create feature branch
+git checkout -b feature/assignment-creation
+
+# 2. Develop feature following component patterns
+# - Create types first in /types
+# - Implement API calls in /lib/api.ts
+# - Create components in appropriate /components subdirectory
+# - Add pages in /pages if needed
+# - Write tests for components
+
+# 3. Test feature locally
+npm run dev
+npm run test
+npm run lint
+
+# 4. Commit with conventional commit format
+git commit -m "feat: add assignment creation form for teachers"
+
+# 5. Push and create pull request
+git push origin feature/assignment-creation
 ```
 
-### 2. Component Development
+### Component Development Pattern
 ```typescript
-// Component template
-import React from 'react';
-import { cn } from '@/lib/utils';
-
-interface ComponentProps {
-  // Define props interface
-  className?: string;
-  children?: React.ReactNode;
+// 1. Define types first
+// types/assignment.ts
+export interface Assignment {
+  id: string;
+  title: string;
+  description: string;
+  dueDate: Date;
+  maxGrade: number;
+  courseId: string;
+  teacherId: string;
+  createdAt: Date;
+  attachments: File[];
 }
 
-const Component = React.forwardRef<
-  HTMLDivElement,
-  ComponentProps
->(({ className, children, ...props }, ref) => (
-  <div
-    ref={ref}
-    className={cn("base-styles", className)}
-    {...props}
-  >
-    {children}
-  </div>
-));
-
-Component.displayName = "Component";
-
-export { Component };
-```
-
-### 3. API Integration Pattern
-```typescript
-// 1. Define types
-interface Student {
-  _id: string;
-  name: string;
-  email: string;
+export interface CreateAssignmentRequest {
+  title: string;
+  description: string;
+  dueDate: string;
+  maxGrade: number;
+  courseId: string;
+  attachments?: File[];
 }
 
-// 2. Create API slice
-export const studentApiSlice = apiSlice.injectEndpoints({
-  endpoints: (builder) => ({
-    getStudents: builder.query<Student[], void>({
-      query: () => '/students',
-      providesTags: ['Student']
-    })
-  })
-});
+// 2. Create API function
+// lib/api.ts
+export const assignmentAPI = {
+  create: async (data: CreateAssignmentRequest): Promise<Assignment> => {
+    const response = await fetch(`${API_URL}/assignments`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${getToken()}`
+      },
+      body: JSON.stringify(data)
+    });
+    return response.json();
+  }
+};
 
-// 3. Use in component
-const { data: students, isLoading, error } = useGetStudentsQuery();
+// 3. Create component
+// components/features/tasks/AssignmentForm.tsx
+import React, { useState } from 'react';
+import { useAuth } from '@/hooks/useAuth';
+import { assignmentAPI } from '@/lib/api';
+import { CreateAssignmentRequest } from '@/types/assignment';
+
+interface AssignmentFormProps {
+  courseId: string;
+  onSuccess: () => void;
+  onCancel: () => void;
+}
+
+export const AssignmentForm: React.FC<AssignmentFormProps> = ({
+  courseId,
+  onSuccess,
+  onCancel
+}) => {
+  const { user } = useAuth();
+  const [loading, setLoading] = useState(false);
+  const [formData, setFormData] = useState<CreateAssignmentRequest>({
+    title: '',
+    description: '',
+    dueDate: '',
+    maxGrade: 100,
+    courseId
+  });
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    
+    try {
+      await assignmentAPI.create(formData);
+      onSuccess();
+    } catch (error) {
+      console.error('Failed to create assignment:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      {/* Form implementation */}
+    </form>
+  );
+};
 ```
 
 ## Code Standards
 
 ### TypeScript Guidelines
-- **Strict Mode**: Always enabled
-- **Interface over Type**: Use interfaces for object shapes
-- **Explicit Return Types**: For public functions
-- **No Any**: Avoid `any` type, use `unknown` if needed
-
 ```typescript
-// Good
-interface StudentProps {
-  student: Student;
-  onSelect: (student: Student) => void;
+// Use strict type definitions
+interface User {
+  id: string;           // Always use string for IDs
+  name: string;
+  email: string;
+  role: UserRole;       // Use enums for fixed values
+  createdAt: Date;      // Use Date objects, not strings
+  profile?: UserProfile; // Use optional properties when appropriate
 }
 
-// Avoid
-type StudentProps = {
-  student: any;
-  onSelect: Function;
+// Use enums for constants
+export enum UserRole {
+  STUDENT = 'STUDENT',
+  TEACHER = 'TEACHER', 
+  ADMIN = 'ADMIN',
+  SUPER_ADMIN = 'SUPER_ADMIN'
+}
+
+// Use generic types for reusable patterns
+interface APIResponse<T> {
+  data: T;
+  success: boolean;
+  message?: string;
+  errors?: string[];
+}
+
+// Use union types for state management
+type LoadingState = 'idle' | 'loading' | 'success' | 'error';
+
+// Use proper error handling types
+interface APIError {
+  code: string;
+  message: string;
+  details?: Record<string, string>;
 }
 ```
 
-### Component Guidelines
-- **Single Responsibility**: One purpose per component
-- **Props Interface**: Always define TypeScript interfaces
-- **Forward Refs**: For DOM access and third-party integration
-- **Display Names**: Set for better debugging
-
+### Component Patterns
 ```typescript
-// Good component structure
-const StudentCard = React.forwardRef<
-  HTMLDivElement,
-  StudentCardProps
->(({ student, onSelect, className, ...props }, ref) => {
-  // Component logic here
-  
-  return (
-    <Card ref={ref} className={cn("student-card", className)} {...props}>
-      {/* Component JSX */}
-    </Card>
-  );
-});
+// Functional components with TypeScript
+interface ComponentProps {
+  title: string;
+  optional?: boolean;
+  children?: React.ReactNode;
+  onClick?: () => void;
+}
 
-StudentCard.displayName = "StudentCard";
+export const Component: React.FC<ComponentProps> = ({
+  title,
+  optional = false,
+  children,
+  onClick
+}) => {
+  // Use hooks at the top
+  const [state, setState] = useState<string>('');
+  const { user } = useAuth();
+  
+  // Event handlers
+  const handleClick = () => {
+    onClick?.();
+  };
+  
+  // Render
+  return (
+    <div onClick={handleClick}>
+      <h2>{title}</h2>
+      {optional && <p>Optional content</p>}
+      {children}
+    </div>
+  );
+};
+
+// Export default for pages, named exports for components
+export default Component;
 ```
 
 ### Styling Guidelines
-- **Tailwind First**: Use Tailwind utilities before custom CSS
-- **Component Variants**: Use CVA for component variants
-- **Responsive Design**: Mobile-first approach
-- **Design Tokens**: Use CSS custom properties for theming
+```css
+/* Use CSS custom properties for theming */
+:root {
+  --color-primary: #3b82f6;
+  --color-secondary: #64748b;
+  --color-background: #ffffff;
+  --color-text: #1f2937;
+  --border-radius: 0.5rem;
+  --spacing-unit: 0.25rem;
+}
 
-```typescript
-// Component variants with CVA
-const buttonVariants = cva(
-  "inline-flex items-center justify-center rounded-md text-sm font-medium",
-  {
-    variants: {
-      variant: {
-        default: "bg-primary text-primary-foreground hover:bg-primary/90",
-        destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90",
-      },
-      size: {
-        default: "h-10 px-4 py-2",
-        sm: "h-9 rounded-md px-3",
-        lg: "h-11 rounded-md px-8",
-      },
-    },
-    defaultVariants: {
-      variant: "default",
-      size: "default",
-    },
-  }
-);
-```
+[data-theme="dark"] {
+  --color-background: #1f2937;
+  --color-text: #f9fafb;
+}
 
-## State Management
+/* Use logical properties for RTL support */
+.component {
+  margin-inline-start: 1rem;  /* instead of margin-left */
+  margin-inline-end: 1rem;    /* instead of margin-right */
+  padding-block: 0.5rem;      /* instead of padding-top/bottom */
+  border-inline-start: 1px solid; /* instead of border-left */
+}
 
-### Redux Toolkit Store Structure
-```typescript
-// Store configuration
-export const store = configureStore({
-  reducer: {
-    [apiSlice.reducerPath]: apiSlice.reducer,
-  },
-  middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware().concat(apiSlice.middleware),
-});
+/* Use BEM methodology for class naming */
+.dashboard-card {
+  /* Block */
+}
 
-// Type definitions
-export type RootState = ReturnType<typeof store.getState>;
-export type AppDispatch = typeof store.dispatch;
-```
+.dashboard-card__header {
+  /* Element */
+}
 
-### RTK Query Best Practices
-- **Feature-based Slices**: Separate API slices per feature
-- **Cache Tags**: Use for intelligent cache invalidation
-- **Error Handling**: Consistent error handling patterns
-- **Loading States**: Handle loading and error states
-
-```typescript
-// API slice with proper error handling
-export const studentApiSlice = apiSlice.injectEndpoints({
-  endpoints: (builder) => ({
-    getStudents: builder.query<PaginatedStudentsResponse, number>({
-      query: (page) => `/students?page=${page}`,
-      providesTags: (result, error, page) =>
-        result
-          ? [
-              ...result.students.map(({ _id }) => ({ type: 'Student' as const, id: _id })),
-              { type: 'Student', id: 'LIST' },
-            ]
-          : [{ type: 'Student', id: 'LIST' }],
-    }),
-  }),
-});
+.dashboard-card--featured {
+  /* Modifier */
+}
 ```
 
 ## Testing Strategy
 
-### Component Testing
+### Unit Testing Setup
 ```typescript
-// Component test example
-import { render, screen } from '@testing-library/react';
-import { StudentCard } from './StudentCard';
+// jest.config.js
+const nextJest = require('next/jest');
 
-const mockStudent = {
-  _id: '1',
-  name: 'John Doe',
-  email: 'john@example.com',
-  // ... other properties
+const createJestConfig = nextJest({
+  dir: './',
+});
+
+const customJestConfig = {
+  setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
+  moduleNameMapping: {
+    '^@/components/(.*)$': '<rootDir>/src/components/$1',
+    '^@/pages/(.*)$': '<rootDir>/src/pages/$1',
+    '^@/lib/(.*)$': '<rootDir>/src/lib/$1',
+  },
+  testEnvironment: 'jest-environment-jsdom',
 };
 
-describe('StudentCard', () => {
-  it('renders student information', () => {
-    render(<StudentCard student={mockStudent} />);
+module.exports = createJestConfig(customJestConfig);
+
+// Component testing example
+// __tests__/components/AssignmentForm.test.tsx
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { AssignmentForm } from '@/components/features/tasks/AssignmentForm';
+import { AuthProvider } from '@/contexts/AuthContext';
+
+const mockProps = {
+  courseId: 'course-1',
+  onSuccess: jest.fn(),
+  onCancel: jest.fn()
+};
+
+const renderWithProviders = (component: React.ReactElement) => {
+  return render(
+    <AuthProvider>
+      {component}
+    </AuthProvider>
+  );
+};
+
+describe('AssignmentForm', () => {
+  test('renders form fields correctly', () => {
+    renderWithProviders(<AssignmentForm {...mockProps} />);
     
-    expect(screen.getByText('John Doe')).toBeInTheDocument();
-    expect(screen.getByText('john@example.com')).toBeInTheDocument();
+    expect(screen.getByLabelText(/title/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/description/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/due date/i)).toBeInTheDocument();
+  });
+  
+  test('submits form with valid data', async () => {
+    renderWithProviders(<AssignmentForm {...mockProps} />);
+    
+    fireEvent.change(screen.getByLabelText(/title/i), {
+      target: { value: 'Test Assignment' }
+    });
+    
+    fireEvent.click(screen.getByRole('button', { name: /create/i }));
+    
+    await waitFor(() => {
+      expect(mockProps.onSuccess).toHaveBeenCalled();
+    });
   });
 });
 ```
 
-### API Testing
+### Integration Testing
 ```typescript
-// API test with MSW (Mock Service Worker)
-import { rest } from 'msw';
-import { setupServer } from 'msw/node';
+// __tests__/integration/auth-flow.test.tsx
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { Router } from 'next/router';
+import Login from '@/pages/login';
 
-const server = setupServer(
-  rest.get('/api/students', (req, res, ctx) => {
-    return res(ctx.json({ students: [mockStudent] }));
+// Mock Next.js router
+jest.mock('next/router', () => ({
+  useRouter: () => ({
+    push: jest.fn(),
+    pathname: '/login'
   })
-);
+}));
 
-beforeAll(() => server.listen());
-afterEach(() => server.resetHandlers());
-afterAll(() => server.close());
+describe('Authentication Flow', () => {
+  test('redirects to student dashboard after successful login', async () => {
+    // Mock API response
+    global.fetch = jest.fn(() =>
+      Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({
+          token: 'mock-token',
+          user: { id: '1', role: 'STUDENT' }
+        })
+      })
+    );
+    
+    render(<Login />);
+    
+    fireEvent.change(screen.getByLabelText(/email/i), {
+      target: { value: 'student@university.edu' }
+    });
+    
+    fireEvent.change(screen.getByLabelText(/password/i), {
+      target: { value: 'password123' }
+    });
+    
+    fireEvent.click(screen.getByRole('button', { name: /login/i }));
+    
+    await waitFor(() => {
+      expect(Router.push).toHaveBeenCalledWith('/student/1');
+    });
+  });
+});
 ```
 
 ## Performance Optimization
 
-### Code Splitting
+### Code Splitting Strategy
 ```typescript
-// Dynamic imports for code splitting
-const LazyComponent = dynamic(() => import('./HeavyComponent'), {
-  loading: () => <LoadingSpinner />,
+// Dynamic imports for role-specific dashboards
+const StudentDashboard = dynamic(() => import('@/components/dashboards/StudentDashboard'), {
+  loading: () => <DashboardSkeleton />,
+  ssr: false
 });
 
-// Route-based splitting (automatic with Next.js pages)
-// pages/students/[id].tsx automatically creates a chunk
-```
-
-### Memoization
-```typescript
-// Component memoization
-const StudentCard = React.memo(({ student, onSelect }) => {
-  // Component implementation
+const TeacherDashboard = dynamic(() => import('@/components/dashboards/TeacherDashboard'), {
+  loading: () => <DashboardSkeleton />
 });
 
-// Hook memoization
-const expensiveValue = useMemo(() => {
-  return computeExpensiveValue(data);
-}, [data]);
+// Lazy load feature components
+const AssignmentCreationModal = lazy(() => 
+  import('@/components/features/tasks/AssignmentCreationModal')
+);
 
-// Callback memoization
-const handleSelect = useCallback((student: Student) => {
-  onSelect(student);
-}, [onSelect]);
-```
-
-### Image Optimization
-```typescript
-// Next.js Image component
-import Image from 'next/image';
-
-<Image
-  src="/student-avatar.jpg"
-  alt="Student Avatar"
-  width={64}
-  height={64}
-  className="rounded-full"
-  priority // For above-the-fold images
-/>
-```
-
-## Debugging
-
-### Development Tools
-- **React DevTools**: Component inspection and profiling
-- **Redux DevTools**: State debugging and time-travel
-- **Next.js DevTools**: Bundle analysis and performance
-- **Browser DevTools**: Network, performance, and console debugging
-
-### Common Debugging Patterns
-```typescript
-// Debug API calls
-const { data, isLoading, error, refetch } = useGetStudentsQuery(page, {
-  refetchOnMountOrArgChange: true,
-});
-
-// Log query state for debugging
-console.log({ data, isLoading, error });
-
-// Debug component renders
-useEffect(() => {
-  console.log('Component rendered with:', { student, isSelected });
-}, [student, isSelected]);
-```
-
-### Error Boundaries
-```typescript
-// Error boundary for crash recovery
-class ErrorBoundary extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = { hasError: false };
-  }
-
-  static getDerivedStateFromError(error) {
-    return { hasError: true };
-  }
-
-  componentDidCatch(error, errorInfo) {
-    console.error('Error caught by boundary:', error, errorInfo);
-  }
-
-  render() {
-    if (this.state.hasError) {
-      return <ErrorFallback />;
+// Code splitting by route
+export default function DashboardPage() {
+  const { user } = useAuth();
+  
+  const DashboardComponent = useMemo(() => {
+    switch (user?.role) {
+      case 'STUDENT': return StudentDashboard;
+      case 'TEACHER': return TeacherDashboard;
+      case 'ADMIN': return AdminDashboard;
+      case 'SUPER_ADMIN': return SuperAdminDashboard;
+      default: return null;
     }
-
-    return this.props.children;
-  }
+  }, [user?.role]);
+  
+  if (!DashboardComponent) return <div>Unauthorized</div>;
+  
+  return <DashboardComponent />;
 }
 ```
 
-## Build and Deployment
+### Memoization Patterns
+```typescript
+// Memoize expensive calculations
+const StudentStats = ({ assignments }: { assignments: Assignment[] }) => {
+  const stats = useMemo(() => {
+    return {
+      completed: assignments.filter(a => a.status === 'SUBMITTED').length,
+      pending: assignments.filter(a => a.status === 'PENDING').length,
+      overdue: assignments.filter(a => 
+        a.status === 'PENDING' && new Date(a.dueDate) < new Date()
+      ).length
+    };
+  }, [assignments]);
+  
+  return <StatsDisplay stats={stats} />;
+};
+
+// Memoize callback functions
+const TaskList = ({ tasks, onTaskUpdate }: TaskListProps) => {
+  const handleTaskClick = useCallback((taskId: string) => {
+    onTaskUpdate(taskId);
+  }, [onTaskUpdate]);
+  
+  return (
+    <div>
+      {tasks.map(task => (
+        <TaskItem 
+          key={task.id} 
+          task={task} 
+          onClick={handleTaskClick}
+        />
+      ))}
+    </div>
+  );
+};
+
+// Memoize components to prevent unnecessary re-renders
+const TaskItem = React.memo<TaskItemProps>(({ task, onClick }) => {
+  return (
+    <div onClick={() => onClick(task.id)}>
+      {task.title}
+    </div>
+  );
+});
+```
+
+## Deployment Guide
 
 ### Build Process
-```powershell
-# Development build
-npm run dev
-
+```bash
 # Production build
 npm run build
 
-# Start production server
-npm start
+# Static export (if needed)
+npm run export
 
-# Lint code
-npm run lint
+# Analyze bundle size
+npm run analyze
 
-# Type check
-npx tsc --noEmit
+# Performance testing
+npm run lighthouse
 ```
 
-### Environment Configuration
-```env
-# .env.local (local development)
-NEXT_PUBLIC_API_URL=http://localhost:8000/api
+### Environment-specific Configurations
+```javascript
+// next.config.js
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  reactStrictMode: true,
+  swcMinify: true,
+  
+  // Internationalization
+  i18n: {
+    locales: ['en', 'ar'],
+    defaultLocale: 'en',
+    localeDetection: false
+  },
+  
+  // Environment-specific settings
+  env: {
+    CUSTOM_KEY: process.env.CUSTOM_KEY,
+  },
+  
+  // Image optimization
+  images: {
+    domains: ['localhost', 'api.taskflow.edu'],
+    formats: ['image/webp', 'image/avif'],
+  },
+  
+  // Security headers
+  async headers() {
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          {
+            key: 'X-Frame-Options',
+            value: 'DENY',
+          },
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff',
+          },
+        ],
+      },
+    ];
+  },
+};
 
-# .env.production (production)
-NEXT_PUBLIC_API_URL=https://api.production.com
-
-# .env.staging (staging)
-NEXT_PUBLIC_API_URL=https://api.staging.com
+module.exports = nextConfig;
 ```
-
-### Production Checklist
-- [ ] Environment variables configured
-- [ ] API endpoints updated
-- [ ] Bundle size optimized
-- [ ] Images optimized
-- [ ] Error tracking configured
-- [ ] Analytics implemented
-- [ ] Security headers configured
-- [ ] Performance monitoring enabled
 
 ## Troubleshooting
 
-### Common Issues
+### Common Issues and Solutions
 
-#### Build Errors
-```bash
-# Clear Next.js cache
-rm -rf .next
-
-# Clear node_modules and reinstall
-rm -rf node_modules package-lock.json
-npm install
-
-# TypeScript errors
-npx tsc --noEmit
-```
-
-#### Development Server Issues
-```bash
-# Port already in use
-npx kill-port 3000
-
-# Memory issues
-export NODE_OPTIONS="--max-old-space-size=4096"
-npm run dev
-```
-
-#### API Integration Issues
+#### Authentication Issues
 ```typescript
-// Check network requests in browser DevTools
-// Verify CORS configuration
-// Check API endpoint URLs
-// Validate request/response formats
+// Issue: Token expiration handling
+// Solution: Implement token refresh mechanism
+const useTokenRefresh = () => {
+  const { token, setToken } = useAuth();
+  
+  useEffect(() => {
+    const refreshToken = async () => {
+      try {
+        const response = await fetch('/api/auth/refresh', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const { newToken } = await response.json();
+        setToken(newToken);
+      } catch (error) {
+        // Redirect to login
+        window.location.href = '/login';
+      }
+    };
+    
+    // Refresh 2 hours before expiration
+    const interval = setInterval(refreshToken, 2 * 60 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, [token]);
+};
 ```
 
-### Getting Help
-- **Documentation**: Check this memory bank for comprehensive information
-- **GitHub Issues**: Create issues for bugs or feature requests  
-- **Code Reviews**: Ask for help in pull requests
-- **Team Chat**: Use team communication channels
-- **Stack Overflow**: For general React/Next.js questions
+#### Socket Connection Issues
+```typescript
+// Issue: Socket disconnection handling
+// Solution: Implement reconnection logic
+const useSocketReconnection = () => {
+  const { socket, connect } = useSocket();
+  
+  useEffect(() => {
+    if (!socket) return;
+    
+    socket.on('disconnect', () => {
+      console.log('Socket disconnected, attempting reconnection...');
+      setTimeout(() => {
+        connect();
+      }, 5000);
+    });
+    
+    return () => {
+      socket.off('disconnect');
+    };
+  }, [socket, connect]);
+};
+```
 
-## Best Practices Summary
+#### RTL Layout Issues
+```css
+/* Issue: Components not adapting to RTL */
+/* Solution: Use logical CSS properties */
+.problematic-component {
+  /* Instead of: margin-left: 1rem; */
+  margin-inline-start: 1rem;
+  
+  /* Instead of: text-align: left; */
+  text-align: start;
+  
+  /* Instead of: float: right; */
+  float: inline-end;
+}
 
-### Code Quality
-- Write TypeScript interfaces for all data structures
-- Use ESLint and follow configuration rules
-- Write meaningful component and function names
-- Keep components small and focused
-- Use proper error handling patterns
+/* Use direction-specific styles when needed */
+[dir="rtl"] .special-case {
+  transform: scaleX(-1);
+}
+```
 
-### Performance
-- Implement proper loading states
-- Use React.memo for expensive components
-- Optimize images with Next.js Image component
-- Implement proper caching strategies
-- Monitor bundle size regularly
-
-### Accessibility
-- Use semantic HTML elements
-- Implement proper ARIA attributes with Radix UI
-- Ensure keyboard navigation works
-- Test with screen readers
-- Maintain proper color contrast ratios
-
-### Security
-- Validate all user inputs with Zod
-- Store sensitive data securely
-- Use HTTPS in production
-- Implement proper authentication flows
-- Keep dependencies updated
-
-This development guide should provide all the information needed for developers to quickly understand and contribute to the Student Management System frontend effectively.
+### Debug Configuration
+```javascript
+// next.config.js - Development debugging
+const nextConfig = {
+  // Enable source maps in development
+  webpack: (config, { dev, isServer }) => {
+    if (dev && !isServer) {
+      config.devtool = 'eval-source-map';
+    }
+    return config;
+  },
+  
+  // Enable React DevTools
+  experimental: {
+    reactStrictMode: true,
+  },
+};
+```

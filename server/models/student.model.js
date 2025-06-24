@@ -2,13 +2,11 @@ import mongoose from "mongoose";
 
 const studentSchema = new mongoose.Schema(
   {
-    studentId: {
+    id: {
       type: String,
       required: true,
       unique: true,
-      default: function () {
-        return `STU-${Date.now()}`;
-      },
+      default: () => `STU-${Date.now()}`,
     },
     password: {
       type: String,
@@ -18,14 +16,10 @@ const studentSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    universityId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "University",
-      required: true,
-    },
     role: {
       type: String,
       required: true,
+      enum: ["student", "super-student"],
       default: "student",
     },
     email: {
@@ -36,7 +30,11 @@ const studentSchema = new mongoose.Schema(
     phone: {
       type: String,
     },
-
+    universityId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "University",
+      required: true,
+    },
     courses: [
       {
         type: mongoose.Schema.Types.ObjectId,

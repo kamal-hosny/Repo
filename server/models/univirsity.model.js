@@ -29,6 +29,12 @@ const univirsitySchema = new mongoose.Schema(
         required: true,
       },
     },
+    colleges: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "College",
+      },
+    ],
     students: [
       {
         type: mongoose.Schema.Types.ObjectId,
@@ -61,6 +67,7 @@ const univirsitySchema = new mongoose.Schema(
     logo: {
       type: String,
       required: true,
+      default: "LOGO",
     },
   },
   {

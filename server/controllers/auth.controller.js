@@ -4,29 +4,38 @@ import jwt from "jsonwebtoken";
 import "dotenv/config";
 // Models
 import Student from "../models/student.model.js";
+import Admin from "../models/admin.model.js";
+import Teacher from "../models/teacher.model.js";
 
-const loginStudent = asyncHandler(async (req, res) => {
-  const { studentId, password } = req.body;
-  if (!studentId || !password) {
+const login = asyncHandler(async (req, res) => {
+  let { id, password } = req.body;
+  let Model = null;
+  if (id.startsWith("STU")) {
+    Model = Student;
+  } else if (id.startsWith("ADMIN")) {
+    Model = Admin;
+  } else {
+    Model = Teacher;
+  }
+
+  const result = await Model.findOne({ id }).lean();
+  if (!result) {
     return res.status(400).json({
-      message: "Please provide studentId and password",
+      message: "Invalid id or password",
     });
   }
-  const student = await Student.findOne({ studentId }).lean();
-  if (!student) {
-    return res.status(400).json({
-      message: "Invalid studentId or password",
-    });
-  }
-  const isMatch = await bcrypt.compare(password, student.password);
+
+  const isMatch = await bcrypt.compare(password, result.password);
   if (!isMatch) {
     return res.status(400).json({
-      message: "Invalid studentId or password",
+      message: "Invalid id or password!",
     });
   }
+console.log(result);
+
 
   const token = jwt.sign(
-    { id: student._id, studentId: student.studentId },
+    { _id: String(result._id), id: result.id, role: result.role },
     process.env.JWT_SECRET,
     { expiresIn: process.env.JWT_EXPIRES_IN }
   );
@@ -37,18 +46,20 @@ const loginStudent = asyncHandler(async (req, res) => {
     maxAge: 24 * 60 * 60 * 1000,
   });
 
+  const { password: _, createdAt, updatedAt, role, ...response } = result;
+
   res.status(200).json({
-    message: "Login successful",
-    token,
-    student,
+    message: "Login successfully",
+    role: result.role,
+    data: response,
   });
 });
 
-const logoutStudent = asyncHandler(async (req, res) => {
+const logout = asyncHandler(async (req, res) => {
   res.clearCookie("jwt");
   res.status(200).json({
-    message: "Logout successful",
+    message: "Logout successfully",
   });
 });
 
-export { loginStudent, logoutStudent };
+export { login, logout };
