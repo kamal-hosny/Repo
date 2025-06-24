@@ -3,10 +3,20 @@ import { Router } from "express";
 import authinticate from "../middlewares/authintication.middleware.js";
 import authorize from "../middlewares/authorization.middleware.js";
 import { createStudent, createAdmin } from "../controllers/admin.controller.js";
+import {
+  createTeacher,
+  updateTeacher,
+} from "../controllers/admin.controller.js";
 
 const router = Router();
 
-router.route("/new-super-admin").post( createAdmin);
-router.route("/student").post(authinticate, authorize("admin"), createStudent)
+router.route("/new-super-admin").post(createAdmin);
+router
+  .route("/student")
+  .post(authinticate, authorize(["admin", "super-admin"]), createStudent);
+router
+  .route("/teacher")
+  .post(authinticate, authorize(["admin", "super-admin"]), createTeacher)
+  .patch(authinticate, authorize(["admin", "super-admin"]), updateTeacher);
 
 export default router;
