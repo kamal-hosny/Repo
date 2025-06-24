@@ -17,14 +17,12 @@ const authintication = async (req, res, next) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     let Model = null;
     if (decoded.role == "student") Model = Student;
-    else if (decoded.role == "admin") Model = Admin;
-    else Model = Teacher;
-
+    else if (decoded.role == "teacher") Model = Teacher;
+    else Model = Admin;
+    console.log("Decoded token:", decoded._id);
+    
     const user = await Model.findById(decoded._id);
 
-    if (!user) {
-      return res.status(401).json({ message: "Unauthorized!" });
-    }
     req.user = user;
     next();
   } catch (error) {
