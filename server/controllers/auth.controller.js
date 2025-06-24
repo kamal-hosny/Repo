@@ -8,7 +8,7 @@ import Admin from "../models/admin.model.js";
 import Teacher from "../models/teacher.model.js";
 
 const login = asyncHandler(async (req, res) => {
-  let { id, password } = req.body;
+  let { id, password, lang = "en" } = req.body;
   let Model = null;
   if (id.startsWith("STU")) {
     Model = Student;
@@ -20,19 +20,24 @@ const login = asyncHandler(async (req, res) => {
 
   const result = await Model.findOne({ id }).lean();
   if (!result) {
+    let message = "Invalid id or password";
+    if (lang === "ar") message = "معرف أو كلمة مرور غير صحيحة";
+
     return res.status(400).json({
-      message: "Invalid id or password",
+      message,
     });
   }
 
   const isMatch = await bcrypt.compare(password, result.password);
   if (!isMatch) {
+    let message = "Invalid id or password!";
+    if (lang === "ar") message = "معرف أو كلمة مرور غير صحيحة!";
+
     return res.status(400).json({
-      message: "Invalid id or password!",
+      message,
     });
   }
-console.log(result);
-
+  // console.log(result);
 
   const token = jwt.sign(
     { _id: String(result._id), id: result.id, role: result.role },
@@ -48,17 +53,27 @@ console.log(result);
 
   const { password: _, createdAt, updatedAt, role, ...response } = result;
 
+  let message = "Login successfully";
+  if (lang === "ar") message = "تم تسجيل الدخول بنجاح";
+
   res.status(200).json({
-    message: "Login successfully",
+    message,
     role: result.role,
     data: response,
   });
 });
 
 const logout = asyncHandler(async (req, res) => {
+  const { lang = "en" } = req.body;
+  console.log("Logging out user...", req.user);
+
   res.clearCookie("jwt");
+
+  let message = "Logout successfully";
+  if (lang === "ar") message = "تم تسجيل الخروج بنجاح";
+
   res.status(200).json({
-    message: "Logout successfully",
+    message,
   });
 });
 

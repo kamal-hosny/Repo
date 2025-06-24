@@ -13,7 +13,7 @@ import {
 const router = Router();
 
 router
-  .route("/new-admin")
+  .route("/admin")
   .post(authinticate, authorize(["super-admin"]), createAdmin)
   .patch(authinticate, authorize(["super-admin"]), updateAdmin)
   .delete(authinticate, authorize(["super-admin"]), deleteAdmin);

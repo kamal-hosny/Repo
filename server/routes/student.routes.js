@@ -16,18 +16,15 @@ import authorize from "../middlewares/authorization.middleware.js";
 // Validators
 import {
   validateObjectId,
-  validateStudentId,
   validateStudentUpdateData,
-  validateUniversityId,
 } from "../middlewares/validation.middleware.js";
 
 const router = Router();
 
-router.route("/").get(getStudentsPage);
+router.route("/").get(authinticate, getStudentsPage);
 
-router
-  .route("/:universityId")
-  // .post(validateUniversityId, authorize(["admin"]), createStudent);
+router.route("/:universityId");
+// .post(validateUniversityId, authorize(["admin"]), createStudent);
 
 // router.route("/all").get(getAllStudents);
 

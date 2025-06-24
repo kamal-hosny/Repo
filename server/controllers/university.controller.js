@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 import asyncHandler from "express-async-handler";
 import Student from "../models/student.model.js";
 import Course from "../models/course.model.js";
-import University from "../models/univirsity.model.js";
+import University from "../models/university.model.js";
 import Teacher from "../models/teacher.model.js";
 
 const createUniversity = asyncHandler(async (req, res) => {
@@ -16,6 +16,7 @@ const createUniversity = asyncHandler(async (req, res) => {
     website,
     establishedYear,
     logo,
+    lang = "en",
   } = req.body;
 
   if (
@@ -28,22 +29,31 @@ const createUniversity = asyncHandler(async (req, res) => {
     !establishedYear ||
     !logo
   ) {
+    let message = "Missing required fields";
+    if (lang === "ar") message = "الحقول المطلوبة مفقودة";
+
     return res.status(400).json({
-      message: "Missing required fields",
+      message,
     });
   }
 
   // Validate email format
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailRegex.test(email)) {
+    let message = "Invalid email address";
+    if (lang === "ar") message = "عنوان بريد إلكتروني غير صحيح";
+
     return res.status(400).json({
-      message: "Invalid email address",
+      message,
     });
   }
 
   if (name.length < 2 || name.length > 50) {
+    let message = "Name must be between 2 and 50 characters";
+    if (lang === "ar") message = "يجب أن يكون الاسم بين 2 و 50 حرفاً";
+
     return res.status(400).json({
-      message: "Name must be between 2 and 50 characters",
+      message,
     });
   }
 
@@ -56,16 +66,25 @@ const createUniversity = asyncHandler(async (req, res) => {
     typeof location.coordinates[0] !== "number" ||
     typeof location.coordinates[1] !== "number"
   ) {
+    let message =
+      "Invalid GeoJSON location. Must include type 'Point' and coordinates [lng, lat]";
+    if (lang === "ar")
+      message =
+        "موقع GeoJSON غير صحيح. يجب أن يتضمن النوع 'Point' والإحداثيات [lng, lat]";
+
     return res.status(400).json({
-      message:
-        "Invalid GeoJSON location. Must include type 'Point' and coordinates [lng, lat]",
+      message,
     });
   }
 
   const existingUniversity = await University.findOne({ email });
   if (existingUniversity) {
+    let message = "University already exists, please use a different email";
+    if (lang === "ar")
+      message = "الجامعة موجودة بالفعل، يرجى استخدام بريد إلكتروني مختلف";
+
     return res.status(400).json({
-      message: "University already exists, please use a different email",
+      message,
     });
   }
 
@@ -84,30 +103,20 @@ const createUniversity = asyncHandler(async (req, res) => {
   res.status(201).json(university);
 });
 
-// // const getAllUniversities = asyncHandler(async (req, res) => {
-// //   const universities = await University.find()
-// //     .select("-createdAt -updatedAt")
-// //     .lean();
-
-// //   if (!universities) {
-// //     return res.status(404).json({
-// //       message: "No universities found",
-// //     });
-// //   }
-
-// //   res.status(200).json(universities);
-// });
-
 const getUniversityById = asyncHandler(async (req, res) => {
   const { id } = req.params;
+  const { lang = "en" } = req.query;
 
   const university = await University.findById(id)
     .select("-createdAt -updatedAt")
     .lean();
 
   if (!university) {
+    let message = "University not found";
+    if (lang === "ar") message = "الجامعة غير موجودة";
+
     return res.status(404).json({
-      message: "University not found",
+      message,
     });
   }
 
@@ -115,7 +124,7 @@ const getUniversityById = asyncHandler(async (req, res) => {
 });
 
 const getUniversitiesPage = asyncHandler(async (req, res) => {
-  const { page = 1, limit = 40 } = req.query;
+  const { page = 1, limit = 40, lang = "en" } = req.query;
 
   const universities = await University.find()
     .select("-createdAt -updatedAt")
@@ -123,9 +132,12 @@ const getUniversitiesPage = asyncHandler(async (req, res) => {
     .limit(limit)
     .lean();
 
-  if (!universities) {
+  if (!universities || universities.length === 0) {
+    let message = "No universities found";
+    if (lang === "ar") message = "لم يتم العثور على جامعات";
+
     return res.status(404).json({
-      message: "No universities found",
+      message,
     });
   }
 
@@ -136,16 +148,19 @@ const getStudentsPageOfUniversity = asyncHandler(async (req, res) => {
   const { universityId } = req.params;
   const page = Math.max(parseInt(req.query.page) || 1, 1);
   const limit = Math.max(parseInt(req.query.limit) || 40, 1);
+  const { lang = "en" } = req.query;
 
   const students = await Student.find({ universityId })
     .limit(limit)
     .skip((page - 1) * limit)
-    .skip((page - 1) * limit)
     .lean();
 
   if (!students || students.length === 0) {
+    let message = "No students found";
+    if (lang === "ar") message = "لم يتم العثور على طلاب";
+
     return res.status(404).json({
-      message: "No students found ",
+      message,
     });
   }
 
@@ -154,7 +169,7 @@ const getStudentsPageOfUniversity = asyncHandler(async (req, res) => {
 
 const getTeachersPageOfUniversity = asyncHandler(async (req, res) => {
   const { universityId } = req.params;
-  const { page = 1, limit = 40 } = req.query;
+  const { page = 1, limit = 40, lang = "en" } = req.query;
 
   const university = await University.findById(universityId)
     .populate({
@@ -167,20 +182,25 @@ const getTeachersPageOfUniversity = asyncHandler(async (req, res) => {
     .select("teachers")
     .lean();
 
-  if (!university || university.length === 0) {
-    return res
-      .status(404)
-      .json({ message: "No teachers found", total: 0, teachers: [] });
+  if (!university || !university.teachers || university.teachers.length === 0) {
+    let message = "No teachers found";
+    if (lang === "ar") message = "لم يتم العثور على معلمين";
+
+    return res.status(404).json({
+      message,
+      total: 0,
+      teachers: [],
+    });
   }
 
-  res
-    .status(200)
-    .json({ total: result.teachers.length, teachers: result.teachers });
+  res.status(200).json({
+    total: university.teachers.length,
+    teachers: university.teachers,
+  });
 });
 
 export {
   createUniversity,
-  // getAllUniversities,
   getUniversityById,
   getUniversitiesPage,
   getStudentsPageOfUniversity,
