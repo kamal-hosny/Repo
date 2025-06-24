@@ -91,10 +91,13 @@ const createTeacher = asyncHandler(async (req, res) => {
 });
 
 const updateTeacher = asyncHandler(async (req, res) => {
-  const { id, _id, name, email, courses, phone, address, password, role } = req.body;
+  const { id, _id, name, email, courses, phone, address, password, role } =
+    req.body;
 
   if (!id && !_id) {
-    return res.status(400).json({ message: "Teacher 'id' or '_id' is required" });
+    return res
+      .status(400)
+      .json({ message: "Teacher 'id' or '_id' is required" });
   }
 
   const updateData = {};
@@ -115,7 +118,11 @@ const updateTeacher = asyncHandler(async (req, res) => {
     return res.status(404).json({ message: "Teacher not found" });
   }
 
-  const { password: _password, phone: _phone, ...response } = teacher.toObject();
+  const {
+    password: _password,
+    phone: _phone,
+    ...response
+  } = teacher.toObject();
 
   res.status(200).json({
     message: "Teacher updated successfully",
@@ -123,5 +130,80 @@ const updateTeacher = asyncHandler(async (req, res) => {
   });
 });
 
+const updateAdmin = asyncHandler(async (req, res) => {
+  const { id, name, password } = req.body;
 
-export { createStudent, createAdmin, createTeacher, updateTeacher };
+  const updateData = {};
+  if (name) updateData.name = name;
+  if (password) {
+    const hashedPassword = await bcrypt.hash(password, 10);
+    updateData.password = hashedPassword;
+  }
+
+  const admin = await Admin.findOneAndUpdate({ id }, updateData, { new: true });
+
+  const isNameSame = name ? admin.name === name : false;
+  const isPasswordSame = password
+    ? await bcrypt.compare(password, admin.password)
+    : false;
+
+  if (isNameSame && isPasswordSame)
+    res.status(400).json({
+      message: "No changes made to the admin",
+    });
+
+  if (!admin) {
+    return res.status(404).json({ message: "Admin not found" });
+  }
+
+  res.status(200).json({
+    message: "Admin updated successfully",
+    admin,
+  });
+});
+
+// const updateAdmin = asyncHandler(async (req, res) => {
+//   const { id, name, password } = req.body;
+
+//   if (!id) {
+//     return res.status(400).json({ message: "Admin ID is required" });
+//   }
+
+//   const admin = await Admin.findOne({ id });
+
+//   if (!admin) {
+//     return res.status(404).json({ message: "Admin not found" });
+//   }
+
+//   // Compare new name and password with existing
+//   const isNameSame = name ? name === admin.name : true;
+//   const isPasswordSame = password ? await bcrypt.compare(password, admin.password) : true;
+
+//   if (isNameSame && isPasswordSame) {
+//     return res.status(400).json({ message: "No changes made" });
+//   }
+
+//   // Prepare updated data
+//   const updateData = {};
+//   if (name && !isNameSame) updateData.name = name;
+//   if (password && !isPasswordSame) {
+//     const hashedPassword = await bcrypt.hash(password, 10);
+//     updateData.password = hashedPassword;
+//   }
+
+//   const updatedAdmin = await Admin.findOneAndUpdate({ id }, updateData, { new: true });
+
+//   res.status(200).json({
+//     message: "Admin updated successfully",
+//     admin: updatedAdmin,
+//   });
+// });
+
+
+export {
+  createStudent,
+  createAdmin,
+  createTeacher,
+  updateTeacher,
+  updateAdmin,
+};

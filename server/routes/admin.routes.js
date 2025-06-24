@@ -6,13 +6,15 @@ import { createStudent, createAdmin } from "../controllers/admin.controller.js";
 import {
   createTeacher,
   updateTeacher,
+  updateAdmin,
 } from "../controllers/admin.controller.js";
 
 const router = Router();
 
 router
   .route("/new-admin")
-  .post(authinticate, authorize(["super-admin"]), createAdmin);
+  .post(authinticate, authorize(["super-admin"]), createAdmin)
+  .patch(authinticate, authorize(["super-admin"]), updateAdmin);
 router
   .route("/student")
   .post(authinticate, authorize(["admin", "super-admin"]), createStudent);
