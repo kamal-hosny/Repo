@@ -41,7 +41,7 @@ export const themeSlice = createSlice({
         setThemeMode: (state, action: PayloadAction<ThemeMode>) => {
             state.mode = action.payload
             state.effectiveTheme = action.payload === 'system' ? state.systemTheme : action.payload
-            
+
             // Persist to localStorage
             if (typeof window !== 'undefined') {
                 localStorage.setItem('theme', action.payload)
@@ -55,7 +55,7 @@ export const themeSlice = createSlice({
             state.systemTheme = action.payload
             if (state.mode === 'system') {
                 state.effectiveTheme = action.payload
-                
+
                 // Update document class if in system mode
                 if (typeof window !== 'undefined') {
                     const root = document.documentElement
@@ -71,7 +71,7 @@ export const themeSlice = createSlice({
                 state.mode = state.mode === 'light' ? 'dark' : 'light'
             }
             state.effectiveTheme = state.mode as 'light' | 'dark'
-            
+
             // Persist to localStorage and update document
             if (typeof window !== 'undefined') {
                 localStorage.setItem('theme', state.mode)

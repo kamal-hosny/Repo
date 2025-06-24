@@ -33,7 +33,7 @@ export const languageSlice = createSlice({
         setLanguage: (state, action: PayloadAction<SupportedLanguage>) => {
             state.currentLanguage = action.payload
             state.direction = action.payload === 'ar' ? 'rtl' : 'ltr'
-            
+
             // Persist to localStorage
             if (typeof window !== 'undefined') {
                 localStorage.setItem('language', action.payload)
@@ -46,7 +46,7 @@ export const languageSlice = createSlice({
             const newLanguage: SupportedLanguage = state.currentLanguage === 'en' ? 'ar' : 'en'
             state.currentLanguage = newLanguage
             state.direction = newLanguage === 'ar' ? 'rtl' : 'ltr'
-            
+
             // Persist to localStorage
             if (typeof window !== 'undefined') {
                 localStorage.setItem('language', newLanguage)

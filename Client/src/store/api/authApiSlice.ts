@@ -49,7 +49,8 @@ export const authApiSlice = apiSlice.injectEndpoints({
                         const data = await response.json()
                         return { data }
                     }
-                } catch (error) {                    return {
+                } catch (error) {
+                    return {
                         error: {
                             status: 'CUSTOM_ERROR' as const,
                             data: { message: error instanceof Error ? error.message : 'Login failed' },
@@ -71,12 +72,12 @@ export const authApiSlice = apiSlice.injectEndpoints({
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
-                            },                            body: JSON.stringify(userData),
+                            }, body: JSON.stringify(userData),
                         })
 
                         if (!response.ok) {
                             throw new Error('Registration failed')
-                        }                        const data = await response.json() as LoginResponse
+                        } const data = await response.json() as LoginResponse
                         return { data }
                     }
                 } catch (error) {
@@ -108,7 +109,8 @@ export const authApiSlice = apiSlice.injectEndpoints({
 
                         return { data: undefined }
                     }
-                } catch (error) {                    return {
+                } catch (error) {
+                    return {
                         error: {
                             status: 'CUSTOM_ERROR' as const,
                             data: { message: error instanceof Error ? error.message : 'Logout failed' },
@@ -122,19 +124,20 @@ export const authApiSlice = apiSlice.injectEndpoints({
         refreshToken: builder.mutation<{ token: string }, { refreshToken: string }>({
             queryFn: async ({ refreshToken }) => {
                 try {
-                    if (USE_MOCK_API) {                        const data = await mockRefreshToken(refreshToken)
+                    if (USE_MOCK_API) {
+                        const data = await mockRefreshToken(refreshToken)
                         return { data }
                     } else {
                         const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/auth/refresh`, {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
-                            },                            body: JSON.stringify({ refreshToken }),
+                            }, body: JSON.stringify({ refreshToken }),
                         })
 
                         if (!response.ok) {
                             throw new Error('Token refresh failed')
-                        }                        const data = await response.json() as { token: string }
+                        } const data = await response.json() as { token: string }
                         return { data }
                     }
                 } catch (error) {

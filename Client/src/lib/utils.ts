@@ -37,7 +37,7 @@ export function formatRelativeTime(date: Date | string | number): string {
     if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} minutes ago`
     if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)} hours ago`
     if (diffInSeconds < 2592000) return `${Math.floor(diffInSeconds / 86400)} days ago`
-    
+
     return formatDate(targetDate)
 }
 
@@ -89,7 +89,7 @@ export function sortBy<T>(array: T[], key: keyof T, direction: 'asc' | 'desc' = 
     return [...array].sort((a, b) => {
         const aVal = a[key]
         const bVal = b[key]
-        
+
         if (aVal < bVal) return direction === 'asc' ? -1 : 1
         if (aVal > bVal) return direction === 'asc' ? 1 : -1
         return 0

@@ -25,7 +25,7 @@ export const apiSlice = createApi({
         'Grade',
         'Notification',
         'University',
-    ],    endpoints: () => ({
+    ], endpoints: () => ({
         // This will be extended by individual API slices
     }),
 })

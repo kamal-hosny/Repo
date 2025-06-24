@@ -3,7 +3,8 @@
         "name": "Task-Flow",
         "description": "Advanced Learning Management System for Universities",
         "welcome": "Welcome to Task-Flow"
-    },    "common": {
+    },
+    "common": {
         "testPage": "Infrastructure Test Page",
         "controls": "Controls",
         "testFeatures": "Test Redux, Theme, and Language features",
@@ -85,7 +86,8 @@
         "dark": "Dark Mode",
         "system": "System Theme",
         "changeTheme": "Change Theme"
-    },    "language": {
+    },
+    "language": {
         "english": "English",
         "arabic": "Arabic",
         "changeLanguage": "Change Language"
@@ -98,7 +100,7 @@
             "scheduleDescription": "View your class schedule and events",
             "profileDescription": "Manage your personal information",
             "viewCourses": "View Courses",
-            "viewAssignments": "View Assignments", 
+            "viewAssignments": "View Assignments",
             "viewSchedule": "View Schedule",
             "editProfile": "Edit Profile",
             "profile": "Profile",

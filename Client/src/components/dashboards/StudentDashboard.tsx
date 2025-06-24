@@ -230,7 +230,7 @@ const StudentDashboard: React.FC = () => {
         { id: 'overview', label: t('dashboard.overview'), component: OverviewSection },
         { id: 'courses', label: t('navigation.courses'), component: CoursesSection },
         { id: 'assignments', label: t('navigation.assignments'), component: AssignmentsSection },
-        { id: 'grades', label: t('navigation.grades'), component: GradesSection },        { id: 'calendar', label: t('navigation.calendar'), component: CalendarSection },
+        { id: 'grades', label: t('navigation.grades'), component: GradesSection }, { id: 'calendar', label: t('navigation.calendar'), component: CalendarSection },
     ]
 
     return (

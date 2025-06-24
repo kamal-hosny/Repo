@@ -258,7 +258,7 @@ const TeacherDashboard: React.FC = () => {
         { id: 'courses', label: t('navigation.courses'), component: CoursesSection },
         { id: 'students', label: t('teacher.myStudents'), component: StudentsSection },
         { id: 'assignments', label: t('navigation.assignments'), component: AssignmentsSection },
-        { id: 'grading', label: t('teacher.gradeAssignments'), component: GradingSection },    ]
+        { id: 'grading', label: t('teacher.gradeAssignments'), component: GradingSection },]
 
     return (
         <div className="min-h-screen bg-theme">

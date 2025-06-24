@@ -45,10 +45,10 @@ const Header: React.FC = () => {
                     <div className="flex items-center space-x-2">
                         <div className="flex items-center space-x-2">
                             <div className="w-8 h-8 bg-primary/20 rounded-full flex items-center justify-center">                                {user?.avatar ? (
-                                    <Image src={user.avatar} alt={user.name} width={32} height={32} className="w-8 h-8 rounded-full" />
-                                ) : (
-                                    <User className="h-4 w-4 text-primary" />
-                                )}
+                                <Image src={user.avatar} alt={user.name} width={32} height={32} className="w-8 h-8 rounded-full" />
+                            ) : (
+                                <User className="h-4 w-4 text-primary" />
+                            )}
                             </div>
                             <div className="hidden md:block">
                                 <p className="text-sm font-medium text-theme">{user?.name}</p>

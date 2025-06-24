@@ -334,7 +334,7 @@ const AdminDashboard: React.FC = () => {
         { id: 'users', label: t('admin.userManagement'), component: UsersSection },
         { id: 'courses', label: t('navigation.courses'), component: CoursesSection },
         { id: 'analytics', label: 'Analytics', component: AnalyticsSection },
-        { id: 'settings', label: t('navigation.settings'), component: SettingsSection },    ]
+        { id: 'settings', label: t('navigation.settings'), component: SettingsSection },]
 
     return (
         <div className="min-h-screen bg-theme">

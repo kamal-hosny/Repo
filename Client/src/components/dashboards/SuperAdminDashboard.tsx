@@ -442,7 +442,7 @@ const SuperAdminDashboard: React.FC = () => {
         { id: 'universities', label: 'Universities', component: UniversitiesSection },
         { id: 'admins', label: t('superAdmin.adminManagement'), component: AdminsSection },
         { id: 'system', label: 'System', component: SystemSection },
-        { id: 'analytics', label: 'Analytics', component: AnalyticsSection },    ]
+        { id: 'analytics', label: 'Analytics', component: AnalyticsSection },]
 
     return (
         <div className="min-h-screen bg-theme">

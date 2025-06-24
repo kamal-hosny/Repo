@@ -156,8 +156,8 @@ const LoginPage: React.FC = () => {
 
                             {/* Error Message */}                            {error && (
                                 <div className="text-red-500 text-sm text-center font-body">
-                                    {'data' in error && error.data && typeof error.data === 'object' && 'message' in error.data 
-                                        ? (error.data as { message: string }).message 
+                                    {'data' in error && error.data && typeof error.data === 'object' && 'message' in error.data
+                                        ? (error.data as { message: string }).message
                                         : 'Login failed'}
                                 </div>
                             )}

@@ -30,7 +30,7 @@ export const ClientHydration: React.FC<{ children: React.ReactNode }> = ({ child
 
         // Apply current theme to document immediately
         const theme = savedTheme || 'system'
-        const effectiveTheme = theme === 'system' 
+        const effectiveTheme = theme === 'system'
             ? (mediaQuery.matches ? 'dark' : 'light')
             : theme
 
