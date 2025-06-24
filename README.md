@@ -42,10 +42,10 @@ PORT = your_port
 CLIENT_URL = your_client_URL
 ```
 
-Create an `.env` file in the `/client` directory: 
+Create an `.env.local` file in the `/client` directory: 
 
 ```
-VITE_API_URL = your_api_URL
+NEXT_PUBLIC_API_URL = your_api_URL
 ```
 
 ## Features
@@ -75,7 +75,7 @@ VITE_API_URL = your_api_URL
 - Express
 - MongoDB
 - JWT Authentication
-
-### Tools
-
 - Concurrently
+
+
+

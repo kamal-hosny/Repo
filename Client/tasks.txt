@@ -1,0 +1,180 @@
+** Global Variables **
+1-base URL for backend= localhost:5000
+2- Auth type: JWT 
+3- tech stack: 
+a. backend:nodejs, express, mongodb, kafka, redis, restful api
+b. frontend: next.js, RTK, tailwind css, framer motion
+=========================================================================================================
+** Global Instructions ( Must read and follow )**
+1. read memo-bank folder #memo-bank for perfect understanding for proejct + package.json + all required files you will need 
+2- src/app/constants.ts => must contains all endpoint non base URL, e.g.( export const STUDENT_URL = "/api/students";
+export const AUTH_URL = "/api/auth";)
+3- U must use RTK for state manage for ever component, page you will create
+4- students endpoints exist in /src/app/api/studentAPiSlice.ts file
+5- teacher endpoints exist in /src/app/api/teacherAPislice.ts file
+6- University endpoints exist in /src/app/api/UniversityAPislice.ts file
+7. keep consistancy of tailwind css styling for all components and pages
+
+===============================================================================================================
+
+** editing existing code, endpoint **
+
+1. Get a page of students
+
+a. PATH => [/api/student/?page=1&limit=20]
+
+b. Auth required => yes 
+
+c. Allowed Roles => teacher, admin
+
+d. tasks, problems & description
+-- current stage(before update): " it provide students data without limit or page number ( either in URL or in body ( shown data))"
+-- new stage (after update): " i want URL from " .....(localhost:3000 => next.js)/students to be .....(localhost:3000 => next.js)/students/?page=1&limit=20 "
+-- Make dynamic pagination: pagination makes errors ( at least 20 page) ( dynamic or static pagination are not possible without page number and limit )
+-- fix the next and previous button functionality : ( previous and next button are not working well becaue or limit, page error fix and suit them)
+- next button e.g. => " page=1 => page=2 "
+- previous button e.g. => " page =2 => page =1 " 
+
+e. Query Parameters in Postman
+- page (value (number) === 1 2 3 4 etc...) 
+- limit  (value (number) === 20 )
+
+f. Method: GET
+
+** responses in Postman (sample) **
+-- with page ===1 and limit = 3
+1. 200 ok with (page=1&limit=3) (json format)
+{
+    "students": [
+        {
+            "_id": "68272391943893d5e5a21e9a",
+            "name": "Ahmed Hassan 4",
+            "email": "ahmed.hassan 4@gmail.com",
+            "universityId": {
+                "_id": "6823509b467cae38bbf7d69f",
+                "name": "Cairo International University"
+            },
+            "password": "$2b$10$4m3epzjd8vb0x02BQrvcf.mDEt2LIe55VdY7xLgAiamjHVL4.fB0q",
+            "studentId": "STU-20250510000000",
+            "role": "student"
+        },
+        {
+            "_id": "682720d765911a1e7e2bcc37",
+            "name": "Ahmed Hassan 2",
+            "email": "ahmed.hassan2@gmail.com",
+            "universityId": {
+                "_id": "6823509b467cae38bbf7d69f",
+                "name": "Cairo International University"
+            },
+            "password": "$2b$10$4m3epzjd8vb0x02BQrvcf.mDEt2LIe55VdY7xLgAiamjHVL4.fB0q",
+            "studentId": "STU-20251230000000",
+            "role": "student"
+        },
+        {
+            "_id": "682621fe349024b86ad2a042",
+            "name": "Tariq Mahmoud",
+            "email": "tariq.mahmoud@gmail.com",
+            "universityId": {
+                "_id": "6823509b467cae38bbf7d69f",
+                "name": "Cairo International University"
+            },
+            "password": "$2b$10$4m3epzjd8vb0x02BQrvcf.mDEt2LIe55VdY7xLgAiamjHVL4.fB0q",
+            "studentId": "STU-20250116000000",
+            "role": "student"
+        }
+    ],
+    "totalPages": 20,
+    "currentPage": "1"
+}
+
+
+2. 400 bad (html format ( no json ))
+<pre>Cannot GET /api/student</pre>
+
+===============================================================================================================
+2. Get student by id
+
+a. method: GET
+
+b. PATH: [/api/student/id] id = student specific id 
+
+c. Auth required: yes
+
+d. Allowed roles: teacher, admin
+
+e. Query Params:
+-- key id => value id 
+
+f. tasks, problems & description 
+-- i need the real data returned from end point to be only shown ( no static data )
+
+** responses **
+-- params used ( id === 68272391943893d5e5a21e9a )
+
+1. 200 ok ( json format )
+{
+    "_id": "68272391943893d5e5a21e9a",
+    "name": "Ahmed Hassan 4",
+    "email": "ahmed.hassan 4@gmail.com",
+    "universityId": {
+        "_id": "6823509b467cae38bbf7d69f",
+        "name": "Cairo International University"
+    },
+    "courses": [
+        {
+            "_id": "682618764e5aa50347596bf6",
+            "name": "Introduction to Programming"
+        },
+        {
+            "_id": "682618764e5aa50347596bf7",
+            "name": "Data Structures and Algorithms"
+        },
+        {
+            "_id": "682618764e5aa50347596bf8",
+            "name": "Database Systems"
+        },
+        {
+            "_id": "682618764e5aa50347596bf9",
+            "name": "Operating Systems"
+        },
+        {
+            "_id": "682618764e5aa50347596bfa",
+            "name": "Software Engineering"
+        }
+    ],
+    "password": "$2b$10$4m3epzjd8vb0x02BQrvcf.mDEt2LIe55VdY7xLgAiamjHVL4.fB0q",
+    "studentId": "STU-20250510000000",
+    "role": "student"
+}
+
+
+2. 400 bad ( json format )
+
+id === bad id
+
+{
+    "message": "Invalid ID format"
+}
+
+
+===============================================================================================================
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

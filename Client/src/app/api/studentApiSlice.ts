@@ -1,13 +1,17 @@
 import { apiSlice } from "./apiSlice";
-import type { Student } from "../../types/StudentType";
+import type { Student, PaginatedStudentsResponse } from "../../types/StudentType";
 import { STUDENT_URL } from "../constants";
 
+interface GetStudentsParams {
+    page: number;
+    limit: number;
+}
 
 export const studentApiSlice = apiSlice.injectEndpoints({
     endpoints: (builder) => ({
-        getStudentsPage: builder.query<any, number>({
-            query: (page) => ({
-                url: `${STUDENT_URL}?page=${page}`,
+        getStudentsPage: builder.query<PaginatedStudentsResponse, GetStudentsParams>({
+            query: ({ page, limit }) => ({
+                url: `${STUDENT_URL}?page=${page}&limit=${limit}`,
                 method: "GET",
             }),
         }),
@@ -16,10 +20,8 @@ export const studentApiSlice = apiSlice.injectEndpoints({
                 url: `${STUDENT_URL}/${id}`,
                 method: "GET",
             }),
-
         }),
     })
-
-
 });
-export const {useGetStudentByIdQuery, useGetStudentsPageQuery} = studentApiSlice;
+
+export const { useGetStudentByIdQuery, useGetStudentsPageQuery } = studentApiSlice;
