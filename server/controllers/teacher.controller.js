@@ -2,7 +2,7 @@ import Teacher from "../models/teacher.model.js";
 import asyncHandler from "express-async-handler";
 
 const getPageOfTeachers = asyncHandler(async (req, res) => {
-  const { page = 1 } = req.query;
+  const { page = 1, lang = "en" } = req.query;
 
   const teachers = await Teacher.find()
     .populate("courses")
@@ -10,8 +10,11 @@ const getPageOfTeachers = asyncHandler(async (req, res) => {
     .lean();
 
   if (!teachers || teachers.length === 0) {
+    let message = "No teachers found";
+    if (lang === "ar") message = "لم يتم العثور على معلمين";
+
     return res.status(404).json({
-      message: "No teachers found",
+      message,
       total: 0,
       teachers: [],
     });
@@ -22,12 +25,16 @@ const getPageOfTeachers = asyncHandler(async (req, res) => {
 
 const getTeacherById = asyncHandler(async (req, res) => {
   const { teacherId } = req.params;
+  const { lang = "en" } = req.query;
 
   const teacher = await Teacher.findById(teacherId).populate("courses");
 
   if (!teacher) {
+    let message = "Teacher not found";
+    if (lang === "ar") message = "المعلم غير موجود";
+
     return res.status(404).json({
-      message: "Teacher not found",
+      message,
     });
   }
 

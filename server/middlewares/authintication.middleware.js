@@ -24,6 +24,7 @@ const authintication = async (req, res, next) => {
     const user = await Model.findById(decoded._id);
 
     req.user = user;
+    console.log("Authenticated user:", user);
     next();
   } catch (error) {
     return res.status(401).json({ message: "Unauthorized!" });

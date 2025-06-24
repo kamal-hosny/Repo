@@ -1,5 +1,5 @@
 import Student from "../models/student.model.js";
-import Course from "../models/course.model.js";
+import University from "../models/university.model.js";
 
 import asyncHandler from "express-async-handler";
 
@@ -9,25 +9,34 @@ import asyncHandler from "express-async-handler";
 // });
 
 const registerStudentToUniversity = asyncHandler(async (req, res) => {
-  const { studentId, universityId } = req.body;
+  const { studentId, universityId, lang = "en" } = req.body;
 
   if (!studentId || !universityId) {
+    let message = "Please provide a student ID and university ID";
+    if (lang === "ar") message = "يرجى تقديم معرف الطالب ومعرف الجامعة";
+
     return res.status(400).json({
-      message: "Please provide a student ID and university ID",
+      message,
     });
   }
 
   const student = await Student.findById(studentId);
   if (!student) {
+    let message = "Student not found";
+    if (lang === "ar") message = "الطالب غير موجود";
+
     return res.status(404).json({
-      message: "Student not found",
+      message,
     });
   }
 
   const university = await University.findById(universityId);
   if (!university) {
+    let message = "University not found";
+    if (lang === "ar") message = "الجامعة غير موجودة";
+
     return res.status(404).json({
-      message: "University not found",
+      message,
     });
   }
 
@@ -82,6 +91,8 @@ const getStudentsPage = asyncHandler(async (req, res) => {
 });
 
 const getStudentById = asyncHandler(async (req, res) => {
+  const { lang = "en" } = req.query;
+
   const student = await Student.findById(req.params.id)
     .populate({
       path: "universityId",
@@ -93,15 +104,18 @@ const getStudentById = asyncHandler(async (req, res) => {
     })
     .lean();
   if (!student) {
+    let message = "Student not found";
+    if (lang === "ar") message = "الطالب غير موجود";
+
     return res.status(404).json({
-      message: "Student not found",
+      message,
     });
   }
   res.status(200).json(student);
 });
 
 const updateStudent = asyncHandler(async (req, res) => {
-  const updates = req.body;
+  const { lang = "en", ...updates } = req.body;
 
   const updatedStudent = await Student.findByIdAndUpdate(
     req.params.id,
@@ -110,8 +124,11 @@ const updateStudent = asyncHandler(async (req, res) => {
   );
 
   if (!updatedStudent) {
+    let message = "Student not found";
+    if (lang === "ar") message = "الطالب غير موجود";
+
     return res.status(404).json({
-      message: "Student not found",
+      message,
     });
   }
 
@@ -119,20 +136,31 @@ const updateStudent = asyncHandler(async (req, res) => {
 });
 
 const deleteStudent = asyncHandler(async (req, res) => {
+  const { lang = "en" } = req.body;
+
   const student = await Student.findByIdAndDelete(req.params.id);
 
   if (!student) {
+    let message = "Student not found";
+    if (lang === "ar") message = "الطالب غير موجود";
+
     return res.status(404).json({
-      message: "Student not found",
+      message,
     });
   }
 
-  res.status(200).json({ message: "Student has been removed permanently" });
+  let message = "Student has been removed permanently";
+  if (lang === "ar") message = "تم حذف الطالب نهائياً";
+
+  res.status(200).json({ message });
 });
 
 export {
   // createStudent,
   // getAllStudents,
+  registerStudentToUniversity,
+  getStudentsPageOfUniversity,
+  getAllStudentsOfUniversity,
   getStudentsPage,
   getStudentById,
   deleteStudent,
