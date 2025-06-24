@@ -1,602 +1,405 @@
-# Architecture Documentation - Student Management System Frontend
+# Architecture - Task-Flow LMS Frontend
 
 ## System Architecture Overview
 
 ### High-Level Architecture
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                    PRESENTATION LAYER                       │
-├─────────────────────────────────────────────────────────────┤
-│  Next.js Pages Router  │  React Components  │  Tailwind CSS │
-├─────────────────────────────────────────────────────────────┤
-│                     BUSINESS LOGIC LAYER                    │
-├─────────────────────────────────────────────────────────────┤
-│    Redux Toolkit Store    │    RTK Query    │    Custom Hooks│
-├─────────────────────────────────────────────────────────────┤
-│                      DATA ACCESS LAYER                      │
-├─────────────────────────────────────────────────────────────┤
-│        API Clients        │     Caching     │   Local Storage│
-├─────────────────────────────────────────────────────────────┤
-│                     EXTERNAL SERVICES                       │
-└─────────────────────────────────────────────────────────────┘
-│               Backend API Server (Node.js/Express)           │
-└─────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────┐
+│                    Task-Flow Frontend                   │
+├─────────────────────────────────────────────────────────┤
+│  Authentication Layer                                   │
+│  ├── Login System (/login)                             │
+│  ├── Role-based Routing                                │
+│  └── Session Management                                │
+├─────────────────────────────────────────────────────────┤
+│  Dashboard Layer                                        │
+│  ├── Student Dashboard (/student/:id)                  │
+│  ├── Teacher Dashboard (/teacher/:id)                  │
+│  ├── Admin Dashboard (/admin/:id)                      │
+│  └── Super Admin Dashboard (/superadmin/:id)           │
+├─────────────────────────────────────────────────────────┤
+│  Feature Modules                                        │
+│  ├── Task Management System                            │
+│  ├── User Management System                            │
+│  ├── Notification System                               │
+│  └── File Management System                            │
+├─────────────────────────────────────────────────────────┤
+│  Cross-cutting Concerns                                 │
+│  ├── Internationalization (AR/EN)                      │
+│  ├── Theme System (Light/Dark)                         │
+│  ├── Real-time Communication (Socket.io)               │
+│  └── Responsive Design System                          │
+├─────────────────────────────────────────────────────────┤
+│  Infrastructure Layer                                   │
+│  ├── Next.js Framework                                 │
+│  ├── State Management                                  │
+│  ├── API Integration                                   │
+│  └── Local Storage Management                          │
+└─────────────────────────────────────────────────────────┘
 ```
-
-### Technology Stack Architecture
-
-#### Frontend Framework Layer
-- **Next.js 15.3.3**: React meta-framework
-  - **Pages Router**: File-based routing system
-  - **Turbopack**: Fast development bundler
-  - **Webpack**: Production bundler with optimizations
-  - **React 19.0.0**: Core UI library with latest features
-
-#### State Management Layer
-- **Redux Toolkit**: Predictable state container
-  - **RTK Query**: Server state management with caching
-  - **Immer**: Immutable state updates
-  - **Redux DevTools**: Development debugging
-
-#### UI/Styling Layer
-- **Tailwind CSS 4.x**: Utility-first CSS framework
-  - **PostCSS**: CSS processing and transformations
-  - **Radix UI**: Accessible component primitives
-  - **Class Variance Authority**: Type-safe styling variants
-
-#### Development Tools Layer
-- **TypeScript 5.x**: Static type checking
-  - **ESLint**: Code quality and consistency
-  - **Prettier**: Code formatting (via ESLint)
-  - **React Hook Form**: Performant form handling
-  - **Zod**: Runtime schema validation
 
 ## Component Architecture
 
-### Component Hierarchy
+### Core Components Structure
 ```
-App Root (_app.tsx)
-├── ReduxProvider
-├── Toaster (Global Notifications)
-└── PageComponent
-    ├── Layout Components
-    │   ├── Navigation
-    │   ├── Header
-    │   └── Footer
-    ├── Feature Components
-    │   ├── StudentList
-    │   ├── StudentCard
-    │   ├── Pagination
-    │   └── SearchFilters
-    └── UI Primitives
-        ├── Button
-        ├── Input
-        ├── Card
-        └── Loading States
-```
-
-### Component Design Patterns
-
-#### Compound Component Pattern
-```typescript
-// Card system with related components
-<Card>
-  <CardHeader>
-    <CardTitle>Student Information</CardTitle>
-    <CardDescription>Academic details</CardDescription>
-  </CardHeader>
-  <CardContent>
-    {/* Student data */}
-  </CardContent>
-  <CardFooter>
-    {/* Actions */}
-  </CardFooter>
-</Card>
-```
-
-#### Forward Ref Pattern
-```typescript
-const Card = React.forwardRef<
-  HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => (
-  <div
-    ref={ref}
-    className={cn("card-base-styles", className)}
-    {...props}
-  />
-));
-```
-
-#### Render Props Pattern (via RTK Query hooks)
-```typescript
-const StudentList = () => {
-  const { data, isLoading, error } = useGetStudentsQuery(page);
-  
-  if (isLoading) return <LoadingSkeleton />;
-  if (error) return <ErrorMessage error={error} />;
-  if (!data) return <EmptyState />;
-  
-  return <StudentGrid students={data.students} />;
-};
-```
-
-## State Management Architecture
-
-### Redux Store Structure
-```typescript
-interface RootState {
-  api: {
-    queries: {
-      // RTK Query managed state
-      getStudents: QueryState<PaginatedStudentsResponse>;
-      getStudent: QueryState<Student>;
-      // ... other queries
-    };
-    mutations: {
-      login: MutationState<LoginResponse>;
-      // ... other mutations
-    };
-  };
-}
-```
-
-### Data Flow Architecture
-```
-User Interaction
-      ↓
-Component Event Handler
-      ↓
-RTK Query Hook
-      ↓
-API Request
-      ↓
-Backend Response
-      ↓
-RTK Query Cache Update
-      ↓
-Component Re-render
-      ↓
-UI Update
-```
-
-### Caching Strategy
-```typescript
-// Cache invalidation tags
-tagTypes: ['Student', 'University', 'Course']
-
-// Providing cache tags
-providesTags: (result, error, arg) => [
-  { type: 'Student', id: 'LIST' },
-  ...result?.students.map(({ _id }) => ({ type: 'Student', id: _id }))
-]
-
-// Invalidating cache on mutations
-invalidatesTags: [{ type: 'Student', id: 'LIST' }]
-```
-
-## API Integration Architecture
-
-### API Layer Structure
-```
-src/app/api/
-├── apiSlice.ts          # Base API configuration
-├── auth.ts              # Authentication endpoints
-└── studentApiSlice.ts   # Student-related endpoints
-```
-
-### Request/Response Flow
-```typescript
-// Request interceptor (baseQuery)
-const baseQuery = fetchBaseQuery({
-  baseUrl: process.env.NEXT_PUBLIC_API_URL,
-  credentials: 'include',
-  prepareHeaders: (headers, { getState }) => {
-    const token = localStorage.getItem('jwt');
-    if (token) {
-      headers.set('authorization', `Bearer ${token}`);
-    }
-    return headers;
-  },
-});
-
-// Response transformation
-transformResponse: (response: APIResponse<Student[]>) => {
-  return response.data.map(student => ({
-    ...student,
-    fullName: `${student.firstName} ${student.lastName}`
-  }));
-}
-```
-
-### Error Handling Architecture
-```typescript
-// Global error handling
-const baseQueryWithReauth = async (args, api, extraOptions) => {
-  let result = await baseQuery(args, api, extraOptions);
-  
-  if (result.error && result.error.status === 401) {
-    // Handle token expiration
-    localStorage.removeItem('jwt');
-    window.location.href = '/login';
-  }
-  
-  return result;
-};
+src/
+├── components/
+│   ├── layout/
+│   │   ├── DashboardLayout.tsx
+│   │   ├── AuthLayout.tsx
+│   │   ├── PublicLayout.tsx
+│   │   └── Navigation.tsx
+│   ├── dashboards/
+│   │   ├── StudentDashboard.tsx
+│   │   ├── TeacherDashboard.tsx
+│   │   ├── AdminDashboard.tsx
+│   │   └── SuperAdminDashboard.tsx
+│   ├── features/
+│   │   ├── tasks/
+│   │   │   ├── TaskCreation.tsx
+│   │   │   ├── TaskSubmission.tsx
+│   │   │   ├── TaskReview.tsx
+│   │   │   └── TaskList.tsx
+│   │   ├── users/
+│   │   │   ├── UserManagement.tsx
+│   │   │   ├── UserProfile.tsx
+│   │   │   └── UserList.tsx
+│   │   └── notifications/
+│   │       ├── NotificationCenter.tsx
+│   │       ├── NotificationItem.tsx
+│   │       └── NotificationProvider.tsx
+│   ├── shared/
+│   │   ├── ThemeToggle.tsx
+│   │   ├── LanguageSwitcher.tsx
+│   │   ├── FileUpload.tsx
+│   │   └── LoadingSpinner.tsx
+│   └── ui/
+│       ├── Button.tsx
+│       ├── Input.tsx
+│       ├── Card.tsx
+│       ├── Modal.tsx
+│       └── Table.tsx
 ```
 
 ## Routing Architecture
 
-### File-Based Routing Structure
-```
-pages/
-├── index.tsx              # Home page (/) - redirects to login
-├── login.tsx              # Authentication (/login)
-├── 404.tsx                # Error page (/404)
-├── _app.tsx               # App wrapper
-├── _document.tsx          # Document head
-├── api/                   # API routes
-│   └── hello.ts           # Example API route
-└── students/              # Student routes
-    ├── index.tsx          # Student list (/students)
-    └── [id].tsx           # Student details (/students/:id)
+### Route Structure & Access Control
+```typescript
+// Public Routes
+/ (Landing Page) - No authentication required
+
+// Authentication Route
+/login - Public access, redirects based on role after login
+
+// Protected Routes with Role-based Access
+/student/:id - Student role only
+/teacher/:id - Teacher role only  
+/admin/:id - Admin role only
+/superadmin/:id - Super Admin role only
+
+// List Pages with Permission-based Visibility
+/students - Accessible by Teachers, Admins, Super Admins
+/teachers - Accessible by Admins, Super Admins
+/admins - Accessible by Super Admins only
+
+// Feature-specific Routes
+/courses/:id - Role-based access to course details
+/assignments/:id - Assignment-specific pages
+/grades/:studentId - Grade management pages
+/calendar - Academic calendar view
 ```
 
-### Route Protection Pattern
+### Role-based Routing Logic
 ```typescript
-// Protected route wrapper
-const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const router = useRouter();
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+interface RouteGuard {
+  path: string;
+  allowedRoles: UserRole[];
+  redirectPath: string;
+}
+
+const routeGuards: RouteGuard[] = [
+  { 
+    path: '/student/:id', 
+    allowedRoles: ['STUDENT'], 
+    redirectPath: '/unauthorized' 
+  },
+  { 
+    path: '/teacher/:id', 
+    allowedRoles: ['TEACHER'], 
+    redirectPath: '/unauthorized' 
+  },
+  { 
+    path: '/admin/:id', 
+    allowedRoles: ['ADMIN'], 
+    redirectPath: '/unauthorized' 
+  },
+  { 
+    path: '/superadmin/:id', 
+    allowedRoles: ['SUPER_ADMIN'], 
+    redirectPath: '/unauthorized' 
+  },
+  { 
+    path: '/students', 
+    allowedRoles: ['TEACHER', 'ADMIN', 'SUPER_ADMIN'], 
+    redirectPath: '/unauthorized' 
+  }
+];
+```
+
+## State Management Architecture
+
+### State Structure
+```typescript
+interface ApplicationState {
+  auth: {
+    user: User | null;
+    token: string | null;
+    isAuthenticated: boolean;
+    loading: boolean;
+  };
+  
+  dashboard: {
+    currentRole: UserRole;
+    personalInfo: UserProfile;
+    activeNotifications: Notification[];
+  };
+  
+  tasks: {
+    studentTasks: Task[];
+    teacherTasks: Task[];
+    submissions: Submission[];
+    grades: Grade[];
+  };
+  
+  users: {
+    students: Student[];
+    teachers: Teacher[];
+    admins: Admin[];
+  };
+  
+  ui: {
+    theme: 'light' | 'dark';
+    language: 'en' | 'ar';
+    sidebarOpen: boolean;
+    notifications: UINotification[];
+  };
+  
+  realtime: {
+    connected: boolean;
+    onlineUsers: string[];
+    liveNotifications: LiveNotification[];
+  };
+}
+```
+
+### Context Providers Structure
+```typescript
+// Theme & Language Context
+<ThemeProvider>
+  <LanguageProvider>
+    // Authentication Context
+    <AuthProvider>
+      // Real-time Context
+      <SocketProvider>
+        // Notification Context
+        <NotificationProvider>
+          // Main Application
+          <App />
+        </NotificationProvider>
+      </SocketProvider>
+    </AuthProvider>
+  </LanguageProvider>
+</ThemeProvider>
+```
+
+## Real-time Architecture
+
+### Socket Integration
+```typescript
+interface SocketEvents {
+  // Incoming Events
+  'notification:new': (notification: Notification) => void;
+  'task:updated': (task: Task) => void;
+  'user:status': (status: UserStatus) => void;
+  'grade:posted': (grade: Grade) => void;
+  
+  // Outgoing Events
+  'user:online': (userId: string) => void;
+  'notification:read': (notificationId: string) => void;
+  'task:submit': (submission: Submission) => void;
+}
+
+// Socket Provider Implementation
+const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [socket, setSocket] = useState<Socket | null>(null);
+  const { user } = useAuth();
   
   useEffect(() => {
-    const token = localStorage.getItem('jwt');
-    if (!token) {
-      router.push('/login');
-      return;
+    if (user) {
+      const newSocket = io(SOCKET_ENDPOINT, {
+        auth: { token: user.token }
+      });
+      setSocket(newSocket);
+      
+      return () => newSocket.close();
     }
-    setIsAuthenticated(true);
-  }, [router]);
+  }, [user]);
   
-  if (!isAuthenticated) return <LoadingSpinner />;
-  return <>{children}</>;
+  return (
+    <SocketContext.Provider value={{ socket }}>
+      {children}
+    </SocketContext.Provider>
+  );
 };
 ```
 
-## Data Architecture
+## Internationalization Architecture
 
-### Type System Structure
+### Language & Direction Handling
 ```typescript
-// Core data models
-interface Student {
-  _id: string;
-  name: string;
-  email: string;
-  universityId: {
-    _id: string;
-    name: string;
-  } | null;
-  courses: Course[];
-  createdAt: string;
-  updatedAt: string;
+interface I18nConfig {
+  languages: {
+    en: {
+      dir: 'ltr';
+      label: 'English';
+      locale: 'en-US';
+    };
+    ar: {
+      dir: 'rtl';
+      label: 'العربية';
+      locale: 'ar-SA';
+    };
+  };
+  defaultLanguage: 'en';
+  fallbackLanguage: 'en';
 }
 
-interface Course {
-  _id: string;
-  name: string;
-}
-
-// API response types
-interface PaginatedStudentsResponse {
-  students: Student[];
-  currentPage: number;
-  totalPages: number;
-}
-
-// Form input types
-interface LoginInput {
-  studentId: string;
-  password: string;
-}
-```
-
-### Data Validation Architecture
-```typescript
-// Zod schemas for runtime validation
-const loginSchema = z.object({
-  studentId: z.string().min(1, "Student ID is required"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
-});
-
-// Integration with React Hook Form
-const form = useForm<LoginInput>({
-  resolver: zodResolver(loginSchema),
-  defaultValues: {
-    studentId: "",
-    password: ""
-  }
-});
-```
-
-## UI Architecture
-
-### Design System Structure
-```
-components/ui/
-├── primitives/           # Base components
-│   ├── button.tsx        # Button with variants
-│   ├── input.tsx         # Form inputs
-│   └── label.tsx         # Form labels
-├── composite/            # Complex components
-│   ├── card.tsx          # Card system
-│   ├── badge.tsx         # Status indicators
-│   └── skeleton.tsx      # Loading states
-└── layout/               # Layout components
-    ├── container.tsx     # Content containers
-    └── grid.tsx          # Grid systems
-```
-
-### Styling Architecture
-```typescript
-// Tailwind configuration
-module.exports = {
-  content: [
-    "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
-    "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
-  ],
-  theme: {
-    extend: {
-      colors: {
-        border: "hsl(var(--border))",
-        background: "hsl(var(--background))",
-        foreground: "hsl(var(--foreground))",
-        // ... design tokens
-      }
+// Language Provider Implementation
+const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [language, setLanguage] = useState<'en' | 'ar'>('en');
+  const [direction, setDirection] = useState<'ltr' | 'rtl'>('ltr');
+  
+  useEffect(() => {
+    const savedLanguage = localStorage.getItem('language') as 'en' | 'ar';
+    if (savedLanguage) {
+      setLanguage(savedLanguage);
+      setDirection(savedLanguage === 'ar' ? 'rtl' : 'ltr');
+      document.dir = direction;
     }
-  }
-}
+  }, []);
+  
+  const changeLanguage = (newLanguage: 'en' | 'ar') => {
+    setLanguage(newLanguage);
+    setDirection(newLanguage === 'ar' ? 'rtl' : 'ltr');
+    localStorage.setItem('language', newLanguage);
+    document.dir = newLanguage === 'ar' ? 'rtl' : 'ltr';
+  };
+  
+  return (
+    <LanguageContext.Provider value={{ language, direction, changeLanguage }}>
+      {children}
+    </LanguageContext.Provider>
+  );
+};
 ```
 
-### Component Variant System
+## Theme Architecture
+
+### Theme System Implementation
 ```typescript
-// Class Variance Authority pattern
-const buttonVariants = cva(
-  "inline-flex items-center justify-center rounded-md text-sm font-medium",
-  {
-    variants: {
-      variant: {
-        default: "bg-primary text-primary-foreground hover:bg-primary/90",
-        destructive: "bg-destructive text-destructive-foreground",
-        outline: "border border-input bg-background hover:bg-accent",
-        secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
-        ghost: "hover:bg-accent hover:text-accent-foreground",
-        link: "text-primary underline-offset-4 hover:underline",
-      },
-      size: {
-        default: "h-10 px-4 py-2",
-        sm: "h-9 rounded-md px-3",
-        lg: "h-11 rounded-md px-8",
-        icon: "h-10 w-10",
-      },
-    },
-    defaultVariants: {
-      variant: "default",
-      size: "default",
-    },
-  }
-);
+interface ThemeConfig {
+  themes: {
+    light: {
+      primary: string;
+      secondary: string;
+      background: string;
+      surface: string;
+      text: string;
+    };
+    dark: {
+      primary: string;
+      secondary: string;
+      background: string;
+      surface: string;
+      text: string;
+    };
+  };
+  defaultTheme: 'light';
+}
+
+// Theme Provider with Persistence
+const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [theme, setTheme] = useState<'light' | 'dark'>('light');
+  
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('theme') as 'light' | 'dark';
+    if (savedTheme) {
+      setTheme(savedTheme);
+      document.documentElement.classList.toggle('dark', savedTheme === 'dark');
+    }
+  }, []);
+  
+  const toggleTheme = () => {
+    const newTheme = theme === 'light' ? 'dark' : 'light';
+    setTheme(newTheme);
+    localStorage.setItem('theme', newTheme);
+    document.documentElement.classList.toggle('dark', newTheme === 'dark');
+  };
+  
+  return (
+    <ThemeContext.Provider value={{ theme, toggleTheme }}>
+      {children}
+    </ThemeContext.Provider>
+  );
+};
 ```
 
 ## Security Architecture
 
-### Authentication Flow
-```
-1. User submits credentials
-   ↓
-2. Frontend validates input (Zod)
-   ↓
-3. API call to /auth/login
-   ↓
-4. Backend validates & returns JWT
-   ↓
-5. Frontend stores JWT in localStorage
-   ↓
-6. JWT included in subsequent requests
-   ↓
-7. Protected routes check token presence
-```
-
-### Security Measures
+### Authentication & Authorization Flow
 ```typescript
-// Input sanitization
-const sanitizeInput = (input: string): string => {
-  return input.trim().replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
-};
+// Authentication Flow
+1. User submits credentials at /login
+2. Frontend validates input and sends to backend
+3. Backend returns JWT token and user role
+4. Frontend stores token and redirects based on role
+5. Protected routes verify token and role permissions
+6. Real-time socket connection authenticated with token
 
-// XSS protection (React built-in + validation)
-const UserContent = ({ content }: { content: string }) => {
-  // React automatically escapes content
-  return <div>{content}</div>;
-};
+// Role-based Component Rendering
+interface RoleGuardProps {
+  allowedRoles: UserRole[];
+  children: React.ReactNode;
+  fallback?: React.ReactNode;
+}
 
-// CSRF protection
-const baseQuery = fetchBaseQuery({
-  credentials: 'include', // Include cookies
-  prepareHeaders: (headers) => {
-    headers.set('X-Requested-With', 'XMLHttpRequest');
-    return headers;
-  },
-});
+const RoleGuard: React.FC<RoleGuardProps> = ({ 
+  allowedRoles, 
+  children, 
+  fallback = null 
+}) => {
+  const { user } = useAuth();
+  
+  if (!user || !allowedRoles.includes(user.role)) {
+    return fallback;
+  }
+  
+  return <>{children}</>;
+};
 ```
 
 ## Performance Architecture
 
-### Code Splitting Strategy
-```typescript
-// Route-based splitting (automatic with Next.js)
-// pages/students/[id].tsx → students-[id]-[hash].js
+### Optimization Strategies
+- **Code Splitting**: Route-based and component-based lazy loading
+- **Caching**: API response caching with proper invalidation
+- **Memoization**: React.memo and useMemo for expensive computations
+- **Virtual Scrolling**: For large lists of students/tasks
+- **Image Optimization**: Next.js Image component for profile pictures
+- **Bundle Optimization**: Tree shaking and dead code elimination
 
-// Component-based splitting
-const LazyStudentProfile = dynamic(
-  () => import('../components/StudentProfile'),
-  { loading: () => <ProfileSkeleton /> }
-);
-
-// Library splitting
-const ReactSelect = dynamic(() => import('react-select'), {
-  ssr: false,
-});
-```
-
-### Caching Architecture
-```typescript
-// RTK Query caching
-const studentApiSlice = apiSlice.injectEndpoints({
-  endpoints: (builder) => ({
-    getStudents: builder.query<PaginatedStudentsResponse, number>({
-      query: (page) => `/students?page=${page}`,
-      keepUnusedDataFor: 300, // 5 minutes
-      refetchOnMountOrArgChange: true,
-      providesTags: ['Student'],
-    }),
-  }),
-});
-
-// Next.js automatic caching
-// Static pages cached indefinitely
-// API routes cached based on headers
-// Images optimized and cached
-```
-
-### Bundle Optimization
-```typescript
-// Next.js configuration
-const nextConfig = {
-  experimental: {
-    optimizeCss: true,
-    swcMinify: true,
-  },
-  webpack: (config, { isServer }) => {
-    if (!isServer) {
-      config.resolve.fallback.fs = false;
-    }
-    return config;
-  },
-};
-```
-
-## Deployment Architecture
-
-### Build Process
-```
-Source Code
-    ↓
-TypeScript Compilation
-    ↓
-Next.js Build Process
-    ↓
-Static Generation (where applicable)
-    ↓
-Bundle Optimization
-    ↓
-Asset Optimization
-    ↓
-Production Build Artifacts
-```
-
-### Environment Configuration
-```typescript
-// Environment-specific configurations
-interface EnvironmentConfig {
-  apiUrl: string;
-  environment: 'development' | 'staging' | 'production';
-  debugMode: boolean;
-  analyticsId?: string;
-}
-
-const config: EnvironmentConfig = {
-  apiUrl: process.env.NEXT_PUBLIC_API_URL!,
-  environment: process.env.NODE_ENV as any,
-  debugMode: process.env.NODE_ENV === 'development',
-  analyticsId: process.env.NEXT_PUBLIC_ANALYTICS_ID,
-};
-```
-
-## Monitoring and Observability
-
-### Error Tracking Architecture
-```typescript
-// Error boundary implementation
-class ErrorBoundary extends React.Component {
-  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    // Log to error tracking service
-    console.error('Application Error:', error, errorInfo);
-    
-    // Send to monitoring service
-    if (typeof window !== 'undefined') {
-      // Analytics.track('Frontend Error', { error: error.message });
-    }
-  }
-}
-
-// API error tracking
-const apiSlice = createApi({
-  baseQuery: fetchBaseQuery({
-    baseUrl: API_URL,
-  }),
-  endpoints: () => ({}),
-}).enhanceEndpoints({
-  addTagTypes: ['Student'],
-  endpoints: {
-    getStudents: {
-      onQueryStarted: async (arg, { queryFulfilled }) => {
-        try {
-          await queryFulfilled;
-        } catch (error) {
-          // Log API errors
-          console.error('API Error:', error);
-        }
-      },
-    },
-  },
-});
-```
-
-### Performance Monitoring
-```typescript
-// Web Vitals tracking
-import { getCLS, getFID, getFCP, getLCP, getTTFB } from 'web-vitals';
-
-function sendToAnalytics(metric: any) {
-  // Send performance metrics to analytics service
-  console.log('Performance Metric:', metric);
-}
-
-getCLS(sendToAnalytics);
-getFID(sendToAnalytics);
-getFCP(sendToAnalytics);
-getLCP(sendToAnalytics);
-getTTFB(sendToAnalytics);
-```
-
-## Scalability Considerations
-
-### Component Scalability
-- **Atomic Design**: Components built from small, reusable pieces
-- **Prop Drilling**: Avoided through RTK Query and context
-- **Performance**: React.memo and useMemo for expensive operations
-- **Bundle Size**: Dynamic imports for large components
-
-### State Scalability
-- **Normalized State**: RTK Query handles state normalization
-- **Cache Management**: Automatic cache invalidation and cleanup
-- **Memory Management**: Unused data automatically garbage collected
-- **Concurrent Features**: Ready for React 18 concurrent features
-
-### API Scalability
-- **Pagination**: Implemented for large datasets
-- **Caching**: Intelligent caching reduces API calls
-- **Error Recovery**: Retry logic and graceful degradation
-- **Rate Limiting**: Client-side throttling capabilities
-
-This architecture documentation provides a comprehensive understanding of how the Student Management System frontend is structured, enabling developers and architects to quickly grasp the system design and make informed decisions about modifications and enhancements.
+### Monitoring & Analytics
+- **Performance Metrics**: Core Web Vitals tracking
+- **Error Monitoring**: Error boundaries and error reporting
+- **User Analytics**: Navigation patterns and feature usage
+- **Real-time Monitoring**: Socket connection health and message delivery

@@ -1,370 +1,782 @@
-# Technical Specifications - Student Management System Frontend
+# Technical Specifications - Task-Flow LMS Frontend
 
-## System Requirements
+## Core Technology Stack
 
-### Runtime Environment
-- **Node.js**: Version 20.x or higher
-- **Package Manager**: npm (with package-lock.json)
-- **Browser Support**: Modern browsers (ES2017+)
-- **Development OS**: Windows/macOS/Linux
+### Framework & Runtime
+- **Framework**: Next.js (Latest Stable Version)
+- **Runtime**: Node.js 18+ / Browser
+- **Language**: TypeScript 5.x
+- **Package Manager**: npm or yarn
+- **Build Tool**: Next.js built-in build system
 
-### Build Tools
-- **Next.js**: 15.3.3 (Latest stable)
-- **Turbopack**: Development bundler
-- **Webpack**: Production bundler (via Next.js)
-- **PostCSS**: CSS processing
-- **TypeScript Compiler**: 5.x
-
-## Dependency Analysis
-
-### Production Dependencies
+### Frontend Dependencies
 ```json
 {
-  "@fortawesome/fontawesome-free": "^6.7.2",
-  "@hookform/resolvers": "^5.0.1",
-  "@radix-ui/react-label": "^2.1.7",
-  "@radix-ui/react-slot": "^1.2.3",
-  "@reduxjs/toolkit": "^2.8.2",
-  "class-variance-authority": "^0.7.1",
-  "clsx": "^2.1.1",
-  "lucide-react": "^0.511.0",
-  "next": "15.3.3",
-  "react": "^19.0.0",
-  "react-dom": "^19.0.0",
-  "react-hook-form": "^7.57.0",
-  "react-hot-toast": "^2.5.2",
-  "react-redux": "^9.2.0",
-  "tailwind-merge": "^3.3.0",
-  "tailwindcss-animate": "^1.0.7",
-  "zod": "^3.25.48"
-}
-```
-
-### Development Dependencies
-```json
-{
-  "@eslint/eslintrc": "^3",
-  "@tailwindcss/postcss": "^4",
-  "@types/node": "^20",
-  "@types/react": "^19",
-  "@types/react-dom": "^19",
-  "eslint": "^9",
-  "eslint-config-next": "15.3.3",
-  "tailwindcss": "^4",
-  "typescript": "^5"
-}
-```
-
-## Code Architecture Specifications
-
-### TypeScript Configuration
-```jsonc
-{
-  "compilerOptions": {
-    "target": "ES2017",
-    "lib": ["dom", "dom.iterable", "esnext"],
-    "allowJs": true,
-    "skipLibCheck": true,
-    "strict": true,
-    "noEmit": true,
-    "esModuleInterop": true,
-    "module": "esnext",
-    "moduleResolution": "bundler",
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "jsx": "preserve",
-    "incremental": true,
-    "paths": {
-      "@/*": ["./src/*"]
-    }
-  }
-}
-```
-
-### Next.js Configuration
-```typescript
-const nextConfig: NextConfig = {
-  reactStrictMode: true,
-  // Additional optimizations for production
-};
-```
-
-### Tailwind CSS Configuration
-```typescript
-const config: Config = {
-  darkMode: 'class',
-  content: [
-    "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
-    "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
-    "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
-  ],
-  theme: {
-    extend: {
-      borderRadius: {
-        lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
-        sm: "calc(var(--radius) - 4px)",
-      },
-      colors: {
-        // CSS custom properties for theming
-        background: "hsl(var(--background))",
-        foreground: "hsl(var(--foreground))",
-        // ... extended color system
-      }
-    }
-  }
-};
-```
-
-## Component Specifications
-
-### UI Component Pattern
-```typescript
-// Forward ref pattern with TypeScript generics
-const Component = React.forwardRef<
-  HTMLElement,
-  React.HTMLAttributes<HTMLElement> & VariantProps<typeof variants>
->(({ className, variant, ...props }, ref) => (
-  <Element
-    ref={ref}
-    className={cn(variants({ variant }), className)}
-    {...props}
-  />
-));
-Component.displayName = "Component";
-```
-
-### Component Variants System
-```typescript
-// Using class-variance-authority for type-safe variants
-const buttonVariants = cva(
-  "base-classes",
-  {
-    variants: {
-      variant: {
-        default: "variant-classes",
-        secondary: "variant-classes",
-        // ...
-      },
-      size: {
-        default: "size-classes",
-        sm: "size-classes",
-        // ...
-      }
-    },
-    defaultVariants: {
-      variant: "default",
-      size: "default",
-    }
-  }
-);
-```
-
-### State Management Pattern
-```typescript
-// RTK Query API slice pattern
-export const apiSlice = createApi({
-  baseQuery: fetchBaseQuery({
-    baseUrl: process.env.NEXT_PUBLIC_API_URL,
-    credentials: "include"
-  }),
-  tagTypes: ["Student"],
-  endpoints: () => ({}),
-});
-
-// Feature-specific API slice
-const featureApiSlice = apiSlice.injectEndpoints({
-  endpoints: (builder) => ({
-    getItems: builder.query<ResponseType, ParameterType>({
-      query: (param) => ({
-        url: `/endpoint/${param}`,
-        method: 'GET',
-      }),
-    }),
-  })
-});
-```
-
-## API Integration Specifications
-
-### Base Query Configuration
-```typescript
-const baseQuery = fetchBaseQuery({
-  baseUrl: process.env.NEXT_PUBLIC_API_URL,
-  credentials: "include",
-  prepareHeaders: (headers, { getState }) => {
-    const token = localStorage.getItem('jwt');
-    if (token) {
-      headers.set('authorization', `Bearer ${token}`);
-    }
-    return headers;
+  "dependencies": {
+    "next": "^14.x",
+    "react": "^18.x",
+    "react-dom": "^18.x",
+    "typescript": "^5.x",
+    "socket.io-client": "^4.x",
+    "@types/react": "^18.x",
+    "@types/react-dom": "^18.x"
   },
-});
+  "devDependencies": {
+    "eslint": "^8.x",
+    "eslint-config-next": "^14.x",
+    "@types/node": "^20.x",
+    "tailwindcss": "^3.x",
+    "postcss": "^8.x",
+    "autoprefixer": "^10.x"
+  }
+}
 ```
 
-### Error Handling Pattern
+## Authentication System Specifications
+
+### Authentication Flow
 ```typescript
-// Standardized error handling in components
-const Component = () => {
-  const { data, isLoading, isError, error } = useQuery();
+interface AuthenticationAPI {
+  // Login endpoint
+  POST /api/auth/login: {
+    body: {
+      email: string;           // University email or ID
+      password: string;        // User password
+    };
+    response: {
+      token: string;           // JWT token
+      user: {
+        id: string;
+        email: string;
+        role: 'STUDENT' | 'TEACHER' | 'ADMIN' | 'SUPER_ADMIN';
+        profile: UserProfile;
+      };
+      refreshToken: string;    // For token renewal
+    };
+  };
+  
+  // Token validation
+  GET /api/auth/verify: {
+    headers: {
+      Authorization: `Bearer ${token}`;
+    };
+    response: {
+      valid: boolean;
+      user: UserProfile;
+    };
+  };
+  
+  // Logout
+  POST /api/auth/logout: {
+    headers: {
+      Authorization: `Bearer ${token}`;
+    };
+    response: {
+      success: boolean;
+    };
+  };
+}
+```
 
-  if (isLoading) return <LoadingComponent />;
-  if (isError) return <ErrorComponent error={error} />;
-  if (!data) return <EmptyState />;
+### Role-based Redirection Logic
+```typescript
+const roleRedirectMap: Record<UserRole, string> = {
+  'STUDENT': '/student',
+  'TEACHER': '/teacher', 
+  'ADMIN': '/admin',
+  'SUPER_ADMIN': '/superadmin'
+};
 
-  return <DataComponent data={data} />;
+// Post-login redirection
+const redirectAfterLogin = (user: User): string => {
+  return `${roleRedirectMap[user.role]}/${user.id}`;
 };
 ```
 
-## Data Type Specifications
+## Dashboard System Specifications
 
-### Core Interfaces
+### Student Dashboard API
 ```typescript
-interface Student {
-  _id: string;
-  name: string;
-  email: string;
-  universityId: {
-    _id: string;
-    name: string;
-  } | null;
-  courses: Course[];
-  createdAt: string;
-  updatedAt: string;
-}
-
-interface Course {
-  _id: string;
-  name: string;
-}
-
-interface loginInput {
-  studentId: string;
-  password: string;
-}
-
-interface PaginatedStudentsResponse {
-  students: Student[];
-  currentPage: number;
-  totalPages: number;
+interface StudentDashboardAPI {
+  // Personal information
+  GET /api/students/:id/profile: {
+    response: {
+      id: string;
+      name: string;
+      email: string;
+      studentId: string;
+      college: string;
+      department: string;
+      enrollmentDate: Date;
+      avatar?: string;
+    };
+  };
+  
+  // Enrolled courses
+  GET /api/students/:id/courses: {
+    response: Course[] = {
+      id: string;
+      name: string;
+      code: string;
+      teacher: {
+        id: string;
+        name: string;
+        title: string;
+      };
+      schedule: {
+        day: string;
+        time: string;
+        location: string;
+      }[];
+      enrollmentStatus: 'ACTIVE' | 'COMPLETED' | 'DROPPED';
+    }[];
+  };
+  
+  // Student assignments
+  GET /api/students/:id/assignments: {
+    query: {
+      status?: 'PENDING' | 'SUBMITTED' | 'GRADED';
+      courseId?: string;
+    };
+    response: Assignment[] = {
+      id: string;
+      title: string;
+      description: string;
+      dueDate: Date;
+      maxGrade: number;
+      courseId: string;
+      courseName: string;
+      teacherName: string;
+      status: 'PENDING' | 'SUBMITTED' | 'GRADED';
+      submission?: {
+        id: string;
+        submittedAt: Date;
+        files: File[];
+        grade?: number;
+        feedback?: string;
+      };
+      attachments: File[];
+    }[];
+  };
+  
+  // Student grades
+  GET /api/students/:id/grades: {
+    query: {
+      courseId?: string;
+      semester?: string;
+    };
+    response: Grade[] = {
+      id: string;
+      assignmentId: string;
+      assignmentTitle: string;
+      courseId: string;
+      courseName: string;
+      grade: number;
+      maxGrade: number;
+      percentage: number;
+      gradedAt: Date;
+      feedback?: string;
+    }[];
+  };
+  
+  // Academic calendar
+  GET /api/students/:id/calendar: {
+    response: CalendarEvent[] = {
+      id: string;
+      title: string;
+      type: 'ASSIGNMENT_DUE' | 'EXAM' | 'LECTURE' | 'HOLIDAY';
+      date: Date;
+      description?: string;
+      courseId?: string;
+      location?: string;
+    }[];
+  };
 }
 ```
 
-## Styling Specifications
+### Teacher Dashboard API
+```typescript
+interface TeacherDashboardAPI {
+  // Teacher profile
+  GET /api/teachers/:id/profile: {
+    response: {
+      id: string;
+      name: string;
+      email: string;
+      title: string; // Doctor, Assistant, Teacher
+      department: string;
+      college: string;
+      officeHours: string;
+      avatar?: string;
+    };
+  };
+  
+  // Upcoming lectures
+  GET /api/teachers/:id/lectures: {
+    query: {
+      from?: Date;
+      to?: Date;
+    };
+    response: Lecture[] = {
+      id: string;
+      courseId: string;
+      courseName: string;
+      date: Date;
+      startTime: string;
+      endTime: string;
+      location: string;
+      topic?: string;
+      attendanceRequired: boolean;
+    }[];
+  };
+  
+  // Teacher's students across all courses
+  GET /api/teachers/:id/students: {
+    query: {
+      courseId?: string;
+      search?: string;
+    };
+    response: Student[] = {
+      id: string;
+      name: string;
+      email: string;
+      studentId: string;
+      courses: {
+        id: string;
+        name: string;
+        enrollmentDate: Date;
+      }[];
+      recentActivity: {
+        type: 'ASSIGNMENT_SUBMITTED' | 'LATE_SUBMISSION' | 'MISSING_ASSIGNMENT';
+        date: Date;
+        description: string;
+      }[];
+    }[];
+  };
+  
+  // Course management
+  GET /api/teachers/:id/courses: {
+    response: Course[] = {
+      id: string;
+      name: string;
+      code: string;
+      semester: string;
+      enrolledStudents: number;
+      assignments: {
+        id: string;
+        title: string;
+        dueDate: Date;
+        submissions: number;
+        totalStudents: number;
+      }[];
+    }[];
+  };
+}
+```
 
-### CSS Custom Properties System
+### Admin Dashboard API
+```typescript
+interface AdminDashboardAPI {
+  // Admin profile
+  GET /api/admins/:id/profile: {
+    response: {
+      id: string;
+      name: string;
+      email: string;
+      college: string;
+      department?: string;
+      permissions: string[];
+    };
+  };
+  
+  // Teachers under admin's scope
+  GET /api/admins/:id/teachers: {
+    query: {
+      college?: string;
+      department?: string;
+      status?: 'ONLINE' | 'OFFLINE';
+    };
+    response: Teacher[] = {
+      id: string;
+      name: string;
+      email: string;
+      title: string;
+      department: string;
+      onlineStatus: 'ONLINE' | 'OFFLINE';
+      lastActive: Date;
+      studentsCount: number;
+      coursesCount: number;
+    }[];
+  };
+  
+  // Students under admin's scope
+  GET /api/admins/:id/students: {
+    query: {
+      college?: string;
+      department?: string;
+      status?: 'ACTIVE' | 'INACTIVE';
+    };
+    response: Student[] = {
+      id: string;
+      name: string;
+      email: string;
+      studentId: string;
+      department: string;
+      enrollmentDate: Date;
+      status: 'ACTIVE' | 'INACTIVE';
+      coursesCount: number;
+      lastLogin: Date;
+    }[];
+  };
+  
+  // User management operations
+  POST /api/admins/:id/teachers: {
+    body: CreateTeacherRequest;
+    response: Teacher;
+  };
+  
+  PUT /api/admins/:id/teachers/:teacherId: {
+    body: UpdateTeacherRequest;
+    response: Teacher;
+  };
+  
+  DELETE /api/admins/:id/teachers/:teacherId: {
+    response: { success: boolean; };
+  };
+}
+```
+
+### Super Admin Dashboard API
+```typescript
+interface SuperAdminDashboardAPI {
+  // All admin capabilities plus:
+  
+  // Admin management
+  GET /api/superadmin/:id/admins: {
+    response: Admin[] = {
+      id: string;
+      name: string;
+      email: string;
+      college: string;
+      permissions: string[];
+      createdAt: Date;
+      lastActive: Date;
+      managedTeachers: number;
+      managedStudents: number;
+    }[];
+  };
+  
+  POST /api/superadmin/:id/admins: {
+    body: CreateAdminRequest;
+    response: Admin;
+  };
+  
+  PUT /api/superadmin/:id/admins/:adminId: {
+    body: UpdateAdminRequest;
+    response: Admin;
+  };
+  
+  DELETE /api/superadmin/:id/admins/:adminId: {
+    response: { success: boolean; };
+  };
+  
+  // System settings
+  GET /api/superadmin/:id/settings: {
+    response: SystemSettings;
+  };
+  
+  PUT /api/superadmin/:id/settings: {
+    body: UpdateSystemSettingsRequest;
+    response: SystemSettings;
+  };
+}
+```
+
+## Task & Assignment Management Specifications
+
+### Task Creation (Teacher)
+```typescript
+interface TaskCreationAPI {
+  POST /api/teachers/:id/assignments: {
+    body: {
+      title: string;
+      description: string;
+      dueDate: Date;
+      maxGrade: number;
+      courseId: string;
+      attachments?: File[];
+      instructions?: string;
+      allowLateSubmission: boolean;
+      submissionFormats: string[]; // ['pdf', 'doc', 'txt']
+    };
+    response: {
+      id: string;
+      title: string;
+      description: string;
+      dueDate: Date;
+      maxGrade: number;
+      createdAt: Date;
+      attachments: File[];
+    };
+  };
+}
+```
+
+### Task Submission (Student)
+```typescript
+interface TaskSubmissionAPI {
+  POST /api/students/:id/assignments/:assignmentId/submit: {
+    body: {
+      files: File[];
+      notes?: string;
+    };
+    response: {
+      id: string;
+      assignmentId: string;
+      submittedAt: Date;
+      files: File[];
+      status: 'SUBMITTED';
+    };
+  };
+  
+  PUT /api/students/:id/submissions/:submissionId: {
+    body: {
+      files: File[];
+      notes?: string;
+    };
+    response: Submission;
+  };
+}
+```
+
+### Task Review (Teacher)
+```typescript
+interface TaskReviewAPI {
+  GET /api/teachers/:id/assignments/:assignmentId/submissions: {
+    response: Submission[] = {
+      id: string;
+      studentId: string;
+      studentName: string;
+      submittedAt: Date;
+      files: File[];
+      grade?: number;
+      feedback?: string;
+      status: 'SUBMITTED' | 'GRADED';
+    }[];
+  };
+  
+  PUT /api/teachers/:id/submissions/:submissionId/grade: {
+    body: {
+      grade: number;
+      feedback?: string;
+    };
+    response: {
+      id: string;
+      grade: number;
+      feedback: string;
+      gradedAt: Date;
+    };
+  };
+}
+```
+
+## Real-time Notification Specifications
+
+### Socket Connection
+```typescript
+interface SocketConnection {
+  endpoint: string; // Provided by backend team
+  authentication: {
+    token: string; // JWT token from login
+  };
+  
+  // Connection events
+  events: {
+    connect: () => void;
+    disconnect: () => void;
+    error: (error: Error) => void;
+  };
+}
+```
+
+### Notification Events
+```typescript
+interface NotificationEvents {
+  // Assignment notifications
+  'assignment:created': {
+    assignmentId: string;
+    title: string;
+    courseId: string;
+    courseName: string;
+    dueDate: Date;
+    teacherName: string;
+  };
+  
+  'assignment:due_soon': {
+    assignmentId: string;
+    title: string;
+    dueDate: Date;
+    hoursRemaining: number;
+  };
+  
+  // Grade notifications
+  'grade:posted': {
+    assignmentId: string;
+    assignmentTitle: string;
+    grade: number;
+    maxGrade: number;
+    feedback?: string;
+    courseName: string;
+  };
+  
+  // Submission notifications (for teachers)
+  'submission:received': {
+    submissionId: string;
+    assignmentId: string;
+    assignmentTitle: string;
+    studentId: string;
+    studentName: string;
+    submittedAt: Date;
+  };
+  
+  // System notifications
+  'user:status_change': {
+    userId: string;
+    status: 'ONLINE' | 'OFFLINE';
+    timestamp: Date;
+  };
+  
+  // Administrative notifications
+  'user:created': {
+    userId: string;
+    userType: 'STUDENT' | 'TEACHER' | 'ADMIN';
+    createdBy: string;
+  };
+}
+```
+
+## Internationalization Specifications
+
+### Language Configuration
+```typescript
+interface I18nConfig {
+  defaultLanguage: 'en';
+  supportedLanguages: ['en', 'ar'];
+  
+  translations: {
+    en: {
+      // Common
+      'common.login': 'Login';
+      'common.logout': 'Logout';
+      'common.dashboard': 'Dashboard';
+      'common.settings': 'Settings';
+      
+      // Student specific
+      'student.my_courses': 'My Courses';
+      'student.assignments': 'Assignments';
+      'student.grades': 'Grades';
+      'student.calendar': 'Calendar';
+      
+      // Teacher specific
+      'teacher.create_assignment': 'Create Assignment';
+      'teacher.my_students': 'My Students';
+      'teacher.upcoming_lectures': 'Upcoming Lectures';
+      
+      // Admin specific
+      'admin.manage_teachers': 'Manage Teachers';
+      'admin.manage_students': 'Manage Students';
+      'admin.user_status': 'User Status';
+      
+      // Assignment workflow
+      'assignment.create': 'Create Assignment';
+      'assignment.submit': 'Submit Assignment';
+      'assignment.review': 'Review Submissions';
+      'assignment.grade': 'Grade Assignment';
+    };
+    
+    ar: {
+      // Arabic translations with RTL considerations
+      'common.login': 'تسجيل الدخول';
+      'common.logout': 'تسجيل الخروج';
+      'common.dashboard': 'لوحة التحكم';
+      'common.settings': 'الإعدادات';
+      // ... complete Arabic translations
+    };
+  };
+  
+  // RTL/LTR handling
+  direction: {
+    en: 'ltr';
+    ar: 'rtl';
+  };
+  
+  // Date/time formatting
+  dateFormats: {
+    en: 'MM/DD/YYYY';
+    ar: 'DD/MM/YYYY';
+  };
+}
+```
+
+### Responsive Layout Specifications
 ```css
-:root {
-  --background: 0 0% 100%;
-  --foreground: 0 0% 3.9%;
-  --card: 0 0% 100%;
-  --card-foreground: 0 0% 3.9%;
-  --primary: 0 0% 9%;
-  --primary-foreground: 0 0% 98%;
-  /* ... complete color system */
+/* RTL/LTR Layout Handling */
+.layout-container {
+  direction: var(--text-direction); /* 'ltr' or 'rtl' */
 }
 
-.dark {
-  --background: 0 0% 3.9%;
-  --foreground: 0 0% 98%;
-  /* ... dark mode overrides */
+/* Language-specific spacing */
+.text-spacing {
+  letter-spacing: var(--letter-spacing);
+  word-spacing: var(--word-spacing);
+}
+
+/* Arabic-specific adjustments */
+[dir="rtl"] .sidebar {
+  left: auto;
+  right: 0;
+}
+
+[dir="rtl"] .content {
+  margin-left: 0;
+  margin-right: 250px;
+}
+
+/* Theme integration */
+.theme-light {
+  --primary-color: #3b82f6;
+  --background-color: #ffffff;
+  --text-color: #1f2937;
+}
+
+.theme-dark {
+  --primary-color: #60a5fa;
+  --background-color: #1f2937;
+  --text-color: #f9fafb;
 }
 ```
 
-### Component Styling Pattern
+## File Management Specifications
+
+### File Upload System
 ```typescript
-// Utility function for class merging
-export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
+interface FileUploadAPI {
+  POST /api/files/upload: {
+    body: FormData; // multipart/form-data
+    response: {
+      id: string;
+      filename: string;
+      originalName: string;
+      size: number;
+      mimeType: string;
+      url: string;
+      uploadedAt: Date;
+    };
+  };
+  
+  GET /api/files/:id: {
+    response: File; // File download
+  };
+  
+  DELETE /api/files/:id: {
+    response: { success: boolean; };
+  };
 }
 
-// Usage in components
-<div className={cn(
-  "base-classes",
-  variant && variantClasses[variant],
-  className
-)} />
+// File validation
+interface FileValidation {
+  maxSize: 10 * 1024 * 1024; // 10MB
+  allowedTypes: [
+    'application/pdf',
+    'application/msword',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'text/plain',
+    'image/jpeg',
+    'image/png'
+  ];
+  
+  // Assignment-specific limits
+  assignmentFiles: {
+    maxFiles: 5;
+    maxTotalSize: 50 * 1024 * 1024; // 50MB total
+  };
+}
 ```
 
-## Performance Specifications
+## Performance Requirements
 
-### Bundle Size Targets
-- **First Load JS**: < 200KB
-- **Page Components**: < 50KB each
-- **Shared Chunks**: Optimized splitting
-
-### Runtime Performance
-- **Time to Interactive**: < 3 seconds
-- **Largest Contentful Paint**: < 2.5 seconds
-- **Cumulative Layout Shift**: < 0.1
+### Loading Time Targets
+- **Initial Page Load**: < 3 seconds
+- **Route Navigation**: < 1 second
+- **API Response Display**: < 2 seconds
+- **File Upload Progress**: Real-time progress indication
+- **Real-time Notifications**: < 500ms delivery
 
 ### Caching Strategy
 ```typescript
-// RTK Query caching configuration
-tagTypes: ["Student", "University", "Course"],
-// Cache invalidation on mutations
-invalidatesTags: ["Student"]
+interface CachingConfig {
+  // API response caching
+  apiCache: {
+    student_profile: '5 minutes';
+    courses: '10 minutes';
+    assignments: '2 minutes';
+    grades: '1 minute';
+  };
+  
+  // Static asset caching
+  staticAssets: {
+    images: '1 hour';
+    fonts: '1 day';
+    styles: '1 hour';
+    scripts: '1 hour';
+  };
+  
+  // Browser storage
+  localStorage: {
+    theme: 'persistent';
+    language: 'persistent';
+    user_preferences: 'persistent';
+  };
+  
+  sessionStorage: {
+    navigation_state: 'session';
+    form_drafts: 'session';
+  };
+}
 ```
 
-## Security Specifications
+## Security Requirements
 
-### Authentication Flow
-1. **Login**: POST credentials to `/api/auth/login`
-2. **Token Storage**: JWT stored in localStorage
-3. **Request Headers**: Bearer token in Authorization header
-4. **Token Validation**: Client-side token expiry checks
+### Data Protection
+- **HTTPS Only**: All communication encrypted
+- **Token Security**: JWT tokens with expiration
+- **File Security**: Virus scanning for uploads
+- **XSS Protection**: Input sanitization
+- **CSRF Protection**: Token-based protection
 
-### Input Validation
+### Access Control
 ```typescript
-// Zod schema validation
-const loginSchema = z.object({
-  studentId: z.string().min(1, "Student ID is required"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
-});
-
-// React Hook Form integration
-const form = useForm<LoginInput>({
-  resolver: zodResolver(loginSchema),
-});
+interface SecurityConfig {
+  // Token management
+  jwt: {
+    expiration: '24 hours';
+    refreshThreshold: '2 hours';
+    algorithm: 'HS256';
+  };
+  
+  // File access control
+  fileAccess: {
+    studentFiles: 'own_files_only';
+    teacherFiles: 'course_students_only';
+    adminFiles: 'college_scope_only';
+    superAdminFiles: 'all_access';
+  };
+  
+  // Rate limiting
+  rateLimits: {
+    login_attempts: '5 per 15 minutes';
+    api_requests: '100 per minute';
+    file_uploads: '10 per hour';
+  };
+}
 ```
-
-## Testing Specifications
-
-### Testing Strategy
-- **Unit Tests**: Component testing with Jest/Testing Library
-- **Integration Tests**: API integration testing
-- **E2E Tests**: Critical user flows with Playwright
-- **Type Checking**: TypeScript compilation as tests
-
-### Test Configuration
-```typescript
-// Jest configuration for Next.js
-const nextJest = require('next/jest');
-const createJestConfig = nextJest({
-  dir: './',
-});
-```
-
-## Deployment Specifications
-
-### Build Process
-```bash
-# Development
-npm run dev  # Turbopack development server
-
-# Production
-npm run build  # Next.js production build
-npm start      # Production server
-```
-
-### Environment Variables
-```env
-NEXT_PUBLIC_API_URL=http://localhost:8000/api
-NODE_ENV=development|production
-```
-
-### Production Optimizations
-- **Static Site Generation**: Where applicable
-- **Image Optimization**: Next.js Image component
-- **Code Splitting**: Automatic route-based splitting
-- **Bundle Analysis**: webpack-bundle-analyzer integration

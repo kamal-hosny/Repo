@@ -1,184 +1,104 @@
-# Project Overview - Student Management System Frontend
+# Project Overview - Task-Flow LMS Frontend
 
 ## Project Identity
-- **Project Name**: Student Management System - Client
-- **Version**: 0.1.0
-- **Framework**: Next.js 15.3.3
+- **Project Name**: Task-Flow - Learning Management System
+- **Version**: 1.0
+- **Framework**: Next.js
 - **Language**: TypeScript
-- **Build Tool**: Turbopack
+- **Target Audience**: University-level institutions
+- **Date**: June 24, 2025
 
 ## Architecture Overview
 
 ### Frontend Architecture Pattern
-- **Pattern**: Component-based architecture with Redux state management
-- **Router**: Next.js Pages Router (not App Router)
-- **State Management**: Redux Toolkit with RTK Query
-- **Styling**: Tailwind CSS with custom design system
-- **Component Pattern**: Forward ref pattern with TypeScript generics
+- **Pattern**: Component-based architecture with role-based routing
+- **Router**: Next.js App Router or Pages Router
+- **State Management**: Context API or Redux (TBD)
+- **Styling**: CSS Framework (TBD - following pre-existing design)
+- **Internationalization**: Arabic (AR) and English (EN) support with RTL/LTR handling
+- **Theme Support**: Light and Dark mode with persistent preferences
 
 ### Technology Stack Deep Dive
 
 #### Core Framework
-- **Next.js 15.3.3**: React framework with SSR/SSG capabilities
-- **React 19.0.0**: Latest React with new features and optimizations
-- **TypeScript 5.x**: Full type safety across the application
+- **Next.js**: React framework for production-grade applications
+- **React**: Modern React with hooks and context
+- **TypeScript**: Full type safety across the application
 
-#### State Management
-- **Redux Toolkit 2.8.2**: Modern Redux with simplified boilerplate
-- **RTK Query**: Built-in data fetching and caching solution
-- **React Redux 9.2.0**: Official React bindings for Redux
+#### Key Features
+- **Multi-role Dashboard System**: Student, Teacher, Admin, Super Admin
+- **Real-time Notifications**: Socket.io integration for live updates
+- **File Management**: Assignment submission and file attachment system
+- **Task Management**: Create, submit, and review academic tasks
+- **User Management**: Role-based access control and user administration
 
-#### UI Framework
-- **Tailwind CSS 4.x**: Utility-first CSS framework
-- **Radix UI Primitives**: Accessible, unstyled component primitives
-- **Class Variance Authority**: Type-safe styling variants
-- **Tailwind Merge**: Intelligent Tailwind class merging utility
+#### Internationalization & Accessibility
+- **Languages**: Arabic (RTL) and English (LTR)
+- **Theme System**: Light/Dark mode toggle
+- **Responsive Design**: Mobile-first approach
+- **Persistent Preferences**: Local storage for user preferences
 
-#### Developer Experience
-- **ESLint**: Code quality and consistency
-- **TypeScript**: Static type checking
-- **Hot Reload**: Fast development with Turbopack
-- **React Hot Toast**: User feedback notifications
+## Application Structure
 
-## File Structure Analysis
+### Core User Roles
+1. **Student**: Course enrollment, assignment submission, grade viewing
+2. **Teacher**: Course management, assignment creation, student evaluation
+3. **Admin**: College-level user management (teachers and students)
+4. **Super Admin**: University-wide administration and admin management
 
-### Configuration Files
-- `package.json`: Dependencies and scripts management
-- `tsconfig.json`: TypeScript compiler configuration
-- `tailwind.config.ts`: Tailwind CSS customization
-- `next.config.ts`: Next.js build configuration
-- `eslint.config.mjs`: Code quality rules
-- `postcss.config.mjs`: CSS processing configuration
+### Key Pages & Routes
+- `/` - Landing Page (public)
+- `/login` - Authentication page
+- `/student/:id` - Student dashboard and profile
+- `/teacher/:id` - Teacher dashboard and profile
+- `/admin/:id` - Admin dashboard and management
+- `/superadmin/:id` - Super Admin dashboard
+- `/students`, `/teachers`, `/admins` - User listing pages (role-based access)
 
-### Source Code Organization
-```
-src/
-├── app/                    # Application-level configuration
-│   ├── api/               # RTK Query API definitions
-│   ├── constants.ts       # Application constants
-│   └── store.ts           # Redux store setup
-├── components/            # Reusable UI components
-│   ├── providers/         # React context providers
-│   └── ui/               # Design system components
-├── lib/                   # Utility functions and helpers
-├── pages/                # Next.js page components
-├── styles/               # Global CSS and theme files
-└── types/                # TypeScript type definitions
-```
+### Core Features
+- **Authentication System**: Credential-based login with role-based redirection
+- **Dashboard System**: Personalized dashboards per user role
+- **Task & Assignment Management**: Complete lifecycle from creation to evaluation
+- **Real-time Notifications**: Live updates for important academic events
+- **Cross-platform Features**: Theme switching and language selection
 
-### Component Architecture
+## Technical Requirements
 
-#### Design System Components (`src/components/ui/`)
-- **Card Components**: Modular card system (Card, CardHeader, CardTitle, etc.)
-- **Form Components**: Input, Label, Button with variants
-- **Feedback Components**: Badge, Skeleton for loading states
-- **Layout Components**: Responsive grid and flex utilities
+### Design Compliance
+- Must strictly adhere to pre-existing UX/UI design
+- Consistent user experience across all user roles
+- Responsive layout adaptation for language direction
 
-#### Provider Pattern (`src/components/providers/`)
-- **ReduxProvider**: Wraps app with Redux store
-- **Toaster Integration**: Global notification system
+### Performance Goals
+- Fast page loading and navigation
+- Efficient real-time notification system
+- Smooth theme and language switching
+- Optimized file upload and management
 
-### Page Structure (`src/pages/`)
-- **Index Page**: Entry point with auto-redirect to login
-- **Login Page**: Authentication interface
-- **Students Pages**: Listing and detail views
-- **404 Page**: Error handling for invalid routes
-- **API Routes**: Backend integration endpoints
+### Integration Points
+- **Backend API**: Express.js backend with documented APIs
+- **Real-time**: Socket endpoint for live notifications
+- **File Storage**: Assignment and attachment management
+- **Authentication**: Secure login system with role validation
 
-## API Integration Strategy
+## Development Scope
 
-### RTK Query Implementation
-- **Base API Slice**: Centralized API configuration
-- **Student API Slice**: Student-specific queries and mutations
-- **Auth API Slice**: Authentication operations
-- **Caching Strategy**: Automatic caching with tag invalidation
+### In Scope
+- Complete frontend implementation for all user roles
+- Theme and language switching functionality
+- Real-time notification system integration
+- File upload and management system
+- Responsive design for all devices
 
-### Endpoint Structure
-```typescript
-// Authentication
-POST /api/auth/login
-POST /api/auth/logout
+### Out of Scope
+- Billing or subscription management
+- University account creation interface
+- Custom interface design modifications
+- Backend API development
 
-// Students
-GET /api/students?page={page}
-GET /api/students/{id}
-```
-
-## Data Flow Architecture
-
-### State Management Flow
-1. **Component Level**: Local state for UI interactions
-2. **RTK Query**: Server state management and caching
-3. **Redux Store**: Global application state
-4. **LocalStorage**: Authentication token persistence
-
-### Data Models
-- **Student**: Core entity with university and course relationships
-- **Course**: Academic course information
-- **LoginInput**: Authentication credentials
-- **PaginatedResponse**: Paginated data structure
-
-## Development Workflow
-
-### Available Scripts
-- `npm run dev`: Development server with Turbopack
-- `npm run build`: Production build
-- `npm start`: Production server
-- `npm run lint`: Code quality checks
-
-### Code Quality Standards
-- **TypeScript Strict Mode**: Enabled for type safety
-- **ESLint Configuration**: Next.js recommended rules
-- **Component Patterns**: Forward ref with TypeScript generics
-- **Import Aliases**: Clean imports with @/* paths
-
-## Performance Optimization
-
-### Built-in Optimizations
-- **Automatic Code Splitting**: Next.js page-based splitting
-- **Image Optimization**: Next.js Image component
-- **Bundle Analysis**: Webpack bundle optimization
-- **Tree Shaking**: Unused code elimination
-
-### Custom Optimizations
-- **RTK Query Caching**: Efficient data fetching
-- **Component Memoization**: React.memo where appropriate
-- **Lazy Loading**: Dynamic imports for heavy components
-
-## Security Implementation
-
-### Client-Side Security
-- **JWT Token Management**: Secure token storage
-- **XSS Protection**: React's built-in sanitization
-- **Input Validation**: Zod schema validation
-- **Route Protection**: Authentication guards
-
-### Best Practices
-- **Environment Variables**: Secure API URL configuration
-- **HTTPS Only**: Production security requirements
-- **SameSite Cookies**: CSRF protection
-
-## User Experience Design
-
-### Responsive Design
-- **Mobile First**: Progressive enhancement approach
-- **Breakpoint Strategy**: Tailwind's responsive utilities
-- **Touch Interactions**: Mobile-optimized touch targets
-
-### Accessibility Features
-- **Screen Reader Support**: Radix UI primitives
-- **Keyboard Navigation**: Full keyboard accessibility
-- **Color Contrast**: WCAG compliant color schemes
-- **Focus Management**: Proper focus indicators
-
-## Deployment Considerations
-
-### Build Process
-- **Static Generation**: Next.js static optimization
-- **Environment Configuration**: Multiple environment support
-- **Asset Optimization**: Automatic asset compression
-
-### Production Requirements
-- **Node.js Runtime**: Server-side rendering support
-- **Environment Variables**: API endpoint configuration
-- **CDN Integration**: Static asset delivery
+## Success Metrics
+- Successful role-based authentication and navigation
+- Functional assignment submission and evaluation workflow
+- Working real-time notification system
+- Seamless theme and language switching
+- Responsive design across all target devices
