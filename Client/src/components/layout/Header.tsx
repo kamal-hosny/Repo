@@ -8,6 +8,7 @@ import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { Button } from '@/components/ui/button'
 import { useTranslation } from 'react-i18next'
 import { Bell, User, LogOut } from 'lucide-react'
+import LanguageSwitcher from '../ui/language-switcher'
 
 const Header: React.FC = () => {
     const { t } = useTranslation()
@@ -38,7 +39,9 @@ const Header: React.FC = () => {
                     </Button>
 
                     {/* Theme Toggle */}
-                    <ThemeToggle />                    {/* Language Switcher */}
+                    <ThemeToggle />                    
+                    {/* Language Switcher */}
+                    <LanguageSwitcher />
                     {/* <LanguageSwitcher /> */}
 
                     {/* User Menu */}

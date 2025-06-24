@@ -9,9 +9,10 @@
 
   /* Custom colors */
   --color-primary: #369eff;
+  --color-primary-hover: #0082FB;
   --color-bg-light: #ffffff;
   --color-text-light: #0d141c;
-  --color-bg-dark: #0f1a24;
+  --color-bg-dark: #121417;
   --color-text-dark: #ffffff;
 
   /* Light mode colors */
@@ -74,6 +75,10 @@ body {
 
 .bg-primary {
   background-color: var(--color-primary);
+}
+
+.bg-primary-hover{
+  background---color: var(--color-primary-hover)
 }
 
 .border-primary {
