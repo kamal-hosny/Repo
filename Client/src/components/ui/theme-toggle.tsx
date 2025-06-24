@@ -1,42 +1,27 @@
-'use client'
+import React from 'react'
+import { useAppSelector, useAppDispatch } from '@/store/hooks'
+import { selectCurrentTheme, toggleTheme } from '@/store/slices/themeSlice'
+import { Button } from './button'
 
-import { useEffect, useState } from 'react'
+export const ThemeToggle: React.FC = () => {
+    const dispatch = useAppDispatch()
+    const currentTheme = useAppSelector(selectCurrentTheme)
 
-export function ThemeToggle() {
-    const [theme, setTheme] = useState<'light' | 'dark'>('light')
-
-    useEffect(() => {
-        // Check for saved theme preference or default to 'light'
-        const savedTheme = localStorage.getItem('theme') as 'light' | 'dark' | null
-        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-
-        const initialTheme = savedTheme || (prefersDark ? 'dark' : 'light')
-        setTheme(initialTheme)
-        updateTheme(initialTheme)
-    }, [])
-
-    const updateTheme = (newTheme: 'light' | 'dark') => {
-        const root = document.documentElement
-        root.classList.remove('light', 'dark')
-        root.classList.add(newTheme)
-        localStorage.setItem('theme', newTheme)
-    }
-
-    const toggleTheme = () => {
-        const newTheme = theme === 'light' ? 'dark' : 'light'
-        setTheme(newTheme)
-        updateTheme(newTheme)
+    const handleToggle = () => {
+        dispatch(toggleTheme())
     }
 
     return (
-        <button
-            onClick={toggleTheme}
-            className="p-2 rounded-lg bg-primary/10 hover:bg-primary/20 transition-colors"
+        <Button
+            variant="outline"
+            size="sm"
+            onClick={handleToggle}
+            className="flex items-center gap-2"
             aria-label="Toggle theme"
         >
-            {theme === 'light' ? (
+            {currentTheme === 'light' ? (
                 <svg
-                    className="w-5 h-5 text-primary"
+                    className="w-4 h-4"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -50,7 +35,7 @@ export function ThemeToggle() {
                 </svg>
             ) : (
                 <svg
-                    className="w-5 h-5 text-primary"
+                    className="w-4 h-4"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -63,6 +48,9 @@ export function ThemeToggle() {
                     />
                 </svg>
             )}
-        </button>
+            <span className="hidden sm:inline">
+                {currentTheme === 'light' ? 'Dark' : 'Light'}
+            </span>
+        </Button>
     )
 }

@@ -1,0 +1,79 @@
+{
+    "app": {
+        "name": "تدفق المهام",
+        "description": "نظام إدارة التعلم المتقدم للجامعات",
+        "welcome": "مرحباً بك في تدفق المهام"
+    },
+    "common": {
+        "testPage": "صفحة اختبار البنية التحتية",
+        "controls": "عناصر التحكم",
+        "testFeatures": "اختبار Redux والسمة واللغة",
+        "toggleTheme": "تبديل السمة",
+        "toggleLanguage": "تبديل اللغة",
+        "authState": "حالة المصادقة",
+        "authenticated": "مُصادق عليه",
+        "yes": "نعم",
+        "no": "لا",
+        "user": "المستخدم",
+        "role": "الدور",
+        "email": "البريد الإلكتروني",
+        "systemState": "حالة النظام",
+        "theme": "السمة",
+        "language": "اللغة",
+        "direction": "الاتجاه",
+        "fontDemo": "عرض الخطوط",
+        "signature": "للتوقيعات",
+        "logo": "للشعارات",
+        "bodyText": "لنص المحتوى",
+        "quickActions": "إجراءات سريعة"
+    },
+    "navigation": {
+        "home": "الرئيسية",
+        "dashboard": "لوحة التحكم",
+        "courses": "المقررات",
+        "assignments": "الواجبات",
+        "grades": "الدرجات",
+        "calendar": "التقويم",
+        "profile": "الملف الشخصي",
+        "settings": "الإعدادات",
+        "logout": "تسجيل الخروج"
+    },
+    "auth": {
+        "login": "تسجيل الدخول",
+        "logout": "تسجيل الخروج",
+        "register": "إنشاء حساب",
+        "email": "البريد الإلكتروني",
+        "password": "كلمة المرور",
+        "confirmPassword": "تأكيد كلمة المرور",
+        "forgotPassword": "نسيت كلمة المرور؟",
+        "resetPassword": "إعادة تعيين كلمة المرور",
+        "rememberMe": "تذكرني",
+        "loginButton": "دخول",
+        "loggingIn": "جاري تسجيل الدخول...",
+        "registerButton": "إنشاء حساب",
+        "loginTitle": "تسجيل الدخول إلى حسابك",
+        "registerTitle": "إنشاء حساب جديد",
+        "invalidCredentials": "البريد الإلكتروني أو كلمة المرور غير صحيحة",
+        "registrationSuccess": "تم إنشاء الحساب بنجاح",
+        "passwordResetSent": "تم إرسال رابط إعادة تعيين كلمة المرور",
+        "loginRequired": "يرجى تسجيل الدخول للمتابعة",
+        "demoCredentials": "تسجيل دخول تجريبي سريع:"
+    },
+    "roles": {
+        "student": "طالب",
+        "teacher": "مدرس",
+        "admin": "مدير",
+        "super_admin": "مدير عام"
+    },
+    "theme": {
+        "light": "الوضع الفاتح",
+        "dark": "الوضع الداكن",
+        "system": "سمة النظام",
+        "changeTheme": "تغيير السمة"
+    },
+    "language": {
+        "english": "English",
+        "arabic": "العربية",
+        "changeLanguage": "تغيير اللغة"
+    }
+}

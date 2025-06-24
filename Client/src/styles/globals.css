@@ -19,15 +19,12 @@
   --color-foreground: var(--color-text-light);
 
   /* Dark mode colors */
-  @media (prefers-color-scheme: dark) {
-    --color-background: var(--color-bg-dark);
-    --color-foreground: var(--color-text-dark);
-  }
 }
 
 /* Base styles */
 * {
-  border-color: #e5e7eb; /* fallback border color */
+  border-color: #e5e7eb;
+  /* fallback border color */
 }
 
 body {

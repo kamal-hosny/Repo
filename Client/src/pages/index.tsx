@@ -1,79 +1,125 @@
-import { ThemeToggle } from '../components/ui/theme-toggle'
-import { LanguageSwitcher } from '../components/ui/language-switcher'
+import React from 'react'
+import { useAppSelector, useAppDispatch } from '@/store/hooks'
+import { selectIsAuthenticated, selectCurrentUser } from '@/store/slices/authSlice'
+import { selectCurrentTheme, toggleTheme } from '@/store/slices/themeSlice'
+import { selectCurrentLanguage, setLanguage } from '@/store/slices/languageSlice'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { useTranslation } from 'react-i18next'
 
-export default function Home() {
+export default function TestPage() {
+  const { t } = useTranslation()
+  const dispatch = useAppDispatch()
+
+  // Redux state
+  const isAuthenticated = useAppSelector(selectIsAuthenticated)
+  const currentUser = useAppSelector(selectCurrentUser)
+  const currentTheme = useAppSelector(selectCurrentTheme)
+  const currentLanguage = useAppSelector(selectCurrentLanguage)
+
+  const handleThemeToggle = () => {
+    dispatch(toggleTheme())
+  }
+
+  const handleLanguageToggle = () => {
+    dispatch(setLanguage(currentLanguage === 'en' ? 'ar' : 'en'))
+  }
+
   return (
     <div className="min-h-screen bg-theme text-theme p-8">
-      <div className="max-w-4xl mx-auto">
-        {/* Header with theme controls */}
-        <header className="flex justify-between items-center mb-8">
-          <h1 className="text-4xl font-logo text-primary">Task-Flow</h1>
-          <div className="flex gap-4">
-            <LanguageSwitcher />
-            <ThemeToggle />
-          </div>
+      <div className="max-w-4xl mx-auto space-y-6">
+        {/* Header */}
+        <header className="text-center space-y-2">
+          <h1 className="text-4xl font-logo text-primary">Task-Flow LMS</h1>
+          <p className="text-lg font-body text-theme/80">{t('common.testPage')}</p>
         </header>
 
-        {/* Demo content */}
-        <div className="grid gap-6">
-          <div className="bg-primary/5 p-6 rounded-lg border border-primary/20">
-            <h2 className="text-2xl font-body font-semibold text-primary mb-4">
-              Theme Configuration Demo
-            </h2>
-            <p className="font-body text-theme mb-4">
-              This page demonstrates the custom theme configuration for Task-Flow LMS.
-            </p>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-              <div className="p-4 bg-primary rounded-lg text-white">
-                <h3 className="font-body font-semibold">Primary Color</h3>
-                <p className="text-sm opacity-90">#369EFF</p>
-              </div>
-              <div className="p-4 border border-primary/30 rounded-lg">
-                <h3 className="font-body font-semibold text-theme">Background</h3>
-                <p className="text-sm text-theme/70">Dynamic theme-based</p>
-              </div>
-              <div className="p-4 border border-primary/30 rounded-lg">
-                <h3 className="font-body font-semibold text-theme">Text</h3>
-                <p className="text-sm text-theme/70">Dynamic theme-based</p>
-              </div>
+        {/* Control Panel */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="font-body">{t('common.controls')}</CardTitle>
+            <CardDescription className="font-body">{t('common.testFeatures')}</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex gap-4 flex-wrap">
+              <Button onClick={handleThemeToggle} variant="outline">
+                {t('common.toggleTheme')} ({String(currentTheme)})
+              </Button>
+              <Button onClick={handleLanguageToggle} variant="outline">
+                {t('common.toggleLanguage')} ({currentLanguage.toUpperCase()})
+              </Button>
             </div>
+          </CardContent>
+        </Card>
 
-            <div className="space-y-4">
-              <div>
-                <h3 className="font-body font-semibold text-theme mb-2">Font Families:</h3>
-                <p className="font-signature text-2xl text-primary">Dancing Script - For signatures</p>
-                <p className="font-logo text-xl text-primary">Edu NSW ACT Hand - For logos</p>
-                <p className="font-body text-theme">Lora - For body text and general content</p>
-              </div>
-            </div>
-          </div>
+        {/* Redux State Display */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="font-body">{t('common.authState')}</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2 font-body">
+              <p><strong>{t('common.authenticated')}:</strong> {isAuthenticated ? t('common.yes') : t('common.no')}</p>
+              {currentUser && (
+                <>
+                  <p><strong>{t('common.user')}:</strong> {currentUser.name}</p>
+                  <p><strong>{t('common.role')}:</strong> {t(`roles.${currentUser.role.toLowerCase()}`)}</p>
+                  <p><strong>{t('common.email')}:</strong> {currentUser.email}</p>
+                </>
+              )}
+            </CardContent>
+          </Card>
 
-          <div className="bg-primary/5 p-6 rounded-lg border border-primary/20">
-            <h2 className="text-xl font-body font-semibold text-primary mb-4">
-              Available Theme Classes
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm font-body">
-              <div>
-                <h4 className="font-semibold text-theme mb-2">Colors:</h4>
-                <ul className="space-y-1 text-theme/80">
-                  <li><code className="bg-primary/10 px-2 py-1 rounded">bg-theme</code> - Dynamic background</li>
-                  <li><code className="bg-primary/10 px-2 py-1 rounded">text-theme</code> - Dynamic text</li>
-                  <li><code className="bg-primary/10 px-2 py-1 rounded">text-primary</code> - Primary color text</li>
-                  <li><code className="bg-primary/10 px-2 py-1 rounded">bg-primary</code> - Primary background</li>
-                </ul>
-              </div>
-              <div>
-                <h4 className="font-semibold text-theme mb-2">Fonts:</h4>
-                <ul className="space-y-1 text-theme/80">
-                  <li><code className="bg-primary/10 px-2 py-1 rounded">font-signature</code> - Dancing Script</li>
-                  <li><code className="bg-primary/10 px-2 py-1 rounded">font-logo</code> - Edu NSW ACT Hand</li>
-                  <li><code className="bg-primary/10 px-2 py-1 rounded">font-body</code> - Lora</li>
-                </ul>
-              </div>
-            </div>
-          </div>
+          <Card>
+            <CardHeader>
+              <CardTitle className="font-body">{t('common.systemState')}</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2 font-body">
+              <p><strong>{t('common.theme')}:</strong> {String(currentTheme)}</p>
+              <p><strong>{t('common.language')}:</strong> {currentLanguage.toUpperCase()}</p>
+              <p><strong>{t('common.direction')}:</strong> {currentLanguage === 'ar' ? 'RTL' : 'LTR'}</p>
+            </CardContent>
+          </Card>
         </div>
+
+        {/* Font Demonstration */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="font-body">{t('common.fontDemo')}</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <p className="font-signature text-2xl text-primary">Dancing Script - {t('common.signature')}</p>
+              <p className="font-logo text-xl text-primary">Edu NSW ACT Hand - {t('common.logo')}</p>
+              <p className="font-body text-theme">Lora - {t('common.bodyText')}</p>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Quick Actions */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="font-body">{t('common.quickActions')}</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex gap-4 flex-wrap">
+              {!isAuthenticated ? (
+                <Button onClick={() => window.location.href = '/login'}>
+                  {t('auth.login')}
+                </Button>
+              ) : (
+                <Button onClick={() => {
+                  if (typeof window !== 'undefined') {
+                    localStorage.removeItem('token')
+                    window.location.reload()
+                  }
+                }}>
+                  {t('auth.logout')}
+                </Button>
+              )}
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   )
