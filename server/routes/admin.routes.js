@@ -7,6 +7,7 @@ import {
   createTeacher,
   updateTeacher,
   updateAdmin,
+  deleteAdmin,
 } from "../controllers/admin.controller.js";
 
 const router = Router();
@@ -14,7 +15,9 @@ const router = Router();
 router
   .route("/new-admin")
   .post(authinticate, authorize(["super-admin"]), createAdmin)
-  .patch(authinticate, authorize(["super-admin"]), updateAdmin);
+  .patch(authinticate, authorize(["super-admin"]), updateAdmin)
+  .delete(authinticate, authorize(["super-admin"]), deleteAdmin);
+
 router
   .route("/student")
   .post(authinticate, authorize(["admin", "super-admin"]), createStudent);

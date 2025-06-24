@@ -199,6 +199,24 @@ const updateAdmin = asyncHandler(async (req, res) => {
 //   });
 // });
 
+const deleteAdmin =  asyncHandler(async (req, res) => {
+  const { id } = req.body;
+
+  if (!id) {
+    return res.status(400).json({ message: "Admin ID is required" });
+  }
+
+  const admin = await Admin.findOneAndDelete({ id });
+
+  if (!admin) {
+    return res.status(404).json({ message: "Admin not found" });
+  }
+
+  res.status(200).json({
+    message: "Admin deleted successfully",
+    admin,
+  });
+}); 
 
 export {
   createStudent,
