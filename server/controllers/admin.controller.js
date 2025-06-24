@@ -142,16 +142,6 @@ const updateAdmin = asyncHandler(async (req, res) => {
 
   const admin = await Admin.findOneAndUpdate({ id }, updateData, { new: true });
 
-  const isNameSame = name ? admin.name === name : false;
-  const isPasswordSame = password
-    ? await bcrypt.compare(password, admin.password)
-    : false;
-
-  if (isNameSame && isPasswordSame)
-    res.status(400).json({
-      message: "No changes made to the admin",
-    });
-
   if (!admin) {
     return res.status(404).json({ message: "Admin not found" });
   }
