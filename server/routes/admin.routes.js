@@ -2,7 +2,7 @@ import { Router } from "express";
 // Middlewares
 import authinticate from "../middlewares/authintication.middleware.js";
 import authorize from "../middlewares/authorization.middleware.js";
-import { createStudent, createAdmin } from "../controllers/admin.controller.js";
+import { createStudent, createAdmin, updateUniversity } from "../controllers/admin.controller.js";
 import {
   createTeacher,
   updateTeacher,
@@ -25,5 +25,7 @@ router
   .route("/teacher")
   .post(authinticate, authorize(["admin", "super-admin"]), createTeacher)
   .patch(authinticate, authorize(["admin", "super-admin"]), updateTeacher);
+
+router.route("/university").patch(authinticate, authorize(["admin", "super-admin"]), updateUniversity)
 
 export default router;

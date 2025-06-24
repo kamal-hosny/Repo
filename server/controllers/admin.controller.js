@@ -216,7 +216,38 @@ const deleteAdmin =  asyncHandler(async (req, res) => {
     message: "Admin deleted successfully",
     admin,
   });
-}); 
+});
+
+const updateUniversity = asyncHandler(async (req, res) => {
+  const { id, name, address, phone, email, location, description, website, establishedYear, logo } = req.body;
+
+  if (!id) {
+    return res.status(400).json({ message: "University ID is required" });
+  }
+
+  const updateData = {};
+
+  if (name) updateData.name = name;
+  if (address) updateData.address = address;
+  if (phone) updateData.phone = phone;
+  if (email) updateData.email = email;
+  if (location) updateData.location = location;
+  if (description) updateData.description = description;
+  if (website) updateData.website = website;
+  if (establishedYear) updateData.establishedYear = establishedYear;
+  if (logo) updateData.logo = logo;
+
+  const university = await University.findByIdAndUpdate(id, updateData, { new: true });
+
+  if (!university) {
+    return res.status(404).json({ message: "University not found" });
+  }
+
+  res.status(200).json({
+    message: "University updated successfully",
+    university,
+  });
+})
 
 export {
   createStudent,
@@ -224,4 +255,6 @@ export {
   createTeacher,
   updateTeacher,
   updateAdmin,
+  deleteAdmin,
+  updateUniversity
 };
