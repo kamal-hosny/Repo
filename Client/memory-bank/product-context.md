@@ -1,232 +1,133 @@
-# Product Context - Student Management System Frontend
+# Product Context - Task-Flow LMS Frontend
 
 ## Project Description
 
-The Student Management System Frontend is a modern, enterprise-grade web application built with Next.js that serves as the primary interface for student data management. This application enables educational institutions to efficiently manage student information, providing a seamless experience for viewing student profiles, managing course enrollments, and navigating university structures.
+Task-Flow is a comprehensive and advanced Learning Management System (LMS) designed specifically for university-level institutions. The frontend application serves as the primary interface for managing academic tasks, facilitating interaction between administration, teachers, and students within a university and its various colleges.
 
-**Target Users**: Educational administrators, students, academic advisors, and university staff
-**Primary Use Case**: Centralized student information management and academic administration
-**Business Value**: Streamlined educational operations, improved data accessibility, enhanced user experience
+**Target Users**: University students, faculty (teachers, doctors, assistants), college administrators, and super administrators
+**Primary Use Case**: Centralized platform for managing academic courses, assignments, grades, and communication
+**Business Value**: Automated academic processes, improved efficiency, role-based access control, and enhanced educational experience
 
 ## Core Objectives
 
 ### 🎯 Primary Objectives
 
-1. **Student Data Management**
-   - Provide comprehensive student profile viewing
-   - Enable efficient navigation through large student datasets
-   - Support real-time data updates and synchronization
-   - Maintain data consistency across all interactions
+1. **Centralized Academic Management**
+   - Provide unified platform for course and assignment management
+   - Enable efficient grade tracking and academic progress monitoring
+   - Support automated routine academic processes
+   - Maintain clear role-based views and permissions
 
-2. **User Experience Excellence**
-   - Deliver intuitive, responsive interface design
-   - Ensure accessibility compliance (WCAG 2.1)
-   - Provide fast, seamless navigation experience
-   - Support mobile and desktop platforms equally
+2. **Multi-Role Dashboard System**
+   - Student dashboard with courses, assignments, grades, and calendar
+   - Teacher dashboard with student management and content creation tools
+   - Admin dashboard for college-level user management
+   - Super Admin dashboard for university-wide administration
 
-3. **Performance & Scalability**
-   - Handle large datasets with efficient pagination
-   - Implement intelligent caching strategies
-   - Maintain sub-second response times
-   - Support concurrent user sessions
+3. **Real-time Communication**
+   - Instant notifications for academic events
+   - Live updates for assignment submissions and grade releases
+   - Real-time status updates for online/offline users
+   - Socket-based notification system integration
 
-4. **Security & Data Protection**
-   - Implement robust authentication mechanisms
-   - Ensure secure data transmission (HTTPS)
-   - Protect against common web vulnerabilities
-   - Maintain user session security
+4. **Assignment Lifecycle Management**
+   - Teacher tools for creating detailed assignments with file attachments
+   - Student submission system with pre-deadline editing capability
+   - Teacher review and grading system with feedback mechanism
+   - Complete task tracking from creation to evaluation
 
 ### 🚀 Secondary Objectives
 
-5. **Administrative Efficiency**
-   - Reduce time spent on student data lookup
-   - Streamline academic administrative processes
-   - Provide quick access to university information
-   - Enable efficient bulk operations
+5. **User Experience Excellence**
+   - Intuitive navigation tailored to each user role
+   - Responsive design for desktop and mobile devices
+   - Accessibility compliance for inclusive education
+   - Seamless workflow for common academic tasks
 
-6. **Integration Capabilities**
-   - Seamless API integration with backend systems
-   - Support for future third-party integrations
-   - Extensible architecture for new features
-   - Standardized data exchange formats
+6. **Internationalization & Customization**
+   - Arabic (RTL) and English (LTR) language support
+   - Light and dark theme options with persistent preferences
+   - Culturally appropriate interface design
+   - Proper text direction handling for bilingual institutions
 
-## Technology Stack
+7. **Administrative Efficiency**
+   - Streamlined user management for admins
+   - Quick access to student-teacher relationships
+   - Efficient bulk operations for academic administration
+   - Clear visibility into system usage and user status
 
-### 🏗️ Frontend Architecture
-- **Framework**: Next.js 15.3.3 (React 19.0.0)
-  - *Rationale*: Production-ready React framework with SSR/SSG capabilities
-  - *Benefits*: SEO optimization, automatic code splitting, excellent developer experience
+## Target User Personas
 
-- **Language**: TypeScript 5.x
-  - *Rationale*: Type safety, better developer experience, reduced runtime errors
-  - *Benefits*: Enhanced code quality, better IDE support, improved maintainability
+### 👨‍🎓 Student Persona
+- **Primary Goals**: Access course materials, submit assignments, track grades
+- **Pain Points**: Missing deadlines, unclear assignment requirements, grade delays
+- **Key Features**: Course enrollment view, assignment dashboard, grade tracker, calendar
 
-- **Build System**: Turbopack (Development) + Webpack (Production)
-  - *Rationale*: Fast development builds with production optimization
-  - *Benefits*: Rapid development cycles, optimized production bundles
+### 👩‍🏫 Teacher Persona (Doctor/Assistant/Teacher)
+- **Primary Goals**: Create engaging content, manage student progress, provide feedback
+- **Pain Points**: Time-consuming grading, student communication overhead, content organization
+- **Key Features**: Assignment creation tools, student management, grading system, upcoming lectures view
 
-### 🎨 UI/UX Technologies
-- **Styling**: Tailwind CSS 4.x
-  - *Rationale*: Utility-first approach, rapid prototyping, consistent design
-  - *Benefits*: Reduced CSS bundle size, design system consistency, responsive design
+### 👨‍💼 Admin Persona
+- **Primary Goals**: Manage faculty and students, oversee college operations, monitor system usage
+- **Pain Points**: Manual user management, lack of visibility into system status
+- **Key Features**: User management interface, status monitoring, profile management
 
-- **Component Library**: Custom components with Radix UI primitives
-  - *Rationale*: Accessibility-first, unstyled components, full customization control
-  - *Benefits*: WCAG compliance, consistent behavior, flexible styling
-
-- **Icons**: Lucide React
-  - *Rationale*: Modern, consistent icon set with React optimization
-  - *Benefits*: Lightweight, tree-shakeable, comprehensive icon coverage
-
-### ⚡ State Management
-- **State Management**: Redux Toolkit 2.8.2
-  - *Rationale*: Predictable state management, powerful DevTools, industry standard
-  - *Benefits*: Centralized state, time-travel debugging, middleware support
-
-- **Server State**: RTK Query
-  - *Rationale*: Built-in caching, automatic re-fetching, optimistic updates
-  - *Benefits*: Reduced boilerplate, intelligent caching, automatic error handling
-
-### 🔒 Form Handling & Validation
-- **Forms**: React Hook Form 7.57.0
-  - *Rationale*: Minimal re-renders, excellent performance, easy validation
-  - *Benefits*: Better UX, reduced bundle size, flexible validation
-
-- **Validation**: Zod 3.25.48
-  - *Rationale*: TypeScript-first validation, runtime type checking
-  - *Benefits*: Type safety, schema reusability, excellent error messages
-
-## System Architecture
-
-### 🏛️ Application Architecture Pattern
-**Pattern**: Component-Based Architecture with Layered Design
-
-```
-┌─────────────────────────────────────────┐
-│                UI Layer                 │
-├─────────────────────────────────────────┤
-│              Component Layer            │
-├─────────────────────────────────────────┤
-│            State Management             │
-├─────────────────────────────────────────┤
-│              API Layer                  │
-├─────────────────────────────────────────┤
-│            External Services            │
-└─────────────────────────────────────────┘
-```
-
-### 📁 Project Structure Philosophy
-**Approach**: Feature-Based Organization with Shared Components
-
-```
-src/
-├── app/                    # Application Configuration
-│   ├── api/               # API Slice Definitions (RTK Query)
-│   ├── constants.ts       # Application Constants
-│   └── store.ts           # Redux Store Configuration
-├── components/            # Reusable Components
-│   ├── providers/         # React Context Providers
-│   └── ui/               # Design System Components
-├── lib/                   # Utility Functions
-├── pages/                # Next.js Pages (Router)
-│   ├── api/              # API Routes
-│   ├── students/         # Student Feature Pages
-│   └── [other pages]     # Authentication, Error Pages
-├── styles/               # Global Styles & Themes
-└── types/                # TypeScript Definitions
-```
-
-### 🔄 Data Flow Architecture
-**Pattern**: Unidirectional Data Flow with Centralized State
-
-1. **Component Interaction** → Dispatches Actions
-2. **RTK Query** → Manages Server State & Caching
-3. **Redux Store** → Centralized Application State
-4. **Component Re-render** → UI Updates Automatically
+### 🏛️ Super Admin Persona
+- **Primary Goals**: University-wide oversight, system configuration, admin management
+- **Pain Points**: Complex multi-college coordination, system-wide policy enforcement
+- **Key Features**: Complete admin capabilities, system settings, multi-admin management
 
 ## Business Context
 
-### 🎓 Educational Domain Understanding
-- **Student Lifecycle Management**: From enrollment to graduation
-- **Academic Structure**: Universities → Courses → Students relationship
-- **Administrative Needs**: Quick access, bulk operations, reporting
-- **Compliance Requirements**: Data privacy, accessibility standards
+### Educational Institution Challenges
+- **Manual Processes**: Traditional paper-based assignment submission and grading
+- **Communication Gaps**: Inefficient information flow between students and faculty
+- **Administrative Overhead**: Time-consuming user management and progress tracking
+- **Technology Adoption**: Need for modern, accessible educational technology
 
-### 📊 Key Performance Indicators (KPIs)
-1. **User Engagement**: Time spent on platform, return visits
-2. **Performance Metrics**: Page load times, API response times
-3. **Accessibility Compliance**: WCAG 2.1 AA compliance score
-4. **Error Rates**: Frontend errors, API failures, user-reported issues
-5. **User Satisfaction**: Usability metrics, feedback scores
+### Solution Positioning
+- **Digital Transformation**: Move from manual to automated academic processes
+- **Centralized Platform**: Single source of truth for academic information
+- **Role-Based Access**: Appropriate information access based on user responsibilities
+- **Scalable Architecture**: Support for multiple colleges within university system
 
-## Stakeholder Requirements
+### Success Metrics
+- **User Adoption**: High engagement across all user roles
+- **Process Efficiency**: Reduced time for assignment submission and grading cycles
+- **Communication Improvement**: Faster information dissemination through notifications
+- **Administrative Efficiency**: Streamlined user management and oversight processes
 
-### 👥 Primary Stakeholders
-1. **Educational Administrators**
-   - Need: Efficient student data management
-   - Requirements: Bulk operations, quick search, comprehensive views
+## Integration Requirements
 
-2. **Academic Advisors**
-   - Need: Student academic progress tracking
-   - Requirements: Course enrollment data, historical information
+### Backend Dependencies
+- **Express.js API**: RESTful endpoints for all data operations
+- **Socket Endpoint**: Real-time notification delivery system
+- **File Storage**: Assignment and attachment management backend
+- **Authentication Service**: Secure login and role validation system
 
-3. **Students**
-   - Need: Access to personal academic information
-   - Requirements: Intuitive interface, mobile accessibility
+### External Systems
+- **University Database**: Integration with existing student information systems
+- **Email System**: Notification delivery for critical academic events
+- **File Storage**: Cloud or local storage for assignment submissions
+- **Calendar System**: Academic calendar integration for important dates
 
-### 🔧 Technical Stakeholders
-1. **Development Team**
-   - Need: Maintainable, scalable codebase
-   - Requirements: Good documentation, testing capabilities
+## Constraints & Assumptions
 
-2. **System Administrators**
-   - Need: Reliable, secure application
-   - Requirements: Monitoring, error tracking, performance metrics
+### Technical Constraints
+- Must use Next.js framework
+- Must follow pre-existing UX/UI design specifications
+- Must support both Arabic and English languages
+- Must implement both light and dark themes
 
-## Competitive Advantages
+### Business Constraints
+- University account creation is one-time setup process
+- No billing or subscription management required
+- Interface design customization not allowed
+- Backend APIs provided by separate development team
 
-### 🏆 Key Differentiators
-1. **Modern Technology Stack**: Latest React ecosystem tools
-2. **Performance Focus**: Sub-second load times, intelligent caching
-3. **Accessibility First**: WCAG 2.1 compliance from ground up
-4. **Developer Experience**: Excellent tooling, comprehensive documentation
-5. **Scalability**: Architecture designed for growth
-
-### 📈 Future Roadmap Alignment
-- **Integration Readiness**: API-first design for third-party integrations
-- **Feature Extensibility**: Modular architecture for new capabilities
-- **Performance Scalability**: Optimized for larger datasets
-- **Mobile Strategy**: Progressive Web App (PWA) capabilities ready
-
-## Risk Assessment & Mitigation
-
-### ⚠️ Technical Risks
-1. **Dependency Updates**: Regular updates to maintain security
-   - *Mitigation*: Automated dependency monitoring, staged updates
-
-2. **Performance Degradation**: Large datasets affecting UI performance
-   - *Mitigation*: Virtualization, pagination, intelligent caching
-
-3. **Browser Compatibility**: Modern features requiring recent browsers
-   - *Mitigation*: Progressive enhancement, polyfills where needed
-
-### 🛡️ Security Considerations
-1. **Data Protection**: Student information privacy
-   - *Mitigation*: HTTPS, secure authentication, data validation
-
-2. **Access Control**: Unauthorized data access prevention
-   - *Mitigation*: JWT tokens, role-based access (future enhancement)
-
-## Success Metrics
-
-### 📊 Quantitative Metrics
-- **Performance**: < 1s initial load time, < 200ms API responses
-- **Accessibility**: 100% WCAG 2.1 AA compliance
-- **Code Quality**: 100% TypeScript coverage, 0 ESLint errors
-- **User Experience**: > 95% successful task completion rate
-
-### 🎯 Qualitative Metrics
-- **User Satisfaction**: Positive feedback on interface usability
-- **Developer Experience**: Easy onboarding for new team members
-- **Maintainability**: Code changes require minimal effort
-- **Extensibility**: New features integrate seamlessly
+### Assumptions
+- Stable internet connectivity for real-time features
+- Modern browser support for target user base
+- University IT infrastructure can support socket connections
+- Users have basic computer literacy for system adoption

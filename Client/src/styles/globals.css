@@ -1,87 +1,98 @@
 @import "tailwindcss";
 
-@theme{
-  --color-background: #F7FAFC;
-  --color-main: #369EFF;
-  --color-main-hover: #0082FB;
-  --color-light: #E5EDF5;
-  --color-light-hover: #CCDBEB;
-  --color-main-black: #0D141C;
+/* Tailwind CSS v4 Theme Configuration */
+@theme {
+  /* Font families */
+  --font-family-signature: "Dancing Script", cursive;
+  --font-family-logo: "Edu NSW ACT Hand", cursive;
+  --font-family-body: "Lora", serif;
+
+  /* Custom colors */
+  --color-primary: #369eff;
+  --color-bg-light: #ffffff;
+  --color-text-light: #0d141c;
+  --color-bg-dark: #0f1a24;
+  --color-text-dark: #ffffff;
+
+  /* Light mode colors */
+  --color-background: var(--color-bg-light);
+  --color-foreground: var(--color-text-light);
+
+  /* Dark mode colors */
 }
 
-@layer base {
-  :root {
-    --background: 0 0% 100%;
-    --foreground: 216 33% 17%;
-    --card: 0 0% 100%;
-    --card-foreground: 216 33% 17%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 216 33% 17%;
-    --primary: 213 94% 68%;
-    --primary-foreground: 0 0% 98%;
-    --secondary: 216 12% 84%;
-    --secondary-foreground: 216 33% 17%;
-    --muted: 216 12% 84%;
-    --muted-foreground: 216 12% 45%;
-    --accent: 213 94% 68%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 216 12% 84%;
-    --input: 216 12% 84%;
-    --ring: 213 94% 68%;
-    --chart-1: 12 76% 61%;
-    --chart-2: 173 58% 39%;
-    --chart-3: 197 37% 24%;
-    --chart-4: 43 74% 66%;
-    --chart-5: 27 87% 67%;
-    --radius: 0.5rem;
-    
-    /* University specific variables */
-    --university-navy: 216 33% 17%;
-    --university-gold: 43 100% 50%;
-    --university-light-blue: 213 94% 68%;
-    --university-cream: 48 100% 97%;
-    --university-gray: 216 12% 84%;
-  }
-  .dark {
-    --background: 216 33% 17%;
-    --foreground: 0 0% 98%;
-    --card: 216 33% 17%;
-    --card-foreground: 0 0% 98%;
-    --popover: 216 33% 17%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 213 94% 68%;
-    --primary-foreground: 216 33% 17%;
-    --secondary: 216 12% 25%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 216 12% 25%;
-    --muted-foreground: 216 12% 65%;
-    --accent: 213 94% 68%;
-    --accent-foreground: 216 33% 17%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 216 12% 25%;
-    --input: 216 12% 25%;
-    --ring: 213 94% 68%;
-    --chart-1: 220 70% 50%;
-    --chart-2: 160 60% 45%;
-    --chart-3: 30 80% 55%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%
-  }
+/* Base styles */
+* {
+  border-color: #e5e7eb;
+  /* fallback border color */
 }
 
-@layer base {
-  * {
-    border-color: hsl(var(--border));
-  }
-  body {
-    background-color: hsl(var(--background));
-    color: hsl(var(--foreground));
-    font-family: 'Inter', system-ui, sans-serif;
-  }
-  h1, h2, h3, h4, h5, h6 {
-    font-family: 'Playfair Display', Georgia, serif;
-  }
+body {
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+  font-family: var(--font-family-body);
+  font-feature-settings: "rlig" 1, "calt" 1;
+}
+
+/* Dark mode override class */
+.dark {
+  --color-background: var(--color-bg-dark);
+  --color-foreground: var(--color-text-dark);
+}
+
+/* Light mode override class */
+.light {
+  --color-background: var(--color-bg-light);
+  --color-foreground: var(--color-text-light);
+}
+
+/* Font utility classes */
+.font-signature {
+  font-family: var(--font-family-signature);
+}
+
+.font-logo {
+  font-family: var(--font-family-logo);
+}
+
+.font-body {
+  font-family: var(--font-family-body);
+}
+
+/* Additional theme utilities */
+.bg-theme {
+  background-color: var(--color-background);
+}
+
+.text-theme {
+  color: var(--color-foreground);
+}
+
+.text-primary {
+  color: var(--color-primary);
+}
+
+.bg-primary {
+  background-color: var(--color-primary);
+}
+
+.border-primary {
+  border-color: var(--color-primary);
+}
+
+/* Primary color variations */
+.text-primary-light {
+  color: #66b7ff;
+}
+
+.text-primary-dark {
+  color: #0066cc;
+}
+
+.bg-primary-light {
+  background-color: #66b7ff;
+}
+
+.bg-primary-dark {
+  background-color: #0066cc;
 }
