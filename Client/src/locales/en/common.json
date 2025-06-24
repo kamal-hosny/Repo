@@ -45,14 +45,23 @@
     },
     "navigation": {
         "home": "Home",
-        "dashboard": "Dashboard",
+        "dashboard": "Dashboard", 
         "courses": "Courses",
         "assignments": "Assignments",
         "grades": "Grades",
         "calendar": "Calendar",
+        "schedule": "Schedule",
         "profile": "Profile",
         "settings": "Settings",
-        "logout": "Logout"
+        "logout": "Logout",
+        "students": "Students",
+        "users": "Users",
+        "departments": "Departments",
+        "reports": "Reports",
+        "institutions": "Institutions",
+        "admins": "Admins",
+        "system": "System",
+        "analytics": "Analytics"
     },
     "auth": {
         "login": "Login",
@@ -108,28 +117,44 @@
             "enrolledCourses": "Enrolled Courses",
             "completedAssignments": "Completed",
             "pendingAssignments": "Pending",
-            "averageGrade": "Average Grade"
+            "averageGrade": "Average Grade",
+            "noCourses": "No Courses Enrolled",
+            "noCoursesDescription": "You haven't enrolled in any courses yet. Contact your advisor for course registration.",
+            "noAssignments": "No Assignments",
+            "noAssignmentsDescription": "You don't have any assignments at the moment. Check back later or contact your instructors."
         },
         "teacher": {
             "title": "Teacher Portal",
             "coursesDescription": "Manage your courses and content",
             "studentsDescription": "View and manage your students",
             "gradesDescription": "Grade assignments and manage grades",
-            "scheduleDescription": "Manage your teaching schedule"
+            "scheduleDescription": "Manage your teaching schedule",
+            "myCourses": "My Courses",
+            "createCourse": "Create Course",
+            "noCourses": "No Courses Created",
+            "noCoursesDescription": "You haven't created any courses yet. Click 'Create Course' to get started.",
+            "myStudents": "My Students",
+            "gradeAssignments": "Grade Assignments"
         },
         "admin": {
             "title": "Admin Portal",
             "usersDescription": "Manage system users and permissions",
             "coursesDescription": "Oversee all courses and curriculum",
             "reportsDescription": "View system reports and analytics",
-            "settingsDescription": "Configure system settings"
+            "settingsDescription": "Configure system settings",
+            "userManagement": "User Management",
+            "addUser": "Add User",
+            "noUsers": "No Users Found",
+            "noUsersDescription": "No users are currently in the system. Click 'Add User' to create new user accounts."
         },
         "superadmin": {
             "title": "Super Admin Portal",
             "systemDescription": "Manage overall system configuration",
             "usersDescription": "Manage all users and administrators",
             "analyticsDescription": "View comprehensive system analytics",
-            "maintenanceDescription": "System maintenance and updates"
+            "maintenanceDescription": "System maintenance and updates",
+            "systemOverview": "System Overview",
+            "adminManagement": "Admin Management"
         }
     }
 }

@@ -2,21 +2,31 @@ import { Middleware } from '@reduxjs/toolkit'
 import { setLanguage } from '@/store/slices/languageSlice'
 import { setThemeMode } from '@/store/slices/themeSlice'
 
+interface RootState {
+    language: {
+        currentLanguage: string
+    }
+    theme: {
+        mode: string
+    }
+}
+
 // Middleware to sync state with localStorage
 export const localStorageMiddleware: Middleware = (store) => (next) => (action) => {
     const result = next(action)
 
     // Only run on client side
     if (typeof window !== 'undefined') {
-        const state = store.getState()
+        const state = store.getState() as RootState
+        const actionWithType = action as { type: string }
 
         // Sync language to localStorage
-        if (action.type === setLanguage.type || action.type === 'language/toggleLanguage') {
+        if (actionWithType.type === setLanguage.type || actionWithType.type === 'language/toggleLanguage') {
             localStorage.setItem('language', state.language.currentLanguage)
         }
 
         // Sync theme to localStorage
-        if (action.type === setThemeMode.type || action.type === 'theme/toggleTheme') {
+        if (actionWithType.type === setThemeMode.type || actionWithType.type === 'theme/toggleTheme') {
             localStorage.setItem('theme', state.theme.mode)
         }
     }
@@ -28,13 +38,11 @@ export const localStorageMiddleware: Middleware = (store) => (next) => (action) 
 export const loadStateFromLocalStorage = () => {
     if (typeof window === 'undefined') {
         return {}
-    }
-
-    try {
+    }    try {
         const language = localStorage.getItem('language') as 'en' | 'ar' | null
         const theme = localStorage.getItem('theme') as 'light' | 'dark' | 'system' | null
 
-        const state: any = {}
+        const state: Record<string, unknown> = {}
 
         if (language) {
             state.language = {

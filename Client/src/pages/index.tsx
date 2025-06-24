@@ -1,125 +1,84 @@
-import React from 'react'
-import { useAppSelector, useAppDispatch } from '@/store/hooks'
-import { selectIsAuthenticated, selectCurrentUser } from '@/store/slices/authSlice'
-import { selectCurrentTheme, toggleTheme } from '@/store/slices/themeSlice'
-import { selectCurrentLanguage, setLanguage } from '@/store/slices/languageSlice'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import React, { useEffect } from 'react'
+import { useRouter } from 'next/router'
+import { useAppSelector } from '@/store/hooks'
+import { selectIsAuthenticated, selectUserRole } from '@/store/slices/authSlice'
+import { getRoleBasedRoute } from '@/lib/routes'
 import { useTranslation } from 'react-i18next'
 
-export default function TestPage() {
+export default function HomePage() {
   const { t } = useTranslation('common')
-  const dispatch = useAppDispatch()
-
-  // Redux state
+  const router = useRouter()
   const isAuthenticated = useAppSelector(selectIsAuthenticated)
-  const currentUser = useAppSelector(selectCurrentUser)
-  const currentTheme = useAppSelector(selectCurrentTheme)
-  const currentLanguage = useAppSelector(selectCurrentLanguage)
+  const userRole = useAppSelector(selectUserRole)
 
-  const handleThemeToggle = () => {
-    dispatch(toggleTheme())
-  }
+  useEffect(() => {
+    // Redirect logic will be handled by UnifiedRouter
+    // This page serves as a landing page for public access
+    if (isAuthenticated && userRole) {
+      const roleRoute = getRoleBasedRoute(userRole)
+      router.replace(roleRoute)
+    }
+  }, [isAuthenticated, userRole, router])
 
-  const handleLanguageToggle = () => {
-    dispatch(setLanguage(currentLanguage === 'en' ? 'ar' : 'en'))
-  }
-
+  // Public landing page content
   return (
-    <div className="min-h-screen bg-theme text-theme p-8">
-      <div className="max-w-4xl mx-auto space-y-6">
-        {/* Header */}
-        <header className="text-center space-y-2">
-          <h1 className="text-4xl font-logo text-primary">Task-Flow LMS</h1>
-          <p className="text-lg font-body text-theme/80">{t('common.testPage')}</p>
-        </header>
-
-        {/* Control Panel */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="font-body">{t('common.controls')}</CardTitle>
-            <CardDescription className="font-body">{t('common.testFeatures')}</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex gap-4 flex-wrap">
-              <Button onClick={handleThemeToggle} variant="outline">
-                {t('common.toggleTheme')} ({String(currentTheme)})
-              </Button>
-              <Button onClick={handleLanguageToggle} variant="outline">
-                {t('common.toggleLanguage')} ({currentLanguage.toUpperCase()})
-              </Button>
+    <div className="min-h-screen bg-gradient-to-br from-primary/10 via-background to-secondary/10">
+      <div className="container mx-auto px-4 py-16">
+        <div className="text-center space-y-8">
+          <h1 className="text-6xl font-bold text-foreground mb-4">
+            {t('app.name')}
+          </h1>
+          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+            {t('app.description')}
+          </p>
+          
+          <div className="flex justify-center gap-4 mt-8">
+            <button
+              onClick={() => router.push('/login')}
+              className="bg-primary text-primary-foreground px-8 py-3 rounded-lg text-lg font-semibold hover:bg-primary/90 transition-colors"
+            >
+              {t('auth.login')}
+            </button>
+          </div>
+          
+          <div className="mt-16 grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-4xl mx-auto">
+            <div className="bg-card p-6 rounded-lg border border-border">
+              <h3 className="text-lg font-semibold text-foreground mb-2">
+                {t('roles.student')}
+              </h3>
+              <p className="text-muted-foreground">
+                {t('pages.student.coursesDescription')}
+              </p>
             </div>
-          </CardContent>
-        </Card>
-
-        {/* Redux State Display */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="font-body">{t('common.authState')}</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2 font-body">
-              <p><strong>{t('common.authenticated')}:</strong> {isAuthenticated ? t('common.yes') : t('common.no')}</p>
-              {currentUser && (
-                <>
-                  <p><strong>{t('common.user')}:</strong> {currentUser.name}</p>
-                  <p><strong>{t('common.role')}:</strong> {t(`roles.${currentUser.role.toLowerCase()}`)}</p>
-                  <p><strong>{t('common.email')}:</strong> {currentUser.email}</p>
-                </>
-              )}
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="font-body">{t('common.systemState')}</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2 font-body">
-              <p><strong>{t('common.theme')}:</strong> {String(currentTheme)}</p>
-              <p><strong>{t('common.language')}:</strong> {currentLanguage.toUpperCase()}</p>
-              <p><strong>{t('common.direction')}:</strong> {currentLanguage === 'ar' ? 'RTL' : 'LTR'}</p>
-            </CardContent>
-          </Card>
+            
+            <div className="bg-card p-6 rounded-lg border border-border">
+              <h3 className="text-lg font-semibold text-foreground mb-2">
+                {t('roles.teacher')}
+              </h3>
+              <p className="text-muted-foreground">
+                {t('pages.teacher.coursesDescription')}
+              </p>
+            </div>
+            
+            <div className="bg-card p-6 rounded-lg border border-border">
+              <h3 className="text-lg font-semibold text-foreground mb-2">
+                {t('roles.admin')}
+              </h3>
+              <p className="text-muted-foreground">
+                {t('pages.admin.usersDescription')}
+              </p>
+            </div>
+            
+            <div className="bg-card p-6 rounded-lg border border-border">
+              <h3 className="text-lg font-semibold text-foreground mb-2">
+                {t('roles.super_admin')}
+              </h3>
+              <p className="text-muted-foreground">
+                {t('pages.superadmin.systemDescription')}
+              </p>
+            </div>
+          </div>
         </div>
-
-        {/* Font Demonstration */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="font-body">{t('common.fontDemo')}</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <p className="font-signature text-2xl text-primary">Dancing Script - {t('common.signature')}</p>
-              <p className="font-logo text-xl text-primary">Edu NSW ACT Hand - {t('common.logo')}</p>
-              <p className="font-body text-theme">Lora - {t('common.bodyText')}</p>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Quick Actions */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="font-body">{t('common.quickActions')}</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex gap-4 flex-wrap">
-              {!isAuthenticated ? (
-                <Button onClick={() => window.location.href = '/login'}>
-                  {t('auth.login')}
-                </Button>
-              ) : (
-                <Button onClick={() => {
-                  if (typeof window !== 'undefined') {
-                    localStorage.removeItem('token')
-                    window.location.reload()
-                  }
-                }}>
-                  {t('auth.logout')}
-                </Button>
-              )}
-            </div>
-          </CardContent>
-        </Card>
       </div>
     </div>
   )
