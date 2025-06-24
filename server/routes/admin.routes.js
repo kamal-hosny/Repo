@@ -10,7 +10,9 @@ import {
 
 const router = Router();
 
-router.route("/new-super-admin").post(createAdmin);
+router
+  .route("/new-admin")
+  .post(authinticate, authorize(["super-admin"]), createAdmin);
 router
   .route("/student")
   .post(authinticate, authorize(["admin", "super-admin"]), createStudent);
