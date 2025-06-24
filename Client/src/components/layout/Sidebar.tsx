@@ -47,9 +47,9 @@ const Sidebar: React.FC<SidebarProps> = ({ navigation, userRole: propUserRole })
     const { t } = useTranslation()
     const router = useRouter()
     const storeUserRole = useAppSelector(selectUserRole)
-    
+
     const userRole = propUserRole || storeUserRole
-    const navigationItems = navigation || (userRole ? getNavigationForRole(userRole) : [])    
+    const navigationItems = navigation || (userRole ? getNavigationForRole(userRole) : [])
     const isActive = (href: string) => {
         if (href === `/${userRole?.toLowerCase()}`) {
             return router.pathname === href
@@ -66,20 +66,20 @@ const Sidebar: React.FC<SidebarProps> = ({ navigation, userRole: propUserRole })
                     </h2>
                     <div className="h-px bg-border"></div>
                 </div>
-                
+
                 <nav className="space-y-2">
                     {navigationItems.map((item) => {
                         const Icon = iconMap[item.icon as keyof typeof iconMap]
                         const active = isActive(item.href)
-                        
+
                         return (
                             <Link
                                 key={item.href}
                                 href={item.href}
                                 className={cn(
                                     "w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
-                                    active 
-                                        ? "bg-primary text-primary-foreground" 
+                                    active
+                                        ? "bg-primary text-primary-foreground"
                                         : "text-muted-foreground hover:text-foreground hover:bg-accent"
                                 )}
                             >

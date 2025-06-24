@@ -17,14 +17,14 @@ export const UnifiedRouter: React.FC<UnifiedRouterProps> = ({ children }) => {
         const handleRouting = () => {
             const currentPath = router.pathname
 
-            // Skip routing logic for public routes
+            // Skip routing logic for public routes (landing, login)
             if (routes.public.includes(currentPath)) {
                 return
             }
 
-            // If not authenticated, redirect to login
+            // If not authenticated and trying to access protected route, redirect to login
             if (!isAuthenticated) {
-                if (currentPath !== '/login') {
+                if (currentPath !== '/login' && currentPath !== '/') {
                     router.replace('/login')
                 }
                 return
@@ -35,8 +35,8 @@ export const UnifiedRouter: React.FC<UnifiedRouterProps> = ({ children }) => {
                 const roleBasedRoute = routes.roleMap[userRole]
                 const allowedRoutes = routes.protected[userRole]
 
-                // If on root or login, redirect to role-based dashboard
-                if (currentPath === '/' || currentPath === '/login') {
+                // Only redirect from login page to role-based dashboard, not from landing page
+                if (currentPath === '/login') {
                     router.replace(roleBasedRoute)
                     return
                 }

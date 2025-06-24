@@ -8,7 +8,9 @@ export const ThemeToggle: React.FC = () => {
     const currentTheme = useAppSelector(selectCurrentTheme)
 
     const handleToggle = () => {
+        console.log('Before toggle - Current theme:', currentTheme)
         dispatch(toggleTheme())
+        console.log('After toggle dispatched')
     }
 
     return (

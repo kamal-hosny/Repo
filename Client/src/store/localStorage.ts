@@ -38,7 +38,7 @@ export const localStorageMiddleware: Middleware = (store) => (next) => (action) 
 export const loadStateFromLocalStorage = () => {
     if (typeof window === 'undefined') {
         return {}
-    }    try {
+    } try {
         const language = localStorage.getItem('language') as 'en' | 'ar' | null
         const theme = localStorage.getItem('theme') as 'light' | 'dark' | 'system' | null
 

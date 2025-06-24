@@ -65,19 +65,20 @@ export const themeSlice = createSlice({
             }
         },
         toggleTheme: (state) => {
-            if (state.mode === 'system') {
-                state.mode = state.systemTheme === 'light' ? 'dark' : 'light'
-            } else {
-                state.mode = state.mode === 'light' ? 'dark' : 'light'
-            }
-            state.effectiveTheme = state.mode as 'light' | 'dark'
+            const newMode = state.mode === 'light' ? 'dark' : 'light'
+            state.mode = newMode
+            state.effectiveTheme = newMode
 
             // Persist to localStorage and update document
             if (typeof window !== 'undefined') {
-                localStorage.setItem('theme', state.mode)
+                localStorage.setItem('theme', newMode)
+
+                // Force immediate DOM update
                 const root = document.documentElement
                 root.classList.remove('light', 'dark')
-                root.classList.add(state.effectiveTheme)
+                root.classList.add(newMode)
+
+                console.log('Theme toggled to:', newMode)
             }
         },
     },

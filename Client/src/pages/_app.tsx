@@ -4,8 +4,8 @@ import { ReduxProvider } from '@/components/providers/ReduxProvider'
 import { LanguageProvider } from '@/components/providers/LanguageProvider'
 import { ThemeProvider } from '@/components/providers/ThemeProvider'
 import { ClientHydration } from '@/components/providers/ClientHydration'
-import { UnifiedRouter } from '@/components/routing/UnifiedRouter'
-import { UniversalLayout } from '@/components/layout/UniversalLayout'
+import { ProtectedRoute } from '@/components/routing/ProtectedRoute'
+import { GlobalRouter } from '@/components/routing/GlobalRouter'
 
 export default function App({ Component, pageProps }: AppProps) {
   return (
@@ -13,11 +13,11 @@ export default function App({ Component, pageProps }: AppProps) {
       <ClientHydration>
         <ThemeProvider>
           <LanguageProvider>
-            <UnifiedRouter>
-              <UniversalLayout>
+            <ProtectedRoute>
+              <GlobalRouter>
                 <Component {...pageProps} />
-              </UniversalLayout>
-            </UnifiedRouter>
+              </GlobalRouter>
+            </ProtectedRoute>
           </LanguageProvider>
         </ThemeProvider>
       </ClientHydration>

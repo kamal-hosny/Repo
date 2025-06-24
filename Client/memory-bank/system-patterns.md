@@ -1,4 +1,399 @@
-# System Patterns - Task-Flow LMS Frontend
+# System Patterns - Unified Router Architecture
+
+## Core Design Patterns
+
+### Unified Router Pattern
+
+```typescript
+// Single router handling all users with role-based content control
+const GlobalRouter: React.FC = () => {
+  const { user } = useAuth();
+  const router = useRouter();
+
+  // All roles can access same pages, content control handled internally
+  return <Component {...pageProps} />;
+};
+```
+
+### Protected Route Pattern
+
+```typescript
+// Simplified to auth check + preferences only
+const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  useEffect(() => {
+    // 1. Check authentication
+    const token = localStorage.getItem("token");
+    if (!token) {
+      router.push("/login");
+      return;
+    }
+
+    // 2. Restore preferences
+    const theme = localStorage.getItem("theme");
+    const language = localStorage.getItem("language");
+
+    if (theme) applyTheme(theme);
+    if (language) applyLanguage(language);
+
+    setIsAuthenticated(true);
+  }, []);
+
+  return isAuthenticated ? children : <LoadingSpinner />;
+};
+```
+
+### Role-Based Content Pattern
+
+```typescript
+// Pages control content visibility, not router
+const StudentPage: React.FC = () => {
+  const { user } = useAuth();
+
+  return (
+    <div>
+      {/* Common content for all roles */}
+      <Header title="Student Portal" />
+
+      {/* Role-specific content */}
+      <RoleGuard allowedRoles={["STUDENT"]}>
+        <StudentDashboard />
+      </RoleGuard>
+
+      <RoleGuard allowedRoles={["TEACHER"]}>
+        <TeacherStudentView />
+      </RoleGuard>
+
+      <RoleGuard allowedRoles={["ADMIN", "SUPER_ADMIN"]}>
+        <AdminStudentManagement />
+      </RoleGuard>
+    </div>
+  );
+};
+```
+
+## Provider Hierarchy Pattern
+
+### Optimal Nesting Order
+
+```typescript
+// Each provider builds on the previous layer
+<ReduxProvider>
+  {" "}
+  // Foundation: State management
+  <ClientHydration>
+    {" "}
+    // Compatibility: SSR/CSR
+    <ThemeProvider>
+      {" "}
+      // UI: Visual theming
+      <LanguageProvider>
+        {" "}
+        // UX: Internationalization
+        <ProtectedRoute>
+          {" "}
+          // Security: Auth + preferences
+          <GlobalRouter>
+            {" "}
+            // Navigation: Unified routing
+            <Component /> // Content: Final page
+          </GlobalRouter>
+        </ProtectedRoute>
+      </LanguageProvider>
+    </ThemeProvider>
+  </ClientHydration>
+</ReduxProvider>
+```
+
+### Provider Responsibilities
+
+- **Redux**: Global state management
+- **ClientHydration**: Handle SSR to CSR transition
+- **ThemeProvider**: Manage theme state and persistence
+- **LanguageProvider**: Handle language switching and direction
+- **ProtectedRoute**: Authentication check and preference restoration
+- **GlobalRouter**: Route resolution and role-based logic
+
+## State Management Patterns
+
+### Separation of Concerns
+
+```typescript
+interface AppState {
+  // Authentication domain
+  auth: {
+    user: User | null;
+    isAuthenticated: boolean;
+    loading: boolean;
+  };
+
+  // User preference domain
+  preferences: {
+    theme: "light" | "dark";
+    language: "en" | "ar";
+  };
+
+  // Router domain
+  router: {
+    currentPage: string;
+    roleAccess: RolePermissions;
+  };
+}
+```
+
+### Action Pattern
+
+```typescript
+// Preference actions
+const setTheme = (theme: "light" | "dark") => ({
+  type: "SET_THEME",
+  payload: { theme },
+});
+
+// Auth actions
+const authenticateUser = (user: User) => ({
+  type: "AUTHENTICATE_USER",
+  payload: { user },
+});
+
+// Router actions
+const setCurrentPage = (page: string) => ({
+  type: "SET_CURRENT_PAGE",
+  payload: { page },
+});
+```
+
+## localStorage Integration Pattern
+
+### Preference Persistence
+
+```typescript
+// Theme persistence
+const ThemeProvider: React.FC = ({ children }) => {
+  const [theme, setTheme] = useState<"light" | "dark">("light");
+
+  useEffect(() => {
+    // Restore on mount
+    const saved = localStorage.getItem("theme") as "light" | "dark";
+    if (saved) {
+      setTheme(saved);
+      document.documentElement.className = saved;
+    }
+  }, []);
+
+  const toggleTheme = () => {
+    const newTheme = theme === "light" ? "dark" : "light";
+    setTheme(newTheme);
+    localStorage.setItem("theme", newTheme);
+    document.documentElement.className = newTheme;
+  };
+
+  return (
+    <ThemeContext.Provider value={{ theme, toggleTheme }}>
+      {children}
+    </ThemeContext.Provider>
+  );
+};
+```
+
+### Language Persistence
+
+```typescript
+// Language + Direction persistence
+const LanguageProvider: React.FC = ({ children }) => {
+  const [language, setLanguage] = useState<"en" | "ar">("en");
+
+  useEffect(() => {
+    const saved = localStorage.getItem("language") as "en" | "ar";
+    if (saved) {
+      setLanguage(saved);
+      document.dir = saved === "ar" ? "rtl" : "ltr";
+    }
+  }, []);
+
+  const changeLanguage = (newLang: "en" | "ar") => {
+    setLanguage(newLang);
+    localStorage.setItem("language", newLang);
+    document.dir = newLang === "ar" ? "rtl" : "ltr";
+  };
+
+  return (
+    <LanguageContext.Provider value={{ language, changeLanguage }}>
+      {children}
+    </LanguageContext.Provider>
+  );
+};
+```
+
+## Role-Based Access Control Pattern
+
+### RoleGuard Component
+
+```typescript
+interface RoleGuardProps {
+  allowedRoles: UserRole[];
+  children: React.ReactNode;
+  fallback?: React.ReactNode;
+}
+
+const RoleGuard: React.FC<RoleGuardProps> = ({
+  allowedRoles,
+  children,
+  fallback = null,
+}) => {
+  const { user } = useAuth();
+
+  if (!user || !allowedRoles.includes(user.role)) {
+    return <>{fallback}</>;
+  }
+
+  return <>{children}</>;
+};
+```
+
+### Usage Pattern
+
+```typescript
+// Multiple permission levels in same component
+<div>
+  <RoleGuard allowedRoles={["STUDENT", "TEACHER", "ADMIN"]}>
+    <CommonSection />
+  </RoleGuard>
+
+  <RoleGuard
+    allowedRoles={["TEACHER", "ADMIN"]}
+    fallback={<RestrictedMessage />}
+  >
+    <TeacherSection />
+  </RoleGuard>
+
+  <RoleGuard allowedRoles={["ADMIN"]}>
+    <AdminOnlySection />
+  </RoleGuard>
+</div>
+```
+
+## Error Boundary Pattern
+
+### Global Error Handling
+
+```typescript
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error, errorInfo) {
+    console.error("Error boundary caught an error:", error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return <ErrorFallback />;
+    }
+
+    return this.props.children;
+  }
+}
+```
+
+## Future Extension Patterns
+
+### Socket.io Integration Pattern
+
+```typescript
+// Future real-time provider
+const SocketProvider: React.FC = ({ children }) => {
+  const [socket, setSocket] = useState<Socket | null>(null);
+  const { user } = useAuth();
+
+  useEffect(() => {
+    if (user?.token) {
+      const newSocket = io(SOCKET_URL, {
+        auth: { token: user.token },
+      });
+      setSocket(newSocket);
+
+      return () => newSocket.close();
+    }
+  }, [user]);
+
+  return (
+    <SocketContext.Provider value={{ socket }}>
+      {children}
+    </SocketContext.Provider>
+  );
+};
+```
+
+### Feature Module Pattern
+
+```typescript
+// Future feature integration
+interface FeatureModule {
+  component: React.ComponentType;
+  permissions: UserRole[];
+  routes: string[];
+}
+
+const TaskManagementModule: FeatureModule = {
+  component: TaskManagement,
+  permissions: ["STUDENT", "TEACHER"],
+  routes: ["/tasks", "/assignments"],
+};
+```
+
+## Testing Patterns
+
+### Component Testing
+
+```typescript
+// Test role-based rendering
+describe("RoleGuard", () => {
+  it("shows content for allowed roles", () => {
+    render(
+      <AuthProvider user={{ role: "STUDENT" }}>
+        <RoleGuard allowedRoles={["STUDENT"]}>
+          <div>Student Content</div>
+        </RoleGuard>
+      </AuthProvider>
+    );
+
+    expect(screen.getByText("Student Content")).toBeInTheDocument();
+  });
+});
+```
+
+### Router Testing
+
+````typescript
+// Test unified routing
+describe('GlobalRouter', () => {
+  it('allows all roles to access same pages', () => {
+    const testRoles = ['STUDENT', 'TEACHER', 'ADMIN'];
+
+    testRoles.forEach(role => {
+      render(
+        <AuthProvider user={{ role }}>
+          <GlobalRouter>
+            <StudentPage />
+          </GlobalRouter>
+        </AuthProvider>
+      );
+
+      expect(screen.getByText('Student Portal')).toBeInTheDocument();
+    });
+  });
+});
+``` - Task-Flow LMS Frontend
 
 ## Design Patterns Overview
 
@@ -20,9 +415,10 @@ Layout Components (Top Level)
 // - High reusability
 // - Easy testing and maintenance
 // - Scalable architecture
-```
+````
 
 #### 2. Context Provider Pattern
+
 ```typescript
 // Layered context structure for cross-cutting concerns
 <ThemeProvider>
@@ -35,7 +431,7 @@ Layout Components (Top Level)
       </SocketProvider>
     </AuthProvider>
   </LanguageProvider>
-</ThemeProvider>
+</ThemeProvider>;
 
 // Pattern Implementation
 interface ContextPattern<T> {
@@ -45,7 +441,7 @@ interface ContextPattern<T> {
 }
 
 // Example: Theme Context Pattern
-const createContextPattern = <T,>(
+const createContextPattern = <T>(
   name: string,
   defaultValue?: T
 ): ContextPattern<T> => {
@@ -54,12 +450,8 @@ const createContextPattern = <T,>(
 
   const Provider: React.FC<{ children: React.ReactNode; value?: T }> = ({
     children,
-    value
-  }) => (
-    <Context.Provider value={value}>
-      {children}
-    </Context.Provider>
-  );
+    value,
+  }) => <Context.Provider value={value}>{children}</Context.Provider>;
 
   const useContext = () => {
     const context = React.useContext(Context);
@@ -74,33 +466,46 @@ const createContextPattern = <T,>(
 ```
 
 #### 3. Role-Based Access Control (RBAC) Pattern
+
 ```typescript
 // Hierarchical role system with permission inheritance
 interface RoleHierarchy {
   SUPER_ADMIN: {
     inherits: [];
-    permissions: ['*']; // All permissions
+    permissions: ["*"]; // All permissions
   };
   ADMIN: {
     inherits: [];
     permissions: [
-      'users:create', 'users:read', 'users:update', 'users:delete',
-      'courses:read', 'assignments:read'
+      "users:create",
+      "users:read",
+      "users:update",
+      "users:delete",
+      "courses:read",
+      "assignments:read"
     ];
   };
   TEACHER: {
     inherits: [];
     permissions: [
-      'assignments:create', 'assignments:update', 'assignments:delete',
-      'submissions:read', 'submissions:grade',
-      'students:read', 'courses:manage'
+      "assignments:create",
+      "assignments:update",
+      "assignments:delete",
+      "submissions:read",
+      "submissions:grade",
+      "students:read",
+      "courses:manage"
     ];
   };
   STUDENT: {
     inherits: [];
     permissions: [
-      'assignments:read', 'submissions:create', 'submissions:update',
-      'grades:read', 'profile:read', 'profile:update'
+      "assignments:read",
+      "submissions:create",
+      "submissions:update",
+      "grades:read",
+      "profile:read",
+      "profile:update"
     ];
   };
 }
@@ -112,11 +517,11 @@ const RoleGuard: React.FC<{
   fallback?: React.ReactNode;
 }> = ({ allowedRoles, children, fallback = <UnauthorizedMessage /> }) => {
   const { user } = useAuth();
-  
+
   if (!user || !allowedRoles.includes(user.role)) {
     return <>{fallback}</>;
   }
-  
+
   return <>{children}</>;
 };
 
@@ -127,7 +532,7 @@ const PermissionGuard: React.FC<{
 }> = ({ permission, children }) => {
   const { user } = useAuth();
   const hasPermission = checkPermission(user?.role, permission);
-  
+
   return hasPermission ? <>{children}</> : null;
 };
 ```
@@ -135,6 +540,7 @@ const PermissionGuard: React.FC<{
 ### Data Fetching Patterns
 
 #### 1. Custom Hook Pattern
+
 ```typescript
 // Standardized data fetching hook pattern
 interface UseDataFetchingResult<T> {
@@ -159,7 +565,7 @@ const useDataFetching = <T>(
       const result = await fetcher();
       setData(result);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      setError(err instanceof Error ? err.message : "An error occurred");
     } finally {
       setLoading(false);
     }
@@ -178,21 +584,22 @@ const useStudentData = (studentId: string) => {
     () => studentAPI.getProfile(studentId),
     [studentId]
   );
-  
+
   const { data: assignments, loading: assignmentsLoading } = useDataFetching(
     () => studentAPI.getAssignments(studentId),
     [studentId]
   );
-  
+
   return {
     profile,
     assignments,
-    loading: profileLoading || assignmentsLoading
+    loading: profileLoading || assignmentsLoading,
   };
 };
 ```
 
 #### 2. Optimistic Updates Pattern
+
 ```typescript
 // Optimistic update pattern for better UX
 const useOptimisticUpdate = <T, U>(
@@ -228,93 +635,111 @@ const useOptimisticUpdate = <T, U>(
 // Example: Assignment submission with optimistic updates
 const useAssignmentSubmission = (assignmentId: string) => {
   const { data: submissions, setData } = useSubmissions(assignmentId);
-  
+
   const submitAssignment = useOptimisticUpdate(
     submissions,
     (submissionData) => submissionAPI.create(assignmentId, submissionData),
-    (current, newSubmission) => [...current, { ...newSubmission, id: 'temp', status: 'SUBMITTING' }]
+    (current, newSubmission) => [
+      ...current,
+      { ...newSubmission, id: "temp", status: "SUBMITTING" },
+    ]
   );
-  
-  return { submissions: submitAssignment.data, submitAssignment: submitAssignment.performUpdate };
+
+  return {
+    submissions: submitAssignment.data,
+    submitAssignment: submitAssignment.performUpdate,
+  };
 };
 ```
 
 ### State Management Patterns
 
 #### 1. Reducer Pattern for Complex State
+
 ```typescript
 // Complex state management using useReducer pattern
 interface DashboardState {
   activeTab: string;
   filters: Record<string, any>;
   sortBy: string;
-  sortOrder: 'asc' | 'desc';
+  sortOrder: "asc" | "desc";
   selectedItems: string[];
   bulkActions: boolean;
 }
 
 type DashboardAction =
-  | { type: 'SET_ACTIVE_TAB'; payload: string }
-  | { type: 'UPDATE_FILTERS'; payload: Record<string, any> }
-  | { type: 'SET_SORT'; payload: { sortBy: string; sortOrder: 'asc' | 'desc' } }
-  | { type: 'SELECT_ITEM'; payload: string }
-  | { type: 'SELECT_ALL'; payload: string[] }
-  | { type: 'CLEAR_SELECTION' }
-  | { type: 'TOGGLE_BULK_ACTIONS' };
+  | { type: "SET_ACTIVE_TAB"; payload: string }
+  | { type: "UPDATE_FILTERS"; payload: Record<string, any> }
+  | { type: "SET_SORT"; payload: { sortBy: string; sortOrder: "asc" | "desc" } }
+  | { type: "SELECT_ITEM"; payload: string }
+  | { type: "SELECT_ALL"; payload: string[] }
+  | { type: "CLEAR_SELECTION" }
+  | { type: "TOGGLE_BULK_ACTIONS" };
 
-const dashboardReducer = (state: DashboardState, action: DashboardAction): DashboardState => {
+const dashboardReducer = (
+  state: DashboardState,
+  action: DashboardAction
+): DashboardState => {
   switch (action.type) {
-    case 'SET_ACTIVE_TAB':
+    case "SET_ACTIVE_TAB":
       return { ...state, activeTab: action.payload, selectedItems: [] };
-    
-    case 'UPDATE_FILTERS':
+
+    case "UPDATE_FILTERS":
       return { ...state, filters: { ...state.filters, ...action.payload } };
-    
-    case 'SET_SORT':
-      return { ...state, sortBy: action.payload.sortBy, sortOrder: action.payload.sortOrder };
-    
-    case 'SELECT_ITEM':
+
+    case "SET_SORT":
+      return {
+        ...state,
+        sortBy: action.payload.sortBy,
+        sortOrder: action.payload.sortOrder,
+      };
+
+    case "SELECT_ITEM":
       const isSelected = state.selectedItems.includes(action.payload);
       return {
         ...state,
         selectedItems: isSelected
-          ? state.selectedItems.filter(id => id !== action.payload)
-          : [...state.selectedItems, action.payload]
+          ? state.selectedItems.filter((id) => id !== action.payload)
+          : [...state.selectedItems, action.payload],
       };
-    
-    case 'SELECT_ALL':
+
+    case "SELECT_ALL":
       return { ...state, selectedItems: action.payload };
-    
-    case 'CLEAR_SELECTION':
+
+    case "CLEAR_SELECTION":
       return { ...state, selectedItems: [], bulkActions: false };
-    
-    case 'TOGGLE_BULK_ACTIONS':
+
+    case "TOGGLE_BULK_ACTIONS":
       return { ...state, bulkActions: !state.bulkActions };
-    
+
     default:
       return state;
   }
 };
 
 // Custom hook for dashboard state management
-const useDashboardState = (initialTab: string = 'overview') => {
+const useDashboardState = (initialTab: string = "overview") => {
   const [state, dispatch] = useReducer(dashboardReducer, {
     activeTab: initialTab,
     filters: {},
-    sortBy: 'createdAt',
-    sortOrder: 'desc',
+    sortBy: "createdAt",
+    sortOrder: "desc",
     selectedItems: [],
-    bulkActions: false
+    bulkActions: false,
   });
 
   const actions = {
-    setActiveTab: (tab: string) => dispatch({ type: 'SET_ACTIVE_TAB', payload: tab }),
-    updateFilters: (filters: Record<string, any>) => dispatch({ type: 'UPDATE_FILTERS', payload: filters }),
-    setSort: (sortBy: string, sortOrder: 'asc' | 'desc') => dispatch({ type: 'SET_SORT', payload: { sortBy, sortOrder } }),
-    selectItem: (id: string) => dispatch({ type: 'SELECT_ITEM', payload: id }),
-    selectAll: (ids: string[]) => dispatch({ type: 'SELECT_ALL', payload: ids }),
-    clearSelection: () => dispatch({ type: 'CLEAR_SELECTION' }),
-    toggleBulkActions: () => dispatch({ type: 'TOGGLE_BULK_ACTIONS' })
+    setActiveTab: (tab: string) =>
+      dispatch({ type: "SET_ACTIVE_TAB", payload: tab }),
+    updateFilters: (filters: Record<string, any>) =>
+      dispatch({ type: "UPDATE_FILTERS", payload: filters }),
+    setSort: (sortBy: string, sortOrder: "asc" | "desc") =>
+      dispatch({ type: "SET_SORT", payload: { sortBy, sortOrder } }),
+    selectItem: (id: string) => dispatch({ type: "SELECT_ITEM", payload: id }),
+    selectAll: (ids: string[]) =>
+      dispatch({ type: "SELECT_ALL", payload: ids }),
+    clearSelection: () => dispatch({ type: "CLEAR_SELECTION" }),
+    toggleBulkActions: () => dispatch({ type: "TOGGLE_BULK_ACTIONS" }),
   };
 
   return { state, actions };
@@ -322,6 +747,7 @@ const useDashboardState = (initialTab: string = 'overview') => {
 ```
 
 #### 2. Form State Management Pattern
+
 ```typescript
 // Comprehensive form state management pattern
 interface FormState<T> {
@@ -349,25 +775,28 @@ const useForm = <T extends Record<string, any>>(config: FormConfig<T>) => {
     errors: {},
     touched: {},
     isSubmitting: false,
-    isValid: true
+    isValid: true,
   });
 
-  const validateField = useCallback((name: keyof T, value: any): string | undefined => {
-    const rules = config.validationRules?.[name];
-    if (!rules) return undefined;
+  const validateField = useCallback(
+    (name: keyof T, value: any): string | undefined => {
+      const rules = config.validationRules?.[name];
+      if (!rules) return undefined;
 
-    for (const rule of rules) {
-      const error = rule.validate(value, state.values);
-      if (error) return error;
-    }
-    return undefined;
-  }, [config.validationRules, state.values]);
+      for (const rule of rules) {
+        const error = rule.validate(value, state.values);
+        if (error) return error;
+      }
+      return undefined;
+    },
+    [config.validationRules, state.values]
+  );
 
   const validateForm = useCallback((): boolean => {
     const newErrors: Partial<Record<keyof T, string>> = {};
     let isValid = true;
 
-    Object.keys(state.values).forEach(key => {
+    Object.keys(state.values).forEach((key) => {
       const error = validateField(key as keyof T, state.values[key]);
       if (error) {
         newErrors[key as keyof T] = error;
@@ -375,40 +804,46 @@ const useForm = <T extends Record<string, any>>(config: FormConfig<T>) => {
       }
     });
 
-    setState(prev => ({ ...prev, errors: newErrors, isValid }));
+    setState((prev) => ({ ...prev, errors: newErrors, isValid }));
     return isValid;
   }, [state.values, validateField]);
 
   const handleChange = (name: keyof T, value: any) => {
-    setState(prev => ({
+    setState((prev) => ({
       ...prev,
       values: { ...prev.values, [name]: value },
-      errors: { ...prev.errors, [name]: validateField(name, value) }
+      errors: { ...prev.errors, [name]: validateField(name, value) },
     }));
   };
 
   const handleBlur = (name: keyof T) => {
-    setState(prev => ({
+    setState((prev) => ({
       ...prev,
-      touched: { ...prev.touched, [name]: true }
+      touched: { ...prev.touched, [name]: true },
     }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    setState(prev => ({ ...prev, touched: Object.keys(prev.values).reduce((acc, key) => ({ ...acc, [key]: true }), {}) }));
-    
+
+    setState((prev) => ({
+      ...prev,
+      touched: Object.keys(prev.values).reduce(
+        (acc, key) => ({ ...acc, [key]: true }),
+        {}
+      ),
+    }));
+
     if (!validateForm()) return;
 
-    setState(prev => ({ ...prev, isSubmitting: true }));
-    
+    setState((prev) => ({ ...prev, isSubmitting: true }));
+
     try {
       await config.onSubmit(state.values);
     } catch (error) {
       // Handle submission error
     } finally {
-      setState(prev => ({ ...prev, isSubmitting: false }));
+      setState((prev) => ({ ...prev, isSubmitting: false }));
     }
   };
 
@@ -418,7 +853,7 @@ const useForm = <T extends Record<string, any>>(config: FormConfig<T>) => {
       errors: {},
       touched: {},
       isSubmitting: false,
-      isValid: true
+      isValid: true,
     });
   };
 
@@ -431,7 +866,7 @@ const useForm = <T extends Record<string, any>>(config: FormConfig<T>) => {
     handleChange,
     handleBlur,
     handleSubmit,
-    reset
+    reset,
   };
 };
 ```
@@ -439,6 +874,7 @@ const useForm = <T extends Record<string, any>>(config: FormConfig<T>) => {
 ### UI Component Patterns
 
 #### 1. Compound Component Pattern
+
 ```typescript
 // Compound component pattern for flexible, composable UI
 interface TabsContextType {
@@ -451,7 +887,7 @@ const TabsContext = React.createContext<TabsContextType | undefined>(undefined);
 const useTabs = () => {
   const context = useContext(TabsContext);
   if (!context) {
-    throw new Error('useTabs must be used within a Tabs component');
+    throw new Error("useTabs must be used within a Tabs component");
   }
   return context;
 };
@@ -459,15 +895,13 @@ const useTabs = () => {
 // Main Tabs component
 const Tabs: React.FC<{ defaultValue: string; children: React.ReactNode }> = ({
   defaultValue,
-  children
+  children,
 }) => {
   const [activeTab, setActiveTab] = useState(defaultValue);
 
   return (
     <TabsContext.Provider value={{ activeTab, setActiveTab }}>
-      <div className="tabs-container">
-        {children}
-      </div>
+      <div className="tabs-container">{children}</div>
     </TabsContext.Provider>
   );
 };
@@ -481,13 +915,13 @@ const TabsList: React.FC<{ children: React.ReactNode }> = ({ children }) => (
 
 const TabsTrigger: React.FC<{ value: string; children: React.ReactNode }> = ({
   value,
-  children
+  children,
 }) => {
   const { activeTab, setActiveTab } = useTabs();
-  
+
   return (
     <button
-      className={`tab-trigger ${activeTab === value ? 'active' : ''}`}
+      className={`tab-trigger ${activeTab === value ? "active" : ""}`}
       onClick={() => setActiveTab(value)}
       role="tab"
       aria-selected={activeTab === value}
@@ -499,12 +933,12 @@ const TabsTrigger: React.FC<{ value: string; children: React.ReactNode }> = ({
 
 const TabsContent: React.FC<{ value: string; children: React.ReactNode }> = ({
   value,
-  children
+  children,
 }) => {
   const { activeTab } = useTabs();
-  
+
   if (activeTab !== value) return null;
-  
+
   return (
     <div className="tab-content" role="tabpanel">
       {children}
@@ -525,15 +959,15 @@ const DashboardTabs = () => (
       <Tabs.Trigger value="assignments">Assignments</Tabs.Trigger>
       <Tabs.Trigger value="grades">Grades</Tabs.Trigger>
     </Tabs.List>
-    
+
     <Tabs.Content value="overview">
       <OverviewContent />
     </Tabs.Content>
-    
+
     <Tabs.Content value="assignments">
       <AssignmentsContent />
     </Tabs.Content>
-    
+
     <Tabs.Content value="grades">
       <GradesContent />
     </Tabs.Content>
@@ -542,6 +976,7 @@ const DashboardTabs = () => (
 ```
 
 #### 2. Render Props Pattern
+
 ```typescript
 // Render props pattern for flexible data sharing
 interface DataFetcherProps<T> {
@@ -554,9 +989,9 @@ interface DataFetcherProps<T> {
   }) => React.ReactNode;
 }
 
-const DataFetcher = <T,>({ fetcher, children }: DataFetcherProps<T>) => {
+const DataFetcher = <T>({ fetcher, children }: DataFetcherProps<T>) => {
   const { data, loading, error, refetch } = useDataFetching(fetcher);
-  
+
   return <>{children({ data, loading, error, refetch })}</>;
 };
 
@@ -566,11 +1001,12 @@ const StudentAssignments = ({ studentId }: { studentId: string }) => (
     {({ data: assignments, loading, error, refetch }) => {
       if (loading) return <LoadingSpinner />;
       if (error) return <ErrorMessage message={error} onRetry={refetch} />;
-      if (!assignments?.length) return <EmptyState message="No assignments found" />;
-      
+      if (!assignments?.length)
+        return <EmptyState message="No assignments found" />;
+
       return (
         <div className="assignments-list">
-          {assignments.map(assignment => (
+          {assignments.map((assignment) => (
             <AssignmentCard key={assignment.id} assignment={assignment} />
           ))}
         </div>
@@ -583,6 +1019,7 @@ const StudentAssignments = ({ studentId }: { studentId: string }) => (
 ### Error Handling Patterns
 
 #### 1. Error Boundary Pattern
+
 ```typescript
 // Error boundary pattern for graceful error handling
 interface ErrorBoundaryState {
@@ -592,7 +1029,10 @@ interface ErrorBoundaryState {
 }
 
 class ErrorBoundary extends React.Component<
-  { children: React.ReactNode; fallback?: React.ComponentType<{ error: Error; resetError: () => void }> },
+  {
+    children: React.ReactNode;
+    fallback?: React.ComponentType<{ error: Error; resetError: () => void }>;
+  },
   ErrorBoundaryState
 > {
   constructor(props: any) {
@@ -606,9 +1046,9 @@ class ErrorBoundary extends React.Component<
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     this.setState({ errorInfo });
-    
+
     // Log error to monitoring service
-    console.error('Error caught by boundary:', error, errorInfo);
+    console.error("Error caught by boundary:", error, errorInfo);
   }
 
   resetError = () => {
@@ -631,10 +1071,10 @@ class ErrorBoundary extends React.Component<
 }
 
 // Default error fallback component
-const DefaultErrorFallback: React.FC<{ error: Error; resetError: () => void }> = ({
-  error,
-  resetError
-}) => (
+const DefaultErrorFallback: React.FC<{
+  error: Error;
+  resetError: () => void;
+}> = ({ error, resetError }) => (
   <div className="error-fallback">
     <h2>Something went wrong</h2>
     <p>{error.message}</p>
@@ -643,14 +1083,15 @@ const DefaultErrorFallback: React.FC<{ error: Error; resetError: () => void }> =
 );
 
 // Feature-specific error boundaries
-const DashboardErrorBoundary: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <ErrorBoundary fallback={DashboardErrorFallback}>
-    {children}
-  </ErrorBoundary>
+const DashboardErrorBoundary: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => (
+  <ErrorBoundary fallback={DashboardErrorFallback}>{children}</ErrorBoundary>
 );
 ```
 
 #### 2. Error Recovery Patterns
+
 ```typescript
 // Automatic retry pattern for transient errors
 const useRetryableAPI = <T>(
@@ -676,15 +1117,17 @@ const useRetryableAPI = <T>(
         return;
       } catch (err) {
         setRetryCount(attempt + 1);
-        
+
         if (attempt === maxRetries) {
-          setError(err instanceof Error ? err.message : 'Request failed');
+          setError(err instanceof Error ? err.message : "Request failed");
           setLoading(false);
           return;
         }
-        
+
         // Wait before retry
-        await new Promise(resolve => setTimeout(resolve, retryDelay * Math.pow(2, attempt)));
+        await new Promise((resolve) =>
+          setTimeout(resolve, retryDelay * Math.pow(2, attempt))
+        );
       }
     }
   }, [apiCall, maxRetries, retryDelay]);
@@ -696,6 +1139,7 @@ const useRetryableAPI = <T>(
 ### Performance Optimization Patterns
 
 #### 1. Virtualization Pattern
+
 ```typescript
 // Virtual scrolling pattern for large lists
 interface VirtualListProps<T> {
@@ -705,36 +1149,36 @@ interface VirtualListProps<T> {
   renderItem: (item: T, index: number) => React.ReactNode;
 }
 
-const VirtualList = <T,>({
+const VirtualList = <T>({
   items,
   itemHeight,
   containerHeight,
-  renderItem
+  renderItem,
 }: VirtualListProps<T>) => {
   const [scrollTop, setScrollTop] = useState(0);
-  
+
   const startIndex = Math.floor(scrollTop / itemHeight);
   const endIndex = Math.min(
     startIndex + Math.ceil(containerHeight / itemHeight) + 1,
     items.length
   );
-  
+
   const visibleItems = items.slice(startIndex, endIndex);
-  
+
   return (
     <div
-      style={{ height: containerHeight, overflow: 'auto' }}
+      style={{ height: containerHeight, overflow: "auto" }}
       onScroll={(e) => setScrollTop(e.currentTarget.scrollTop)}
     >
-      <div style={{ height: items.length * itemHeight, position: 'relative' }}>
+      <div style={{ height: items.length * itemHeight, position: "relative" }}>
         {visibleItems.map((item, index) => (
           <div
             key={startIndex + index}
             style={{
-              position: 'absolute',
+              position: "absolute",
               top: (startIndex + index) * itemHeight,
               height: itemHeight,
-              width: '100%'
+              width: "100%",
             }}
           >
             {renderItem(item, startIndex + index)}
@@ -747,44 +1191,47 @@ const VirtualList = <T,>({
 ```
 
 #### 2. Memoization Patterns
+
 ```typescript
 // Smart memoization patterns for performance
 const ExpensiveComponent = React.memo<{
   data: ComplexData[];
   filters: FilterOptions;
   onItemClick: (id: string) => void;
-}>(({ data, filters, onItemClick }) => {
-  // Expensive computation memoized
-  const processedData = useMemo(() => {
-    return data
-      .filter(item => matchesFilters(item, filters))
-      .sort((a, b) => sortComparator(a, b, filters.sortBy));
-  }, [data, filters]);
+}>(
+  ({ data, filters, onItemClick }) => {
+    // Expensive computation memoized
+    const processedData = useMemo(() => {
+      return data
+        .filter((item) => matchesFilters(item, filters))
+        .sort((a, b) => sortComparator(a, b, filters.sortBy));
+    }, [data, filters]);
 
-  // Callback memoized to prevent child re-renders
-  const handleItemClick = useCallback((id: string) => {
-    onItemClick(id);
-  }, [onItemClick]);
+    // Callback memoized to prevent child re-renders
+    const handleItemClick = useCallback(
+      (id: string) => {
+        onItemClick(id);
+      },
+      [onItemClick]
+    );
 
-  return (
-    <div>
-      {processedData.map(item => (
-        <ItemComponent
-          key={item.id}
-          item={item}
-          onClick={handleItemClick}
-        />
-      ))}
-    </div>
-  );
-}, (prevProps, nextProps) => {
-  // Custom comparison for complex props
-  return (
-    prevProps.data === nextProps.data &&
-    shallowEqual(prevProps.filters, nextProps.filters) &&
-    prevProps.onItemClick === nextProps.onItemClick
-  );
-});
+    return (
+      <div>
+        {processedData.map((item) => (
+          <ItemComponent key={item.id} item={item} onClick={handleItemClick} />
+        ))}
+      </div>
+    );
+  },
+  (prevProps, nextProps) => {
+    // Custom comparison for complex props
+    return (
+      prevProps.data === nextProps.data &&
+      shallowEqual(prevProps.filters, nextProps.filters) &&
+      prevProps.onItemClick === nextProps.onItemClick
+    );
+  }
+);
 ```
 
 These system patterns provide a robust foundation for building scalable, maintainable, and performant React applications while following established best practices and design principles.

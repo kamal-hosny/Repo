@@ -1,8 +1,8 @@
-import React from 'react'
+import { useEffect } from 'react'
 import { useRouter } from 'next/router'
 import { useAppSelector } from '@/store/hooks'
-import { selectIsAuthenticated } from '@/store/slices/authSlice'
-import { useEffect } from 'react'
+import { selectIsAuthenticated, selectCurrentUser } from '@/store/slices/authSlice'
+import { routes } from '@/lib/routes'
 
 interface GlobalRouterProps {
     children: React.ReactNode
@@ -11,37 +11,43 @@ interface GlobalRouterProps {
 export const GlobalRouter: React.FC<GlobalRouterProps> = ({ children }) => {
     const router = useRouter()
     const isAuthenticated = useAppSelector(selectIsAuthenticated)
+    const currentUser = useAppSelector(selectCurrentUser)
+
     useEffect(() => {
-        // Only redirect if we're on protected routes (client-side only)
-        if (typeof window === 'undefined') return
+        // Only handle routing for authenticated users
+        if (!isAuthenticated || !currentUser) return
 
-        const publicRoutes = ['/', '/login']
         const currentPath = router.pathname
+        const userRole = currentUser.role
 
-        // If not authenticated and trying to access protected route, redirect to login
-        if (!isAuthenticated && !publicRoutes.includes(currentPath)) {
-            router.push('/login')
+        // Redirect from login page to user's default page after authentication
+        if (currentPath === '/login') {
+            const defaultRoute = routes.roleMap[userRole as keyof typeof routes.roleMap]
+            if (defaultRoute) {
+                router.replace(defaultRoute)
+            }
             return
         }
 
-        // If authenticated and on login page, redirect to home
-        if (isAuthenticated && currentPath === '/login') {
-            router.push('/')
+        // Skip routing logic for public routes
+        if (routes.public.includes(currentPath)) {
             return
         }
-    }, [isAuthenticated, router])
 
-    // Don't render anything while redirecting
-    if (!isAuthenticated && router.pathname !== '/' && router.pathname !== '/login') {
-        return (
-            <div className="min-h-screen bg-theme flex items-center justify-center">
-                <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-                    <p className="text-theme/70 text-lg">Redirecting...</p>
-                </div>
-            </div>
+        // Check if the current route is allowed for this user's role
+        const allowedRoutes = routes.protected[userRole as keyof typeof routes.protected] || []
+        const isRouteAllowed = allowedRoutes.some(route =>
+            currentPath.startsWith(route.replace('/*', '').replace('*', ''))
         )
-    }
+
+        // If route is not allowed, redirect to user's default page
+        if (!isRouteAllowed) {
+            const defaultRoute = routes.roleMap[userRole as keyof typeof routes.roleMap]
+            if (defaultRoute && currentPath !== defaultRoute) {
+                router.replace(defaultRoute)
+            }
+        }
+    }, [router.pathname, isAuthenticated, currentUser, router])
 
     return <>{children}</>
 }

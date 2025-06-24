@@ -1,85 +1,128 @@
-import React, { useEffect } from 'react'
-import { useRouter } from 'next/router'
-import { useAppSelector } from '@/store/hooks'
-import { selectIsAuthenticated, selectUserRole } from '@/store/slices/authSlice'
-import { getRoleBasedRoute } from '@/lib/routes'
-import { useTranslation } from 'react-i18next'
+import React from 'react'
+import { useAppSelector, useAppDispatch } from '@/store/hooks'
+import { selectIsAuthenticated, selectCurrentUser } from '@/store/slices/authSlice'
+import { selectCurrentTheme, toggleTheme } from '@/store/slices/themeSlice'
+import { selectCurrentLanguage, setLanguage } from '@/store/slices/languageSlice'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
-export default function HomePage() {
-  const { t } = useTranslation('common')
-  const router = useRouter()
-  const isAuthenticated = useAppSelector(selectIsAuthenticated)
-  const userRole = useAppSelector(selectUserRole)
+export default function IndexPage() {
+    const dispatch = useAppDispatch()
 
-  useEffect(() => {
-    // Redirect logic will be handled by UnifiedRouter
-    // This page serves as a landing page for public access
-    if (isAuthenticated && userRole) {
-      const roleRoute = getRoleBasedRoute(userRole)
-      router.replace(roleRoute)
+    // Redux state
+    const isAuthenticated = useAppSelector(selectIsAuthenticated)
+    const currentUser = useAppSelector(selectCurrentUser)
+    const currentTheme = useAppSelector(selectCurrentTheme)
+    const currentLanguage = useAppSelector(selectCurrentLanguage)
+
+    const handleThemeToggle = () => {
+        dispatch(toggleTheme())
     }
-  }, [isAuthenticated, userRole, router])
 
-  // Public landing page content
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/10 via-background to-secondary/10">
-      <div className="container mx-auto px-4 py-16">
-        <div className="text-center space-y-8">
-          <h1 className="text-6xl font-bold text-foreground mb-4">
-            {t('app.name')}
-          </h1>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            {t('app.description')}
-          </p>
-          
-          <div className="flex justify-center gap-4 mt-8">
-            <button
-              onClick={() => router.push('/login')}
-              className="bg-primary text-primary-foreground px-8 py-3 rounded-lg text-lg font-semibold hover:bg-primary/90 transition-colors"
-            >
-              {t('auth.login')}
-            </button>
-          </div>
-          
-          <div className="mt-16 grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-4xl mx-auto">
-            <div className="bg-card p-6 rounded-lg border border-border">
-              <h3 className="text-lg font-semibold text-foreground mb-2">
-                {t('roles.student')}
-              </h3>
-              <p className="text-muted-foreground">
-                {t('pages.student.coursesDescription')}
-              </p>
+    const handleLanguageToggle = () => {
+        dispatch(setLanguage(currentLanguage === 'en' ? 'ar' : 'en'))
+    }
+
+    return (
+        <div className="min-h-screen bg-theme text-theme p-8">
+            <div className="max-w-4xl mx-auto space-y-6">
+                {/* Header */}
+                <header className="text-center space-y-2">
+                    <h1 className="text-4xl font-logo text-primary">Task-Flow LMS</h1>
+                    <p className="text-lg font-body text-theme/80">Infrastructure Test Page</p>
+                </header>
+
+                {/* Control Panel */}
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="font-body">Controls</CardTitle>
+                        <CardDescription className="font-body">Test Redux, Theme, and Language features</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        <div className="flex gap-4 flex-wrap">
+                            <Button onClick={handleThemeToggle} variant="outline">
+                                Toggle Theme ({String(currentTheme)})
+                            </Button>
+                            <Button onClick={handleLanguageToggle} variant="outline">
+                                Toggle Language ({currentLanguage.toUpperCase()})
+                            </Button>
+                        </div>
+                    </CardContent>
+                </Card>
+
+                {/* Redux State Display */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="font-body">Authentication State</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-2 font-body">
+                            <p><strong>Authenticated:</strong> {isAuthenticated ? 'Yes' : 'No'}</p>
+                            {currentUser && (
+                                <>
+                                    <p><strong>User:</strong> {currentUser.name}</p>
+                                    <p><strong>Role:</strong> {currentUser.role}</p>
+                                    <p><strong>Email:</strong> {currentUser.email}</p>
+                                </>
+                            )}
+                        </CardContent>
+                    </Card>
+
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="font-body">System State</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-2 font-body">
+                            <p><strong>Theme:</strong> {String(currentTheme)}</p>
+                            <p><strong>Language:</strong> {currentLanguage.toUpperCase()}</p>
+                            <p><strong>Direction:</strong> {currentLanguage === 'ar' ? 'RTL' : 'LTR'}</p>
+                        </CardContent>
+                    </Card>
+                </div>
+
+                {/* Font Demonstration */}
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="font-body">Font Demonstration</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        <div className="space-y-2">
+                            <p className="font-signature text-2xl text-primary">Dancing Script - For signatures</p>
+                            <p className="font-logo text-xl text-primary">Edu NSW ACT Hand - For logos</p>
+                            <p className="font-body text-theme">Lora - For body text</p>
+                        </div>
+                    </CardContent>
+                </Card>
+
+                {/* Quick Actions */}
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="font-body">Quick Actions</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        <div className="flex gap-4 flex-wrap">
+                            {!isAuthenticated ? (
+                                <Button onClick={() => {
+                                    if (typeof window !== 'undefined') {
+                                        window.location.href = '/login'
+                                    }
+                                }}>
+                                    Login
+                                </Button>
+                            ) : (
+                                <Button onClick={() => {
+                                    if (typeof window !== 'undefined') {
+                                        localStorage.removeItem('token')
+                                        window.location.reload()
+                                    }
+                                }}>
+                                    Logout
+                                </Button>
+                            )}
+                        </div>
+                    </CardContent>
+                </Card>
             </div>
-            
-            <div className="bg-card p-6 rounded-lg border border-border">
-              <h3 className="text-lg font-semibold text-foreground mb-2">
-                {t('roles.teacher')}
-              </h3>
-              <p className="text-muted-foreground">
-                {t('pages.teacher.coursesDescription')}
-              </p>
-            </div>
-            
-            <div className="bg-card p-6 rounded-lg border border-border">
-              <h3 className="text-lg font-semibold text-foreground mb-2">
-                {t('roles.admin')}
-              </h3>
-              <p className="text-muted-foreground">
-                {t('pages.admin.usersDescription')}
-              </p>
-            </div>
-            
-            <div className="bg-card p-6 rounded-lg border border-border">
-              <h3 className="text-lg font-semibold text-foreground mb-2">
-                {t('roles.super_admin')}
-              </h3>
-              <p className="text-muted-foreground">
-                {t('pages.superadmin.systemDescription')}
-              </p>
-            </div>
-          </div>
         </div>
-      </div>
-    </div>
-  )
+    )
 }

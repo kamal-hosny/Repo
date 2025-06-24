@@ -92,9 +92,30 @@ const LoginPage: React.FC = () => {
     return (
         <div className="min-h-screen bg-theme flex items-center justify-center p-4">
             <div className="w-full max-w-md space-y-6">
-                {/* Header with theme controls */}
+                {/* Header with home button and theme controls */}
                 <div className="flex justify-between items-center">
-                    <h1 className="text-2xl font-logo text-primary">Task-Flow</h1>
+                    <div className="flex items-center gap-3">
+                        <button
+                            onClick={() => router.push('/')}
+                            className="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 transition-colors"
+                            title="Go to Home"
+                        >
+                            <svg
+                                className="w-5 h-5 text-gray-600 dark:text-gray-300"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
+                                />
+                            </svg>
+                        </button>
+                        <h1 className="text-2xl font-logo text-primary">Task-Flow</h1>
+                    </div>
                     <div className="flex gap-2">
                         {/* <LanguageSwitcher /> */}
                         <ThemeToggle />

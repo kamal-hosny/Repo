@@ -1,12 +1,422 @@
-# API Documentation - Task-Flow LMS Frontend
+# API Documentation - Unified Router Architecture
+
+## Overview
+
+The Task-Flow LMS frontend integrates with backend APIs using RTK Query for efficient data fetching and caching. The system supports both real API integration and mock data for development.
+
+## Authentication Integration
+
+### Redux-Based Authentication
+
+```typescript
+// Store Integration
+import { useAppSelector } from "@/store/hooks";
+import {
+  selectCurrentUser,
+  selectIsAuthenticated,
+} from "@/store/slices/authSlice";
+
+// Component Usage
+const MyComponent = () => {
+  const user = useAppSelector(selectCurrentUser);
+  const isAuthenticated = useAppSelector(selectIsAuthenticated);
+
+  return (
+    <div>
+      {isAuthenticated ? <p>Welcome, {user?.name}!</p> : <p>Please log in</p>}
+    </div>
+  );
+};
+```
+
+### Authentication State Structure
+
+```typescript
+interface AuthState {
+  user: User | null;
+  token: string | null;
+  isAuthenticated: boolean;
+  isLoading: boolean;
+  error: string | null;
+}
+
+interface User {
+  id: string;
+  email: string;
+  name: string;
+  role: "STUDENT" | "TEACHER" | "ADMIN" | "SUPER_ADMIN";
+  avatar?: string;
+  profileData: Record<string, unknown>;
+}
+```
+
+## API Integration Patterns
+
+### RTK Query Setup
+
+```typescript
+// Base API Slice
+export const apiSlice = createApi({
+  reducerPath: "api",
+  baseQuery: fetchBaseQuery({
+    baseUrl: process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api",
+    prepareHeaders: (headers, { getState }) => {
+      const token = (getState() as RootState).auth.token;
+      if (token) {
+        headers.set("authorization", `Bearer ${token}`);
+      }
+      return headers;
+    },
+  }),
+  tagTypes: ["User", "Task", "Course", "Assignment"],
+  endpoints: () => ({}),
+});
+```
+
+### Authentication API Endpoints
+
+```typescript
+export const authApiSlice = apiSlice.injectEndpoints({
+  endpoints: (builder) => ({
+    login: builder.mutation<LoginResponse, LoginRequest>({
+      queryFn: async (credentials) => {
+        // Supports both mock and real API
+        if (USE_MOCK_API) {
+          const data = await mockLogin(credentials);
+          return { data };
+        } else {
+          const response = await fetch(`${API_URL}/auth/login`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(credentials),
+          });
+          const data = await response.json();
+          return { data };
+        }
+      },
+    }),
+    logout: builder.mutation<void, void>({
+      queryFn: async () => {
+        // Handle logout logic
+        return { data: undefined };
+      },
+    }),
+    refreshToken: builder.mutation<TokenResponse, void>({
+      queryFn: async () => {
+        // Handle token refresh
+        return { data: { token: "new-token", expiresIn: 3600 } };
+      },
+    }),
+  }),
+});
+
+export const { useLoginMutation, useLogoutMutation, useRefreshTokenMutation } =
+  authApiSlice;
+```
+
+## Role-Based API Access
+
+### Permission-Based Endpoints
+
+```typescript
+// User Management API (Admin/SuperAdmin only)
+export const userApiSlice = apiSlice.injectEndpoints({
+  endpoints: (builder) => ({
+    getUsers: builder.query<User[], { role?: string }>({
+      query: ({ role }) => ({
+        url: "/users",
+        params: role ? { role } : {},
+      }),
+      providesTags: ["User"],
+    }),
+    createUser: builder.mutation<User, CreateUserRequest>({
+      query: (userData) => ({
+        url: "/users",
+        method: "POST",
+        body: userData,
+      }),
+      invalidatesTags: ["User"],
+    }),
+    updateUser: builder.mutation<User, UpdateUserRequest>({
+      query: ({ id, ...userData }) => ({
+        url: `/users/${id}`,
+        method: "PUT",
+        body: userData,
+      }),
+      invalidatesTags: ["User"],
+    }),
+    deleteUser: builder.mutation<void, string>({
+      query: (id) => ({
+        url: `/users/${id}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ["User"],
+    }),
+  }),
+});
+
+export const {
+  useGetUsersQuery,
+  useCreateUserMutation,
+  useUpdateUserMutation,
+  useDeleteUserMutation,
+} = userApiSlice;
+```
+
+### Role-Based Hook Usage
+
+```typescript
+// Component with role-based API access
+const UserManagement = () => {
+  const user = useAppSelector(selectCurrentUser);
+
+  // Only fetch users if user has permission
+  const {
+    data: users,
+    isLoading,
+    error,
+  } = useGetUsersQuery(
+    {},
+    {
+      skip: !user || !["ADMIN", "SUPER_ADMIN"].includes(user.role),
+    }
+  );
+
+  const [createUser] = useCreateUserMutation();
+
+  const handleCreateUser = async (userData: CreateUserRequest) => {
+    if (user && ["ADMIN", "SUPER_ADMIN"].includes(user.role)) {
+      try {
+        await createUser(userData).unwrap();
+      } catch (error) {
+        console.error("Failed to create user:", error);
+      }
+    }
+  };
+
+  if (!user || !["ADMIN", "SUPER_ADMIN"].includes(user.role)) {
+    return <div>Access denied</div>;
+  }
+
+  return <div>{/* User management interface */}</div>;
+};
+```
+
+## Mock API Integration
+
+### Development Mock System
+
+```typescript
+// Mock Authentication
+export const mockLogin = async (
+  credentials: LoginRequest
+): Promise<LoginResponse> => {
+  const mockUsers = {
+    "student@example.com": {
+      id: "1",
+      email: "student@example.com",
+      name: "Student User",
+      role: "STUDENT" as const,
+    },
+    "teacher@example.com": {
+      id: "2",
+      email: "teacher@example.com",
+      name: "Teacher User",
+      role: "TEACHER" as const,
+    },
+    "admin@example.com": {
+      id: "3",
+      email: "admin@example.com",
+      name: "Admin User",
+      role: "ADMIN" as const,
+    },
+    "superadmin@example.com": {
+      id: "4",
+      email: "superadmin@example.com",
+      name: "Super Admin User",
+      role: "SUPER_ADMIN" as const,
+    },
+  };
+
+  const user = mockUsers[credentials.email as keyof typeof mockUsers];
+
+  if (user && credentials.password === "password") {
+    return {
+      user,
+      token: `mock-token-${user.id}`,
+      refreshToken: `mock-refresh-${user.id}`,
+    };
+  }
+
+  throw new Error("Invalid credentials");
+};
+```
+
+## Error Handling
+
+### API Error Patterns
+
+```typescript
+// Error Boundary for API calls
+const ApiErrorBoundary: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
+  return (
+    <ErrorBoundary
+      fallback={({ error, reset }) => (
+        <div className="error-container">
+          <h2>Something went wrong</h2>
+          <p>{error.message}</p>
+          <button onClick={reset}>Try again</button>
+        </div>
+      )}
+    >
+      {children}
+    </ErrorBoundary>
+  );
+};
+
+// Hook with error handling
+const useApiWithErrorHandling = () => {
+  const [error, setError] = useState<string | null>(null);
+
+  const handleApiCall = async (apiCall: () => Promise<any>) => {
+    try {
+      setError(null);
+      const result = await apiCall();
+      return result;
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "An unknown error occurred";
+      setError(message);
+      throw err;
+    }
+  };
+
+  return { handleApiCall, error, clearError: () => setError(null) };
+};
+```
+
+## Future API Integration
+
+### Real-Time API Support
+
+```typescript
+// Future Socket.io integration
+interface SocketEvents {
+  "user:status": (status: UserStatus) => void;
+  "task:updated": (task: Task) => void;
+  "notification:new": (notification: Notification) => void;
+  "grade:posted": (grade: Grade) => void;
+}
+
+// Socket API slice (planned)
+export const socketApiSlice = apiSlice.injectEndpoints({
+  endpoints: (builder) => ({
+    subscribeToUpdates: builder.query<void, string>({
+      queryFn: () => ({ data: undefined }),
+      async onCacheEntryAdded(
+        userId,
+        { dispatch, cacheDataLoaded, cacheEntryRemoved }
+      ) {
+        const socket = io(SOCKET_URL, {
+          auth: { userId },
+        });
+
+        try {
+          await cacheDataLoaded;
+
+          socket.on("task:updated", (task) => {
+            dispatch(
+              apiSlice.util.updateQueryData("getTasks", undefined, (draft) => {
+                const index = draft.findIndex((t) => t.id === task.id);
+                if (index !== -1) {
+                  draft[index] = task;
+                }
+              })
+            );
+          });
+        } catch {
+          // Handle errors
+        }
+
+        await cacheEntryRemoved;
+        socket.close();
+      },
+    }),
+  }),
+});
+```
+
+## Performance Optimization
+
+### API Caching Strategy
+
+```typescript
+// Cache configuration
+export const apiSlice = createApi({
+  reducerPath: "api",
+  baseQuery: fetchBaseQuery({
+    baseUrl: API_URL,
+  }),
+  tagTypes: ["User", "Task", "Course"],
+  endpoints: () => ({}),
+  keepUnusedDataFor: 300, // 5 minutes
+});
+
+// Selective cache invalidation
+const invalidateUserCache = (userId: string) => {
+  dispatch(apiSlice.util.invalidateTags([{ type: "User", id: userId }]));
+};
+
+// Prefetching for better UX
+const prefetchUserData = (userId: string) => {
+  dispatch(apiSlice.util.prefetch("getUser", userId, { force: true }));
+};
+```
+
+### Optimistic Updates
+
+```typescript
+// Optimistic update pattern
+const useOptimisticUpdate = () => {
+  const [updateUser] = useUpdateUserMutation();
+
+  const optimisticUpdateUser = async (
+    userId: string,
+    updates: Partial<User>
+  ) => {
+    // Optimistically update the cache
+    const originalUser = dispatch(
+      apiSlice.util.updateQueryData("getUser", userId, (draft) => {
+        Object.assign(draft, updates);
+      })
+    );
+
+    try {
+      await updateUser({ id: userId, ...updates }).unwrap();
+    } catch {
+      // Revert on error
+      originalUser.undo();
+    }
+  };
+
+  return { optimisticUpdateUser };
+};
+```
+
+This API documentation reflects the unified router architecture where all API calls are role-aware and support both development mock data and production API integration. - Task-Flow LMS Frontend
 
 ## API Base Configuration
 
 ### Base URL Configuration
+
 ```typescript
 // lib/api.ts
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
-const SOCKET_URL = process.env.NEXT_PUBLIC_SOCKET_URL || 'http://localhost:5000';
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+const SOCKET_URL =
+  process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:5000";
 
 // API Client Configuration
 class APIClient {
@@ -27,7 +437,7 @@ class APIClient {
   ): Promise<T> {
     const url = `${this.baseURL}${endpoint}`;
     const headers: HeadersInit = {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
       ...options.headers,
     };
 
@@ -48,25 +458,25 @@ class APIClient {
   }
 
   get<T>(endpoint: string): Promise<T> {
-    return this.request<T>(endpoint, { method: 'GET' });
+    return this.request<T>(endpoint, { method: "GET" });
   }
 
   post<T>(endpoint: string, data?: any): Promise<T> {
     return this.request<T>(endpoint, {
-      method: 'POST',
+      method: "POST",
       body: data ? JSON.stringify(data) : undefined,
     });
   }
 
   put<T>(endpoint: string, data?: any): Promise<T> {
     return this.request<T>(endpoint, {
-      method: 'PUT',
+      method: "PUT",
       body: data ? JSON.stringify(data) : undefined,
     });
   }
 
   delete<T>(endpoint: string): Promise<T> {
-    return this.request<T>(endpoint, { method: 'DELETE' });
+    return this.request<T>(endpoint, { method: "DELETE" });
   }
 }
 
@@ -76,6 +486,7 @@ export const apiClient = new APIClient(API_BASE_URL);
 ## Authentication API
 
 ### Authentication Endpoints
+
 ```typescript
 // Authentication API Interface
 interface AuthAPI {
@@ -87,21 +498,21 @@ interface AuthAPI {
 
 // Types
 interface LoginCredentials {
-  email: string;        // University email or student ID
-  password: string;     // User password
+  email: string; // University email or student ID
+  password: string; // User password
 }
 
 interface LoginResponse {
   success: boolean;
-  token: string;        // JWT access token
+  token: string; // JWT access token
   refreshToken: string; // Refresh token for token renewal
   user: {
     id: string;
     email: string;
-    role: 'STUDENT' | 'TEACHER' | 'ADMIN' | 'SUPER_ADMIN';
+    role: "STUDENT" | "TEACHER" | "ADMIN" | "SUPER_ADMIN";
     profile: UserProfile;
   };
-  expiresIn: number;    // Token expiration time in seconds
+  expiresIn: number; // Token expiration time in seconds
 }
 
 interface TokenResponse {
@@ -112,40 +523,42 @@ interface TokenResponse {
 // Authentication API Implementation
 export const authAPI: AuthAPI = {
   async login(credentials: LoginCredentials): Promise<LoginResponse> {
-    return apiClient.post<LoginResponse>('/auth/login', credentials);
+    return apiClient.post<LoginResponse>("/auth/login", credentials);
   },
 
   async logout(): Promise<void> {
-    return apiClient.post<void>('/auth/logout');
+    return apiClient.post<void>("/auth/logout");
   },
 
   async refreshToken(): Promise<TokenResponse> {
-    return apiClient.post<TokenResponse>('/auth/refresh');
+    return apiClient.post<TokenResponse>("/auth/refresh");
   },
 
   async verifyToken(): Promise<UserProfile> {
-    return apiClient.get<UserProfile>('/auth/verify');
-  }
+    return apiClient.get<UserProfile>("/auth/verify");
+  },
 };
 
 // Usage Example
 const handleLogin = async (email: string, password: string) => {
   try {
     const response = await authAPI.login({ email, password });
-    
+
     // Store token and user data
-    localStorage.setItem('token', response.token);
-    localStorage.setItem('refreshToken', response.refreshToken);
-    
+    localStorage.setItem("token", response.token);
+    localStorage.setItem("refreshToken", response.refreshToken);
+
     // Set token for subsequent API calls
     apiClient.setToken(response.token);
-    
+
     // Redirect based on role
-    const redirectPath = getRoleBasedRedirect(response.user.role, response.user.id);
+    const redirectPath = getRoleBasedRedirect(
+      response.user.role,
+      response.user.id
+    );
     router.push(redirectPath);
-    
   } catch (error) {
-    console.error('Login failed:', error);
+    console.error("Login failed:", error);
     throw error;
   }
 };
@@ -154,11 +567,15 @@ const handleLogin = async (email: string, password: string) => {
 ## Student API
 
 ### Student Profile & Dashboard
+
 ```typescript
 interface StudentAPI {
   getProfile(studentId: string): Promise<StudentProfile>;
   getCourses(studentId: string): Promise<Course[]>;
-  getAssignments(studentId: string, filters?: AssignmentFilters): Promise<Assignment[]>;
+  getAssignments(
+    studentId: string,
+    filters?: AssignmentFilters
+  ): Promise<Assignment[]>;
   getGrades(studentId: string, filters?: GradeFilters): Promise<Grade[]>;
   getCalendar(studentId: string): Promise<CalendarEvent[]>;
 }
@@ -200,7 +617,7 @@ interface Course {
     endTime: string;
     location: string;
   }[];
-  enrollmentStatus: 'ACTIVE' | 'COMPLETED' | 'DROPPED' | 'PENDING';
+  enrollmentStatus: "ACTIVE" | "COMPLETED" | "DROPPED" | "PENDING";
   enrollmentDate: Date;
   currentGrade?: number;
   attendancePercentage?: number;
@@ -216,7 +633,7 @@ interface Assignment {
   courseName: string;
   teacherId: string;
   teacherName: string;
-  status: 'PENDING' | 'SUBMITTED' | 'GRADED' | 'OVERDUE';
+  status: "PENDING" | "SUBMITTED" | "GRADED" | "OVERDUE";
   submission?: {
     id: string;
     submittedAt: Date;
@@ -252,14 +669,14 @@ interface Grade {
 interface CalendarEvent {
   id: string;
   title: string;
-  type: 'ASSIGNMENT_DUE' | 'EXAM' | 'LECTURE' | 'HOLIDAY' | 'DEADLINE';
+  type: "ASSIGNMENT_DUE" | "EXAM" | "LECTURE" | "HOLIDAY" | "DEADLINE";
   date: Date;
   time?: string;
   description?: string;
   courseId?: string;
   courseName?: string;
   location?: string;
-  priority: 'LOW' | 'MEDIUM' | 'HIGH';
+  priority: "LOW" | "MEDIUM" | "HIGH";
 }
 
 // Student API Implementation
@@ -272,36 +689,51 @@ export const studentAPI: StudentAPI = {
     return apiClient.get<Course[]>(`/students/${studentId}/courses`);
   },
 
-  async getAssignments(studentId: string, filters?: AssignmentFilters): Promise<Assignment[]> {
+  async getAssignments(
+    studentId: string,
+    filters?: AssignmentFilters
+  ): Promise<Assignment[]> {
     const queryParams = new URLSearchParams();
-    if (filters?.status) queryParams.append('status', filters.status);
-    if (filters?.courseId) queryParams.append('courseId', filters.courseId);
-    if (filters?.fromDate) queryParams.append('fromDate', filters.fromDate.toISOString());
-    
-    const endpoint = `/students/${studentId}/assignments${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
+    if (filters?.status) queryParams.append("status", filters.status);
+    if (filters?.courseId) queryParams.append("courseId", filters.courseId);
+    if (filters?.fromDate)
+      queryParams.append("fromDate", filters.fromDate.toISOString());
+
+    const endpoint = `/students/${studentId}/assignments${
+      queryParams.toString() ? "?" + queryParams.toString() : ""
+    }`;
     return apiClient.get<Assignment[]>(endpoint);
   },
 
   async getGrades(studentId: string, filters?: GradeFilters): Promise<Grade[]> {
     const queryParams = new URLSearchParams();
-    if (filters?.courseId) queryParams.append('courseId', filters.courseId);
-    if (filters?.semester) queryParams.append('semester', filters.semester);
-    
-    const endpoint = `/students/${studentId}/grades${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
+    if (filters?.courseId) queryParams.append("courseId", filters.courseId);
+    if (filters?.semester) queryParams.append("semester", filters.semester);
+
+    const endpoint = `/students/${studentId}/grades${
+      queryParams.toString() ? "?" + queryParams.toString() : ""
+    }`;
     return apiClient.get<Grade[]>(endpoint);
   },
 
   async getCalendar(studentId: string): Promise<CalendarEvent[]> {
     return apiClient.get<CalendarEvent[]>(`/students/${studentId}/calendar`);
-  }
+  },
 };
 ```
 
 ### Assignment Submission API
+
 ```typescript
 interface SubmissionAPI {
-  create(assignmentId: string, data: CreateSubmissionRequest): Promise<Submission>;
-  update(submissionId: string, data: UpdateSubmissionRequest): Promise<Submission>;
+  create(
+    assignmentId: string,
+    data: CreateSubmissionRequest
+  ): Promise<Submission>;
+  update(
+    submissionId: string,
+    data: UpdateSubmissionRequest
+  ): Promise<Submission>;
   get(submissionId: string): Promise<Submission>;
   delete(submissionId: string): Promise<void>;
 }
@@ -327,38 +759,44 @@ interface Submission {
   grade?: number;
   feedback?: string;
   gradedAt?: Date;
-  status: 'SUBMITTED' | 'GRADED';
+  status: "SUBMITTED" | "GRADED";
 }
 
 export const submissionAPI: SubmissionAPI = {
-  async create(assignmentId: string, data: CreateSubmissionRequest): Promise<Submission> {
+  async create(
+    assignmentId: string,
+    data: CreateSubmissionRequest
+  ): Promise<Submission> {
     const formData = new FormData();
-    data.files.forEach(file => formData.append('files', file));
-    if (data.notes) formData.append('notes', data.notes);
+    data.files.forEach((file) => formData.append("files", file));
+    if (data.notes) formData.append("notes", data.notes);
 
     return fetch(`${API_BASE_URL}/assignments/${assignmentId}/submit`, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Authorization': `Bearer ${getToken()}`
+        Authorization: `Bearer ${getToken()}`,
       },
-      body: formData
-    }).then(response => response.json());
+      body: formData,
+    }).then((response) => response.json());
   },
 
-  async update(submissionId: string, data: UpdateSubmissionRequest): Promise<Submission> {
+  async update(
+    submissionId: string,
+    data: UpdateSubmissionRequest
+  ): Promise<Submission> {
     const formData = new FormData();
     if (data.files) {
-      data.files.forEach(file => formData.append('files', file));
+      data.files.forEach((file) => formData.append("files", file));
     }
-    if (data.notes) formData.append('notes', data.notes);
+    if (data.notes) formData.append("notes", data.notes);
 
     return fetch(`${API_BASE_URL}/submissions/${submissionId}`, {
-      method: 'PUT',
+      method: "PUT",
       headers: {
-        'Authorization': `Bearer ${getToken()}`
+        Authorization: `Bearer ${getToken()}`,
       },
-      body: formData
-    }).then(response => response.json());
+      body: formData,
+    }).then((response) => response.json());
   },
 
   async get(submissionId: string): Promise<Submission> {
@@ -367,13 +805,14 @@ export const submissionAPI: SubmissionAPI = {
 
   async delete(submissionId: string): Promise<void> {
     return apiClient.delete<void>(`/submissions/${submissionId}`);
-  }
+  },
 };
 ```
 
 ## Teacher API
 
 ### Teacher Dashboard & Management
+
 ```typescript
 interface TeacherAPI {
   getProfile(teacherId: string): Promise<TeacherProfile>;
@@ -412,7 +851,7 @@ interface Lecture {
   description?: string;
   attendanceRequired: boolean;
   materials?: FileInfo[];
-  status: 'SCHEDULED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
+  status: "SCHEDULED" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED";
 }
 
 interface Student {
@@ -429,7 +868,11 @@ interface Student {
     attendance?: number;
   }[];
   recentActivity: {
-    type: 'ASSIGNMENT_SUBMITTED' | 'LATE_SUBMISSION' | 'MISSING_ASSIGNMENT' | 'GRADE_IMPROVED';
+    type:
+      | "ASSIGNMENT_SUBMITTED"
+      | "LATE_SUBMISSION"
+      | "MISSING_ASSIGNMENT"
+      | "GRADE_IMPROVED";
     date: Date;
     description: string;
     assignmentId?: string;
@@ -467,22 +910,33 @@ export const teacherAPI: TeacherAPI = {
     return apiClient.get<TeacherProfile>(`/teachers/${teacherId}/profile`);
   },
 
-  async getLectures(teacherId: string, filters?: LectureFilters): Promise<Lecture[]> {
+  async getLectures(
+    teacherId: string,
+    filters?: LectureFilters
+  ): Promise<Lecture[]> {
     const queryParams = new URLSearchParams();
-    if (filters?.fromDate) queryParams.append('from', filters.fromDate.toISOString());
-    if (filters?.toDate) queryParams.append('to', filters.toDate.toISOString());
-    if (filters?.courseId) queryParams.append('courseId', filters.courseId);
-    
-    const endpoint = `/teachers/${teacherId}/lectures${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
+    if (filters?.fromDate)
+      queryParams.append("from", filters.fromDate.toISOString());
+    if (filters?.toDate) queryParams.append("to", filters.toDate.toISOString());
+    if (filters?.courseId) queryParams.append("courseId", filters.courseId);
+
+    const endpoint = `/teachers/${teacherId}/lectures${
+      queryParams.toString() ? "?" + queryParams.toString() : ""
+    }`;
     return apiClient.get<Lecture[]>(endpoint);
   },
 
-  async getStudents(teacherId: string, filters?: StudentFilters): Promise<Student[]> {
+  async getStudents(
+    teacherId: string,
+    filters?: StudentFilters
+  ): Promise<Student[]> {
     const queryParams = new URLSearchParams();
-    if (filters?.courseId) queryParams.append('courseId', filters.courseId);
-    if (filters?.search) queryParams.append('search', filters.search);
-    
-    const endpoint = `/teachers/${teacherId}/students${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
+    if (filters?.courseId) queryParams.append("courseId", filters.courseId);
+    if (filters?.search) queryParams.append("search", filters.search);
+
+    const endpoint = `/teachers/${teacherId}/students${
+      queryParams.toString() ? "?" + queryParams.toString() : ""
+    }`;
     return apiClient.get<Student[]>(endpoint);
   },
 
@@ -491,19 +945,28 @@ export const teacherAPI: TeacherAPI = {
   },
 
   async getAssignments(teacherId: string): Promise<TeacherAssignment[]> {
-    return apiClient.get<TeacherAssignment[]>(`/teachers/${teacherId}/assignments`);
-  }
+    return apiClient.get<TeacherAssignment[]>(
+      `/teachers/${teacherId}/assignments`
+    );
+  },
 };
 ```
 
 ### Assignment Creation & Management API
+
 ```typescript
 interface AssignmentAPI {
   create(data: CreateAssignmentRequest): Promise<Assignment>;
-  update(assignmentId: string, data: UpdateAssignmentRequest): Promise<Assignment>;
+  update(
+    assignmentId: string,
+    data: UpdateAssignmentRequest
+  ): Promise<Assignment>;
   delete(assignmentId: string): Promise<void>;
   getSubmissions(assignmentId: string): Promise<SubmissionWithStudent[]>;
-  gradeSubmission(submissionId: string, data: GradeSubmissionRequest): Promise<Grade>;
+  gradeSubmission(
+    submissionId: string,
+    data: GradeSubmissionRequest
+  ): Promise<Grade>;
 }
 
 interface CreateAssignmentRequest {
@@ -548,7 +1011,7 @@ interface SubmissionWithStudent {
   grade?: number;
   feedback?: string;
   gradedAt?: Date;
-  status: 'SUBMITTED' | 'GRADED';
+  status: "SUBMITTED" | "GRADED";
 }
 
 interface GradeSubmissionRequest {
@@ -559,29 +1022,32 @@ interface GradeSubmissionRequest {
 export const assignmentAPI: AssignmentAPI = {
   async create(data: CreateAssignmentRequest): Promise<Assignment> {
     const formData = new FormData();
-    
+
     // Add text fields
     Object.entries(data).forEach(([key, value]) => {
-      if (key !== 'attachments' && value !== undefined) {
+      if (key !== "attachments" && value !== undefined) {
         formData.append(key, value.toString());
       }
     });
-    
+
     // Add files
     if (data.attachments) {
-      data.attachments.forEach(file => formData.append('attachments', file));
+      data.attachments.forEach((file) => formData.append("attachments", file));
     }
 
     return fetch(`${API_BASE_URL}/assignments`, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Authorization': `Bearer ${getToken()}`
+        Authorization: `Bearer ${getToken()}`,
       },
-      body: formData
-    }).then(response => response.json());
+      body: formData,
+    }).then((response) => response.json());
   },
 
-  async update(assignmentId: string, data: UpdateAssignmentRequest): Promise<Assignment> {
+  async update(
+    assignmentId: string,
+    data: UpdateAssignmentRequest
+  ): Promise<Assignment> {
     return apiClient.put<Assignment>(`/assignments/${assignmentId}`, data);
   },
 
@@ -590,28 +1056,40 @@ export const assignmentAPI: AssignmentAPI = {
   },
 
   async getSubmissions(assignmentId: string): Promise<SubmissionWithStudent[]> {
-    return apiClient.get<SubmissionWithStudent[]>(`/assignments/${assignmentId}/submissions`);
+    return apiClient.get<SubmissionWithStudent[]>(
+      `/assignments/${assignmentId}/submissions`
+    );
   },
 
-  async gradeSubmission(submissionId: string, data: GradeSubmissionRequest): Promise<Grade> {
+  async gradeSubmission(
+    submissionId: string,
+    data: GradeSubmissionRequest
+  ): Promise<Grade> {
     return apiClient.put<Grade>(`/submissions/${submissionId}/grade`, data);
-  }
+  },
 };
 ```
 
 ## Admin API
 
 ### Admin Dashboard & User Management
+
 ```typescript
 interface AdminAPI {
   getProfile(adminId: string): Promise<AdminProfile>;
   getTeachers(adminId: string, filters?: UserFilters): Promise<Teacher[]>;
   getStudents(adminId: string, filters?: UserFilters): Promise<Student[]>;
   createTeacher(data: CreateTeacherRequest): Promise<Teacher>;
-  updateTeacher(teacherId: string, data: UpdateTeacherRequest): Promise<Teacher>;
+  updateTeacher(
+    teacherId: string,
+    data: UpdateTeacherRequest
+  ): Promise<Teacher>;
   deleteTeacher(teacherId: string): Promise<void>;
   createStudent(data: CreateStudentRequest): Promise<Student>;
-  updateStudent(studentId: string, data: UpdateStudentRequest): Promise<Student>;
+  updateStudent(
+    studentId: string,
+    data: UpdateStudentRequest
+  ): Promise<Student>;
   deleteStudent(studentId: string): Promise<void>;
 }
 
@@ -634,7 +1112,7 @@ interface Teacher {
   email: string;
   title: string;
   department: string;
-  onlineStatus: 'ONLINE' | 'OFFLINE';
+  onlineStatus: "ONLINE" | "OFFLINE";
   lastActive: Date;
   studentsCount: number;
   coursesCount: number;
@@ -688,33 +1166,48 @@ export const adminAPI: AdminAPI = {
     return apiClient.get<AdminProfile>(`/admins/${adminId}/profile`);
   },
 
-  async getTeachers(adminId: string, filters?: UserFilters): Promise<Teacher[]> {
+  async getTeachers(
+    adminId: string,
+    filters?: UserFilters
+  ): Promise<Teacher[]> {
     const queryParams = new URLSearchParams();
-    if (filters?.college) queryParams.append('college', filters.college);
-    if (filters?.department) queryParams.append('department', filters.department);
-    if (filters?.status) queryParams.append('status', filters.status);
-    if (filters?.search) queryParams.append('search', filters.search);
-    
-    const endpoint = `/admins/${adminId}/teachers${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
+    if (filters?.college) queryParams.append("college", filters.college);
+    if (filters?.department)
+      queryParams.append("department", filters.department);
+    if (filters?.status) queryParams.append("status", filters.status);
+    if (filters?.search) queryParams.append("search", filters.search);
+
+    const endpoint = `/admins/${adminId}/teachers${
+      queryParams.toString() ? "?" + queryParams.toString() : ""
+    }`;
     return apiClient.get<Teacher[]>(endpoint);
   },
 
-  async getStudents(adminId: string, filters?: UserFilters): Promise<Student[]> {
+  async getStudents(
+    adminId: string,
+    filters?: UserFilters
+  ): Promise<Student[]> {
     const queryParams = new URLSearchParams();
-    if (filters?.college) queryParams.append('college', filters.college);
-    if (filters?.department) queryParams.append('department', filters.department);
-    if (filters?.status) queryParams.append('status', filters.status);
-    if (filters?.search) queryParams.append('search', filters.search);
-    
-    const endpoint = `/admins/${adminId}/students${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
+    if (filters?.college) queryParams.append("college", filters.college);
+    if (filters?.department)
+      queryParams.append("department", filters.department);
+    if (filters?.status) queryParams.append("status", filters.status);
+    if (filters?.search) queryParams.append("search", filters.search);
+
+    const endpoint = `/admins/${adminId}/students${
+      queryParams.toString() ? "?" + queryParams.toString() : ""
+    }`;
     return apiClient.get<Student[]>(endpoint);
   },
 
   async createTeacher(data: CreateTeacherRequest): Promise<Teacher> {
-    return apiClient.post<Teacher>('/teachers', data);
+    return apiClient.post<Teacher>("/teachers", data);
   },
 
-  async updateTeacher(teacherId: string, data: UpdateTeacherRequest): Promise<Teacher> {
+  async updateTeacher(
+    teacherId: string,
+    data: UpdateTeacherRequest
+  ): Promise<Teacher> {
     return apiClient.put<Teacher>(`/teachers/${teacherId}`, data);
   },
 
@@ -723,22 +1216,26 @@ export const adminAPI: AdminAPI = {
   },
 
   async createStudent(data: CreateStudentRequest): Promise<Student> {
-    return apiClient.post<Student>('/students', data);
+    return apiClient.post<Student>("/students", data);
   },
 
-  async updateStudent(studentId: string, data: UpdateStudentRequest): Promise<Student> {
+  async updateStudent(
+    studentId: string,
+    data: UpdateStudentRequest
+  ): Promise<Student> {
     return apiClient.put<Student>(`/students/${studentId}`, data);
   },
 
   async deleteStudent(studentId: string): Promise<void> {
     return apiClient.delete<void>(`/students/${studentId}`);
-  }
+  },
 };
 ```
 
 ## Super Admin API
 
 ### System Administration
+
 ```typescript
 interface SuperAdminAPI {
   getProfile(superAdminId: string): Promise<SuperAdminProfile>;
@@ -747,7 +1244,9 @@ interface SuperAdminAPI {
   updateAdmin(adminId: string, data: UpdateAdminRequest): Promise<Admin>;
   deleteAdmin(adminId: string): Promise<void>;
   getSystemSettings(): Promise<SystemSettings>;
-  updateSystemSettings(data: UpdateSystemSettingsRequest): Promise<SystemSettings>;
+  updateSystemSettings(
+    data: UpdateSystemSettingsRequest
+  ): Promise<SystemSettings>;
   getSystemStats(): Promise<SystemStats>;
 }
 
@@ -796,7 +1295,7 @@ interface SystemSettings {
   sessionTimeout: number;
   maintenanceMode: boolean;
   emailNotifications: boolean;
-  defaultLanguage: 'en' | 'ar';
+  defaultLanguage: "en" | "ar";
   supportedLanguages: string[];
   academicYear: string;
   gradePassingThreshold: number;
@@ -809,7 +1308,7 @@ interface UpdateSystemSettingsRequest {
   sessionTimeout?: number;
   maintenanceMode?: boolean;
   emailNotifications?: boolean;
-  defaultLanguage?: 'en' | 'ar';
+  defaultLanguage?: "en" | "ar";
   academicYear?: string;
   gradePassingThreshold?: number;
 }
@@ -835,15 +1334,17 @@ interface SystemStats {
 
 export const superAdminAPI: SuperAdminAPI = {
   async getProfile(superAdminId: string): Promise<SuperAdminProfile> {
-    return apiClient.get<SuperAdminProfile>(`/superadmin/${superAdminId}/profile`);
+    return apiClient.get<SuperAdminProfile>(
+      `/superadmin/${superAdminId}/profile`
+    );
   },
 
   async getAdmins(): Promise<Admin[]> {
-    return apiClient.get<Admin[]>('/superadmin/admins');
+    return apiClient.get<Admin[]>("/superadmin/admins");
   },
 
   async createAdmin(data: CreateAdminRequest): Promise<Admin> {
-    return apiClient.post<Admin>('/superadmin/admins', data);
+    return apiClient.post<Admin>("/superadmin/admins", data);
   },
 
   async updateAdmin(adminId: string, data: UpdateAdminRequest): Promise<Admin> {
@@ -855,22 +1356,25 @@ export const superAdminAPI: SuperAdminAPI = {
   },
 
   async getSystemSettings(): Promise<SystemSettings> {
-    return apiClient.get<SystemSettings>('/superadmin/settings');
+    return apiClient.get<SystemSettings>("/superadmin/settings");
   },
 
-  async updateSystemSettings(data: UpdateSystemSettingsRequest): Promise<SystemSettings> {
-    return apiClient.put<SystemSettings>('/superadmin/settings', data);
+  async updateSystemSettings(
+    data: UpdateSystemSettingsRequest
+  ): Promise<SystemSettings> {
+    return apiClient.put<SystemSettings>("/superadmin/settings", data);
   },
 
   async getSystemStats(): Promise<SystemStats> {
-    return apiClient.get<SystemStats>('/superadmin/stats');
-  }
+    return apiClient.get<SystemStats>("/superadmin/stats");
+  },
 };
 ```
 
 ## File Management API
 
 ### File Upload & Management
+
 ```typescript
 interface FileAPI {
   upload(files: File[], context?: FileContext): Promise<FileInfo[]>;
@@ -880,7 +1384,11 @@ interface FileAPI {
 }
 
 interface FileContext {
-  type: 'ASSIGNMENT_ATTACHMENT' | 'SUBMISSION_FILE' | 'PROFILE_AVATAR' | 'LECTURE_MATERIAL';
+  type:
+    | "ASSIGNMENT_ATTACHMENT"
+    | "SUBMISSION_FILE"
+    | "PROFILE_AVATAR"
+    | "LECTURE_MATERIAL";
   entityId: string; // Assignment ID, Submission ID, etc.
 }
 
@@ -899,27 +1407,27 @@ interface FileInfo {
 export const fileAPI: FileAPI = {
   async upload(files: File[], context?: FileContext): Promise<FileInfo[]> {
     const formData = new FormData();
-    files.forEach(file => formData.append('files', file));
-    
+    files.forEach((file) => formData.append("files", file));
+
     if (context) {
-      formData.append('context', JSON.stringify(context));
+      formData.append("context", JSON.stringify(context));
     }
 
     return fetch(`${API_BASE_URL}/files/upload`, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Authorization': `Bearer ${getToken()}`
+        Authorization: `Bearer ${getToken()}`,
       },
-      body: formData
-    }).then(response => response.json());
+      body: formData,
+    }).then((response) => response.json());
   },
 
   async download(fileId: string): Promise<Blob> {
     return fetch(`${API_BASE_URL}/files/${fileId}/download`, {
       headers: {
-        'Authorization': `Bearer ${getToken()}`
-      }
-    }).then(response => response.blob());
+        Authorization: `Bearer ${getToken()}`,
+      },
+    }).then((response) => response.blob());
   },
 
   async delete(fileId: string): Promise<void> {
@@ -928,13 +1436,14 @@ export const fileAPI: FileAPI = {
 
   async getFileInfo(fileId: string): Promise<FileInfo> {
     return apiClient.get<FileInfo>(`/files/${fileId}`);
-  }
+  },
 };
 ```
 
 ## Real-time Socket API
 
 ### Socket Events & Connection
+
 ```typescript
 // Socket Event Types
 interface SocketEvents {
@@ -944,11 +1453,11 @@ interface SocketEvents {
   error: (error: Error) => void;
 
   // Notification events
-  'notification:new': (notification: Notification) => void;
-  'notification:read': (notificationId: string) => void;
+  "notification:new": (notification: Notification) => void;
+  "notification:read": (notificationId: string) => void;
 
   // Assignment events
-  'assignment:created': (data: {
+  "assignment:created": (data: {
     assignmentId: string;
     title: string;
     courseId: string;
@@ -957,12 +1466,12 @@ interface SocketEvents {
     teacherName: string;
   }) => void;
 
-  'assignment:updated': (data: {
+  "assignment:updated": (data: {
     assignmentId: string;
     changes: string[];
   }) => void;
 
-  'assignment:due_soon': (data: {
+  "assignment:due_soon": (data: {
     assignmentId: string;
     title: string;
     dueDate: Date;
@@ -970,7 +1479,7 @@ interface SocketEvents {
   }) => void;
 
   // Submission events
-  'submission:received': (data: {
+  "submission:received": (data: {
     submissionId: string;
     assignmentId: string;
     assignmentTitle: string;
@@ -980,7 +1489,7 @@ interface SocketEvents {
   }) => void;
 
   // Grade events
-  'grade:posted': (data: {
+  "grade:posted": (data: {
     assignmentId: string;
     assignmentTitle: string;
     grade: number;
@@ -990,14 +1499,14 @@ interface SocketEvents {
   }) => void;
 
   // User status events
-  'user:status_change': (data: {
+  "user:status_change": (data: {
     userId: string;
-    status: 'ONLINE' | 'OFFLINE';
+    status: "ONLINE" | "OFFLINE";
     timestamp: Date;
   }) => void;
 
   // System events
-  'system:maintenance': (data: {
+  "system:maintenance": (data: {
     message: string;
     startTime: Date;
     estimatedDuration: number;
@@ -1013,7 +1522,7 @@ class SocketClient {
   connect(token: string): void {
     this.socket = io(SOCKET_URL, {
       auth: { token },
-      transports: ['websocket', 'polling']
+      transports: ["websocket", "polling"],
     });
 
     this.setupEventListeners();
@@ -1022,21 +1531,21 @@ class SocketClient {
   private setupEventListeners(): void {
     if (!this.socket) return;
 
-    this.socket.on('connect', () => {
-      console.log('Socket connected');
+    this.socket.on("connect", () => {
+      console.log("Socket connected");
       this.reconnectAttempts = 0;
     });
 
-    this.socket.on('disconnect', (reason) => {
-      console.log('Socket disconnected:', reason);
-      if (reason === 'io server disconnect') {
+    this.socket.on("disconnect", (reason) => {
+      console.log("Socket disconnected:", reason);
+      if (reason === "io server disconnect") {
         // Reconnection required
         this.reconnect();
       }
     });
 
-    this.socket.on('connect_error', (error) => {
-      console.error('Socket connection error:', error);
+    this.socket.on("connect_error", (error) => {
+      console.error("Socket connection error:", error);
       this.reconnect();
     });
   }
@@ -1088,7 +1597,7 @@ export const useSocket = () => {
     socket: socketClient,
     on: socketClient.on.bind(socketClient),
     off: socketClient.off.bind(socketClient),
-    emit: socketClient.emit.bind(socketClient)
+    emit: socketClient.emit.bind(socketClient),
   };
 };
 ```
@@ -1096,6 +1605,7 @@ export const useSocket = () => {
 ## Error Handling
 
 ### API Error Types & Handling
+
 ```typescript
 // Error Types
 class APIError extends Error {
@@ -1106,7 +1616,7 @@ class APIError extends Error {
     public details?: Record<string, any>
   ) {
     super(message);
-    this.name = 'APIError';
+    this.name = "APIError";
   }
 }
 
@@ -1114,23 +1624,25 @@ class APIError extends Error {
 export const handleAPIError = (error: APIError): string => {
   switch (error.status) {
     case 400:
-      return error.details?.message || 'Invalid request. Please check your input.';
+      return (
+        error.details?.message || "Invalid request. Please check your input."
+      );
     case 401:
       // Redirect to login
-      window.location.href = '/login';
-      return 'Session expired. Please login again.';
+      window.location.href = "/login";
+      return "Session expired. Please login again.";
     case 403:
-      return 'You do not have permission to perform this action.';
+      return "You do not have permission to perform this action.";
     case 404:
-      return 'The requested resource was not found.';
+      return "The requested resource was not found.";
     case 422:
-      return 'Validation failed. Please check your input.';
+      return "Validation failed. Please check your input.";
     case 429:
-      return 'Too many requests. Please try again later.';
+      return "Too many requests. Please try again later.";
     case 500:
-      return 'Server error. Please try again later.';
+      return "Server error. Please try again later.";
     default:
-      return 'An unexpected error occurred. Please try again.';
+      return "An unexpected error occurred. Please try again.";
   }
 };
 
@@ -1140,7 +1652,7 @@ export const useAPIErrorHandler = () => {
     if (error instanceof APIError) {
       toast.error(handleAPIError(error));
     } else {
-      toast.error('An unexpected error occurred');
+      toast.error("An unexpected error occurred");
     }
   };
 
@@ -1151,6 +1663,7 @@ export const useAPIErrorHandler = () => {
 ## API Usage Examples
 
 ### Complete Integration Example
+
 ```typescript
 // Student Dashboard Data Fetching
 const StudentDashboard: React.FC<{ studentId: string }> = ({ studentId }) => {
@@ -1164,17 +1677,17 @@ const StudentDashboard: React.FC<{ studentId: string }> = ({ studentId }) => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        
+
         const [profileData, assignmentsData] = await Promise.all([
           studentAPI.getProfile(studentId),
-          studentAPI.getAssignments(studentId, { status: 'PENDING' })
+          studentAPI.getAssignments(studentId, { status: "PENDING" }),
         ]);
-        
+
         setProfile(profileData);
         setAssignments(assignmentsData);
       } catch (error) {
         showError(error as APIError);
-        setError('Failed to load dashboard data');
+        setError("Failed to load dashboard data");
       } finally {
         setLoading(false);
       }

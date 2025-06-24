@@ -22,10 +22,26 @@
         "language": "اللغة",
         "direction": "الاتجاه",
         "fontDemo": "عرض الخطوط",
-        "signature": "للتوقيعات",
+        "signature": "للتوقيعات",        
         "logo": "للشعارات",
         "bodyText": "لنص المحتوى",
-        "quickActions": "إجراءات سريعة"
+        "quickActions": "إجراءات سريعة",
+        "loading": "جاري التحميل...",
+        "error": "خطأ",
+        "success": "نجح",
+        "warning": "تحذير",
+        "info": "معلومات",
+        "ok": "موافق",
+        "confirm": "تأكيد",
+        "search": "بحث",
+        "filter": "تصفية",
+        "sort": "ترتيب",
+        "clear": "مسح",
+        "select": "اختيار",
+        "selectAll": "تحديد الكل",
+        "noData": "لا توجد بيانات متاحة",
+        "retry": "إعادة المحاولة",
+        "refresh": "تحديث"
     },
     "navigation": {
         "home": "الرئيسية",
@@ -55,9 +71,9 @@
         "registerTitle": "إنشاء حساب جديد",
         "invalidCredentials": "البريد الإلكتروني أو كلمة المرور غير صحيحة",
         "registrationSuccess": "تم إنشاء الحساب بنجاح",
-        "passwordResetSent": "تم إرسال رابط إعادة تعيين كلمة المرور",
-        "loginRequired": "يرجى تسجيل الدخول للمتابعة",
-        "demoCredentials": "تسجيل دخول تجريبي سريع:"
+        "passwordResetSent": "تم إرسال رابط إعادة تعيين كلمة المرور",        "loginRequired": "يرجى تسجيل الدخول للمتابعة",
+        "demoCredentials": "تسجيل دخول تجريبي سريع:",
+        "getStarted": "ابدأ الآن"
     },
     "roles": {
         "student": "طالب",
@@ -70,10 +86,49 @@
         "dark": "الوضع الداكن",
         "system": "سمة النظام",
         "changeTheme": "تغيير السمة"
-    },
-    "language": {
+    },    "language": {
         "english": "English",
         "arabic": "العربية",
         "changeLanguage": "تغيير اللغة"
+    },
+    "pages": {
+        "student": {
+            "title": "بوابة الطالب",
+            "coursesDescription": "عرض وإدارة المقررات المسجل بها",
+            "assignmentsDescription": "متابعة المهام والواجبات المرسلة",
+            "scheduleDescription": "عرض جدول الحصص والأحداث",
+            "profileDescription": "إدارة المعلومات الشخصية",
+            "viewCourses": "عرض المقررات",
+            "viewAssignments": "عرض الواجبات",
+            "viewSchedule": "عرض الجدول",
+            "editProfile": "تعديل الملف الشخصي",
+            "profile": "الملف الشخصي",
+            "quickStats": "إحصائيات سريعة",
+            "enrolledCourses": "المقررات المسجلة",
+            "completedAssignments": "مكتملة",
+            "pendingAssignments": "معلقة",
+            "averageGrade": "متوسط الدرجات"
+        },
+        "teacher": {
+            "title": "بوابة المدرس",
+            "coursesDescription": "إدارة المقررات والمحتوى",
+            "studentsDescription": "عرض وإدارة الطلاب",
+            "gradesDescription": "تقييم المهام وإدارة الدرجات",
+            "scheduleDescription": "إدارة جدول التدريس"
+        },
+        "admin": {
+            "title": "بوابة المدير",
+            "usersDescription": "إدارة مستخدمي النظام والصلاحيات",
+            "coursesDescription": "الإشراف على جميع المقررات والمناهج",
+            "reportsDescription": "عرض تقارير النظام والتحليلات",
+            "settingsDescription": "تكوين إعدادات النظام"
+        },
+        "superadmin": {
+            "title": "بوابة المدير العام",
+            "systemDescription": "إدارة تكوين النظام العام",
+            "usersDescription": "إدارة جميع المستخدمين والمديرين",
+            "analyticsDescription": "عرض تحليلات شاملة للنظام",
+            "maintenanceDescription": "صيانة النظام والتحديثات"
+        }
     }
 }

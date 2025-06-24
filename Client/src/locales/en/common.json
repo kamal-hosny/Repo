@@ -45,7 +45,7 @@
     },
     "navigation": {
         "home": "Home",
-        "dashboard": "Dashboard", 
+        "dashboard": "Dashboard",
         "courses": "Courses",
         "assignments": "Assignments",
         "grades": "Grades",
@@ -82,7 +82,8 @@
         "registrationSuccess": "Account created successfully",
         "passwordResetSent": "Password reset email sent",
         "loginRequired": "Please log in to continue",
-        "demoCredentials": "Quick Demo Login:"
+        "demoCredentials": "Quick Demo Login:",
+        "getStarted": "Get Started"
     },
     "roles": {
         "student": "Student",
