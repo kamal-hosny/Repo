@@ -24,15 +24,18 @@ const login = asyncHandler(async (req, res) => {
       message: "Invalid id or password",
     });
   }
+
   const isMatch = await bcrypt.compare(password, result.password);
   if (!isMatch) {
     return res.status(400).json({
-      message: "Invalid id or password!!!!!!",
+      message: "Invalid id or password!",
     });
   }
+console.log(result);
+
 
   const token = jwt.sign(
-    { id: Model._id, id: Model.studentId },
+    { _id: String(result._id), id: result.id, role: result.role },
     process.env.JWT_SECRET,
     { expiresIn: process.env.JWT_EXPIRES_IN }
   );

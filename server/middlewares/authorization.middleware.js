@@ -1,6 +1,8 @@
 const authorize = (allowedRoles) => {
   return (req, res, next) => {
     const user = req.user;
+    // console.log("authorized roles:", allowedRoles);
+    
     if (!user) {
       return res.status(403).json({ message: "Forbidden" });
     }

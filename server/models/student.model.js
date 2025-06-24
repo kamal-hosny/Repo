@@ -2,13 +2,11 @@ import mongoose from "mongoose";
 
 const studentSchema = new mongoose.Schema(
   {
-    studentId: {
+    id: {
       type: String,
       required: true,
       unique: true,
-      default: function () {
-        return `STU-${Date.now()}`;
-      },
+      default: () => `STU-${Date.now()}`,
     },
     password: {
       type: String,

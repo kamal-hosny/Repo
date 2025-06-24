@@ -25,10 +25,11 @@ const teacherSchema = new mongoose.Schema(
         ref: "Course",
       },
     ],
-    teacherId: {
+    id: {
       type: String,
       required: true,
       unique: true,
+      default: () => "TEACHER-" + Date.now().toString(),
     },
     password: {
       type: String,
