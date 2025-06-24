@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useTranslation } from 'react-i18next'
 
 export default function TestPage() {
-  const { t } = useTranslation()
+  const { t } = useTranslation('common')
   const dispatch = useAppDispatch()
 
   // Redux state

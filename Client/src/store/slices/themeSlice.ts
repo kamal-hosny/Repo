@@ -8,10 +8,30 @@ interface ThemeState {
     effectiveTheme: 'light' | 'dark'
 }
 
+// Get initial theme from localStorage or default to 'system'
+const getInitialTheme = (): ThemeMode => {
+    if (typeof window !== 'undefined') {
+        const saved = localStorage.getItem('theme') as ThemeMode | null
+        return saved || 'system'
+    }
+    return 'system'
+}
+
+// Detect system theme preference
+const getSystemTheme = (): 'light' | 'dark' => {
+    if (typeof window !== 'undefined') {
+        return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+    }
+    return 'light'
+}
+
+const initialTheme = getInitialTheme()
+const systemTheme = getSystemTheme()
+
 const initialState: ThemeState = {
-    mode: 'system',
-    systemTheme: 'light',
-    effectiveTheme: 'light',
+    mode: initialTheme,
+    systemTheme: systemTheme,
+    effectiveTheme: initialTheme === 'system' ? systemTheme : (initialTheme as 'light' | 'dark'),
 }
 
 export const themeSlice = createSlice({
@@ -21,19 +41,44 @@ export const themeSlice = createSlice({
         setThemeMode: (state, action: PayloadAction<ThemeMode>) => {
             state.mode = action.payload
             state.effectiveTheme = action.payload === 'system' ? state.systemTheme : action.payload
+            
+            // Persist to localStorage
+            if (typeof window !== 'undefined') {
+                localStorage.setItem('theme', action.payload)
+                // Update document class
+                const root = document.documentElement
+                root.classList.remove('light', 'dark')
+                root.classList.add(state.effectiveTheme)
+            }
         },
         setSystemTheme: (state, action: PayloadAction<'light' | 'dark'>) => {
             state.systemTheme = action.payload
             if (state.mode === 'system') {
                 state.effectiveTheme = action.payload
+                
+                // Update document class if in system mode
+                if (typeof window !== 'undefined') {
+                    const root = document.documentElement
+                    root.classList.remove('light', 'dark')
+                    root.classList.add(action.payload)
+                }
             }
-        },        toggleTheme: (state) => {
+        },
+        toggleTheme: (state) => {
             if (state.mode === 'system') {
                 state.mode = state.systemTheme === 'light' ? 'dark' : 'light'
             } else {
                 state.mode = state.mode === 'light' ? 'dark' : 'light'
             }
             state.effectiveTheme = state.mode as 'light' | 'dark'
+            
+            // Persist to localStorage and update document
+            if (typeof window !== 'undefined') {
+                localStorage.setItem('theme', state.mode)
+                const root = document.documentElement
+                root.classList.remove('light', 'dark')
+                root.classList.add(state.effectiveTheme)
+            }
         },
     },
 })

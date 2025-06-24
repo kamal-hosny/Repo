@@ -9,9 +9,20 @@ interface LanguageState {
     isLoading: boolean
 }
 
+// Get initial language from localStorage or default to 'en'
+const getInitialLanguage = (): SupportedLanguage => {
+    if (typeof window !== 'undefined') {
+        const saved = localStorage.getItem('language') as SupportedLanguage | null
+        return saved || 'en'
+    }
+    return 'en'
+}
+
+const initialLanguage = getInitialLanguage()
+
 const initialState: LanguageState = {
-    currentLanguage: 'en',
-    direction: 'ltr',
+    currentLanguage: initialLanguage,
+    direction: initialLanguage === 'ar' ? 'rtl' : 'ltr',
     isLoading: false,
 }
 
@@ -22,6 +33,11 @@ export const languageSlice = createSlice({
         setLanguage: (state, action: PayloadAction<SupportedLanguage>) => {
             state.currentLanguage = action.payload
             state.direction = action.payload === 'ar' ? 'rtl' : 'ltr'
+            
+            // Persist to localStorage
+            if (typeof window !== 'undefined') {
+                localStorage.setItem('language', action.payload)
+            }
         },
         setLoading: (state, action: PayloadAction<boolean>) => {
             state.isLoading = action.payload
@@ -30,6 +46,11 @@ export const languageSlice = createSlice({
             const newLanguage: SupportedLanguage = state.currentLanguage === 'en' ? 'ar' : 'en'
             state.currentLanguage = newLanguage
             state.direction = newLanguage === 'ar' ? 'rtl' : 'ltr'
+            
+            // Persist to localStorage
+            if (typeof window !== 'undefined') {
+                localStorage.setItem('language', newLanguage)
+            }
         },
     },
 })

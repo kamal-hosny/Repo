@@ -14,6 +14,7 @@ const resources = {
     },
 }
 
+// Initialize i18n instance immediately
 i18n
     .use(initReactI18next)
     .init({
@@ -24,11 +25,14 @@ i18n
             escapeValue: false, // not needed for react as it escapes by default
         },
         defaultNS: 'common',
-        ns: ['common'],
-        debug: process.env.NODE_ENV === 'development',
+        ns: ['common'],        debug: process.env.NODE_ENV === 'development',
         react: {
             useSuspense: false,
         },
+        load: 'languageOnly', // Load only language without region
+        cleanCode: true, // Clean language codes
+        keySeparator: '.', // Ensure key separator is explicit
+        nsSeparator: ':',  // Namespace separator
     })
 
 export default i18n

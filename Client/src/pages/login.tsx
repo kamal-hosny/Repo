@@ -10,8 +10,9 @@ import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
 // import { LanguageSwitcher } from '@/components/ui/language-switcher'
-import { useAppDispatch, useAppSelector } from '@/store/hooks'
-import { setError, setLoading, selectIsAuthenticated } from '@/store/slices/authSlice'
+import { useAppSelector } from '@/store/hooks'
+import { selectIsAuthenticated } from '@/store/slices/authSlice'
+import { useLoginMutation } from '@/store/api/authApiSlice'
 
 // Login form validation schema
 const loginSchema = z.object({
@@ -25,9 +26,8 @@ type LoginFormData = z.infer<typeof loginSchema>
 const LoginPage: React.FC = () => {
     const { t } = useTranslation()
     const router = useRouter()
-    const dispatch = useAppDispatch()
-    const { isLoading, error } = useAppSelector((state) => state.auth)
     const isAuthenticated = useAppSelector(selectIsAuthenticated)
+    const [login, { isLoading, error }] = useLoginMutation()
 
     const {
         register,
@@ -35,7 +35,9 @@ const LoginPage: React.FC = () => {
         formState: { errors }
     } = useForm<LoginFormData>({
         resolver: zodResolver(loginSchema)
-    })    // Redirect if already authenticated
+    })
+
+    // Redirect if already authenticated
     React.useEffect(() => {
         if (isAuthenticated) {
             router.push('/')
@@ -43,20 +45,47 @@ const LoginPage: React.FC = () => {
     }, [isAuthenticated, router])
 
     const onSubmit = async (data: LoginFormData) => {
-        console.log('Login attempt with:', data.email) // TODO: Remove when implementing real auth
-        dispatch(setLoading(true))
-
         try {
-            // TODO: Replace with actual API call
-            // const response = await authAPI.login(data)
-            // dispatch(setCredentials(response))
+            const result = await login({
+                email: data.email,
+                password: data.password
+            }).unwrap()
 
-            // For now, show error message that backend is not connected
-            dispatch(setError('Backend not connected. Please implement authentication API.'))
+            // Store in localStorage if remember me is checked
+            if (data.rememberMe) {
+                localStorage.setItem('token', result.token)
+                localStorage.setItem('user', JSON.stringify(result.user))
+            }
+
+            // Redirect based on user role
+            const rolePaths = {
+                STUDENT: '/student',
+                TEACHER: '/teacher',
+                ADMIN: '/admin',
+                SUPER_ADMIN: '/superadmin'
+            }
+
+            const redirectPath = rolePaths[result.user.role] || '/'
+            router.push(redirectPath)
         } catch (err) {
-            dispatch(setError(err instanceof Error ? err.message : 'Login failed'))
-        } finally {
-            dispatch(setLoading(false))
+            console.error('Login failed:', err)
+        }
+    }
+
+    const handleDemoLogin = (role: string) => {
+        const demoCredentials = {
+            STUDENT: { email: 'student@uni.edu', password: 'password' },
+            TEACHER: { email: 'teacher@uni.edu', password: 'password' },
+            ADMIN: { email: 'admin@uni.edu', password: 'password' },
+            SUPER_ADMIN: { email: 'superadmin@system.com', password: 'password' }
+        }
+
+        const credentials = demoCredentials[role as keyof typeof demoCredentials];
+        if (credentials) {
+            handleSubmit(() => onSubmit({
+                ...credentials,
+                rememberMe: false
+            }))()
         }
     }
 
@@ -125,10 +154,11 @@ const LoginPage: React.FC = () => {
                                 </Label>
                             </div>
 
-                            {/* Error Message */}
-                            {error && (
+                            {/* Error Message */}                            {error && (
                                 <div className="text-red-500 text-sm text-center font-body">
-                                    {error}
+                                    {'data' in error && error.data && typeof error.data === 'object' && 'message' in error.data 
+                                        ? (error.data as { message: string }).message 
+                                        : 'Login failed'}
                                 </div>
                             )}
 
@@ -141,15 +171,56 @@ const LoginPage: React.FC = () => {
                                 {isLoading ? t('auth.loggingIn') : t('auth.loginButton')}
                             </Button>
 
-                            {/* Development Note */}
-                            <div className="text-center text-sm text-theme/60 font-body">
-                                <p>Infrastructure ready for authentication integration</p>
+                            {/* Demo Login Buttons */}
+                            <div className="space-y-2">
+                                <p className="text-sm text-center text-theme/60 font-body">
+                                    {t('auth.demoCredentials')}
+                                </p>
+                                <div className="grid grid-cols-2 gap-2">
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => handleDemoLogin('STUDENT')}
+                                        className="font-body"
+                                    >
+                                        {t('roles.student')}
+                                    </Button>
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => handleDemoLogin('TEACHER')}
+                                        className="font-body"
+                                    >
+                                        {t('roles.teacher')}
+                                    </Button>
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => handleDemoLogin('ADMIN')}
+                                        className="font-body"
+                                    >
+                                        {t('roles.admin')}
+                                    </Button>
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => handleDemoLogin('SUPER_ADMIN')}
+                                        className="font-body"
+                                    >
+                                        {t('roles.super_admin')}
+                                    </Button>
+                                </div>
                             </div>
                         </form>
                     </CardContent>
                 </Card>
             </div>
-        </div>    )
+        </div>
+    )
 }
 
 export default LoginPage
